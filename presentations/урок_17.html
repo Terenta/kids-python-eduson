@@ -783,47 +783,35 @@ show_map()</code></pre>
   data-notes="Разбираем анатомию функции. Каждая часть имеет имя. Рисуй на доске параллельно с объяснением диаграммы.">
   <div class="slide__inner">
     <h2>Анатомия <span class="accent">функции</span></h2>
-    <p class="lead">Пять частей — каждая важна</p>
-    <svg viewBox="0 0 900 310" style="width:100%;max-width:900px;margin:16px auto;display:block">
+    <p class="lead">Шесть частей — каждая важна</p>
+    <svg viewBox="0 0 900 300" style="width:100%;max-width:900px;margin:16px auto;display:block">
       <defs>
         <linearGradient id="ag" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
-        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/></marker>
       </defs>
-      <rect x="20" y="40" width="860" height="60" rx="12" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
-      <text x="40" y="80" font-family="JetBrains Mono" font-size="26" font-weight="600">
-        <tspan fill="url(#ag)">def</tspan>
-        <tspan fill="#F1F5F9"> </tspan>
-        <tspan fill="#FBBF24">greet</tspan>
-        <tspan fill="#F1F5F9">(</tspan>
-        <tspan fill="#86efac">name</tspan>
-        <tspan fill="#F1F5F9">):</tspan>
-      </text>
-      <rect x="20" y="120" width="860" height="50" rx="12" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.2)" stroke-width="1.5"/>
-      <text x="80" y="153" font-family="JetBrains Mono" font-size="22" fill="#94A3B8">    <tspan fill="#F1F5F9">print(</tspan><tspan fill="#c4b5fd">f"Привет, {</tspan><tspan fill="#86efac">name</tspan><tspan fill="#c4b5fd">}!"</tspan><tspan fill="#F1F5F9">)</tspan></text>
-      <g font-family="Inter" font-size="14" fill="#94A3B8">
-        <line x1="50" y1="110" x2="50" y2="210" stroke="url(#ag)" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="30" y="230" fill="url(#ag)" font-weight="700" font-size="13">def</text>
-        <text x="10" y="248" font-size="12">ключевое слово</text>
-
-        <line x1="170" y1="42" x2="170" y2="240" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="145" y="258" fill="#FBBF24" font-weight="700" font-size="13">greet</text>
-        <text x="130" y="276" font-size="12">имя функции</text>
-
-        <line x1="310" y1="42" x2="310" y2="240" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="285" y="258" fill="#86efac" font-weight="700" font-size="13">name</text>
-        <text x="268" y="276" font-size="12">параметр</text>
-
-        <line x1="430" y1="42" x2="430" y2="240" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="415" y="258" fill="#F1F5F9" font-weight="700" font-size="13">( )</text>
-        <text x="400" y="276" font-size="12">скобки</text>
-
-        <line x1="490" y1="42" x2="490" y2="240" stroke="#F472B6" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="476" y="258" fill="#F472B6" font-weight="700" font-size="13">:</text>
-        <text x="460" y="276" font-size="12">двоеточие!</text>
-
-        <line x1="100" y1="145" x2="100" y2="295" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <text x="60" y="308" fill="#06B6D4" font-weight="700" font-size="13">    тело</text>
-        <text x="50" y="322" font-size="12" dy="0">отступ 4 пробела</text>
+      <rect x="40" y="24" width="820" height="54" rx="12" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
+      <text x="60" y="60" font-family="'JetBrains Mono',monospace" font-size="26" font-weight="600" xml:space="preserve"><tspan fill="url(#ag)">def</tspan><tspan fill="#F1F5F9"> </tspan><tspan fill="#FBBF24">greet</tspan><tspan fill="#F1F5F9">(</tspan><tspan fill="#86efac">name</tspan><tspan fill="#F1F5F9">):</tspan></text>
+      <g font-family="Inter,sans-serif">
+        <line x1="83" y1="80" x2="90" y2="118" stroke="url(#ag)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="90" y="138" text-anchor="middle" fill="url(#ag)" font-weight="700" font-size="14">def</text>
+        <text x="90" y="156" text-anchor="middle" fill="#94A3B8" font-size="12">ключевое слово</text>
+        <line x1="161" y1="80" x2="250" y2="118" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="250" y="138" text-anchor="middle" fill="#FBBF24" font-weight="700" font-size="14">greet</text>
+        <text x="250" y="156" text-anchor="middle" fill="#94A3B8" font-size="12">имя функции</text>
+        <line x1="208" y1="80" x2="410" y2="118" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="410" y="138" text-anchor="middle" fill="#F1F5F9" font-weight="700" font-size="14">( )</text>
+        <text x="410" y="156" text-anchor="middle" fill="#94A3B8" font-size="12">скобки</text>
+        <line x1="247" y1="80" x2="560" y2="118" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="560" y="138" text-anchor="middle" fill="#86efac" font-weight="700" font-size="14">name</text>
+        <text x="560" y="156" text-anchor="middle" fill="#94A3B8" font-size="12">параметр</text>
+        <line x1="302" y1="80" x2="710" y2="118" stroke="#F472B6" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="710" y="138" text-anchor="middle" fill="#F472B6" font-weight="700" font-size="14">:</text>
+        <text x="710" y="156" text-anchor="middle" fill="#94A3B8" font-size="12">двоеточие</text>
+      </g>
+      <rect x="40" y="196" width="820" height="50" rx="12" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.2)" stroke-width="1.5"/>
+      <text x="60" y="227" font-family="'JetBrains Mono',monospace" font-size="20" xml:space="preserve"><tspan fill="#475569">····</tspan><tspan fill="#F1F5F9">print(</tspan><tspan fill="#c4b5fd">f"Привет, {</tspan><tspan fill="#86efac">name</tspan><tspan fill="#c4b5fd">}!"</tspan><tspan fill="#F1F5F9">)</tspan></text>
+      <g font-family="Inter,sans-serif">
+        <line x1="450" y1="246" x2="450" y2="264" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="450" y="284" text-anchor="middle" fill="#06B6D4" font-weight="700" font-size="14">тело функции <tspan fill="#94A3B8" font-weight="400">— с отступом 4 пробела</tspan></text>
       </g>
     </svg>
   </div>
@@ -1142,15 +1130,16 @@ show_game_screen()</div>
       <rect x="10" y="10" width="780" height="240" rx="16" fill="rgba(124,58,237,0.05)" stroke="rgba(124,58,237,0.3)" stroke-width="2"/>
       <text x="30" y="38" font-family="Inter" font-size="14" fill="#7C3AED" font-weight="600">ГЛОБАЛЬНАЯ ОБЛАСТЬ (вся программа)</text>
       <text x="30" y="60" font-family="JetBrains Mono" font-size="14" fill="#F1F5F9">game_name = "EdisonGames"</text>
-      <rect x="30" y="80" width="500" height="140" rx="12" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.4)" stroke-width="2"/>
+      <rect x="30" y="80" width="470" height="140" rx="12" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.4)" stroke-width="2"/>
       <text x="50" y="104" font-family="Inter" font-size="14" fill="#06B6D4" font-weight="600">ОБЛАСТЬ ФУНКЦИИ greet()</text>
       <text x="50" y="128" font-family="JetBrains Mono" font-size="14" fill="#F1F5F9">local_msg = "Привет!"</text>
       <text x="50" y="152" font-family="JetBrains Mono" font-size="14" fill="#94A3B8"># видит game_name ✅</text>
-      <text x="50" y="176" font-family="JetBrains Mono" font-size="14" fill="#94A3B8"># local_msg снаружи ❌</text>
-      <text x="560" y="140" font-family="Inter" font-size="13" fill="#94A3B8" text-anchor="middle">снаружи</text>
-      <text x="560" y="158" font-family="Inter" font-size="13" fill="#fca5a5" text-anchor="middle">local_msg</text>
-      <text x="560" y="176" font-family="Inter" font-size="13" fill="#fca5a5" text-anchor="middle">не видна ❌</text>
-      <text x="30" y="228" font-family="JetBrains Mono" font-size="13" fill="#94A3B8"># print(local_msg) — NameError!</text>
+      <text x="50" y="176" font-family="JetBrains Mono" font-size="14" fill="#94A3B8"># local_msg только тут</text>
+      <line x1="505" y1="150" x2="600" y2="150" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="650" y="138" font-family="Inter" font-size="13" fill="#94A3B8" text-anchor="middle">снаружи</text>
+      <text x="650" y="158" font-family="JetBrains Mono" font-size="13" fill="#fca5a5" text-anchor="middle">local_msg</text>
+      <text x="650" y="178" font-family="Inter" font-size="13" fill="#fca5a5" text-anchor="middle">не видна ❌</text>
+      <text x="30" y="240" font-family="JetBrains Mono" font-size="13" fill="#94A3B8"># print(local_msg) — NameError!</text>
     </svg>
     <div class="card" style="margin-top:4px">
       <p><b class="accent">Просто:</b> функция видит снаружи, снаружи — не видит внутрь. Пока это всё, что нужно знать. На уроке 18 разберём параметры — они решают эту проблему красиво.</p>
