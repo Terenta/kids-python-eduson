@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 38 — Как работать с мышью PyGame Zero + сквозной проект #1, часть 2 | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 38</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с мышью PyGame Zero + сквозной проект #1, часть 2</h2>
+  <div class="meta"><span>Отдел:</span> <span>Разработки</span> <span>Неделя:</span> <span>19</span> <span>Возраст:</span> <span>8-14</span> </div>
+  <p><strong>Отдел:</strong> Разработки  <strong>Неделя:</strong> 19  <strong>Возраст:</strong> 8-14</p>
+<h2>🎯 Цель</h2>
+<p>Оживить корзинку. Заставить её следовать за курсором мыши и реагировать на клики. Ребёнок чувствует «я управляю персонажем, я разработчик».</p>
+<h2>📚 Результаты</h2>
+<p>Ученик знает функции-обработчики: <code>on_mouse_move(pos)</code>, <code>on_mouse_down(pos, button)</code>, <code>on_mouse_up(pos)</code>. Понимает разницу между «событием» (мышь нажали — один раз) и «состоянием» (кнопка зажата — много кадров). Умеет менять позицию Actor по координатам мыши.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, PyGame Zero, проект с прошлого урока, Kandinsky для звуковой иконки (декоративно) и альтернативной корзинки-«корабля».</p>
+<h2>⚙️ Техтребования</h2>
+<p>Папка <code>basket_apple/</code> — та же. Открываем <code>game.py</code>. Дополнительно в <code>images/</code> можно положить <code>basket_happy.png</code> — корзинка с улыбкой после клика.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p>0-5: разбор ДЗ — у всех ли падает яблоко, у кого проскочило за экран. Показываю свой пример.</p>
+<p>5-15: теория. События мыши в PyGame Zero. Объясняю через аналогию со звонком в дверь: <code>on_mouse_down</code> — дверной звонок (событие), а не «проверять каждую секунду, нажата ли кнопка». Живая демка: пишу <code>def on_mouse_down(pos): print(pos)</code> и кликаю — показываю консоль.</p>
+<p>15-30: совместный кодинг. Добавляем <code>def on_mouse_move(pos): basket.x = pos[0]</code>. Корзинка теперь следит за курсором. Обсуждаем, почему <code>pos[0]</code> — это x, <code>pos[1]</code> — y (на уроке 6 мы уже это видели в списках).</p>
+<p>30-45: самостоятельно. Ученик добавляет <code>on_mouse_down</code>: при клике корзинка меняет картинку (<code>basket.image = 'basket_happy'</code>) и через 0.3 секунды возвращает обычную (<code>clock.schedule(...)</code> — преподаватель пишет функцию первый раз вместе).</p>
+<p>45-55: усложнение. Ограничиваем корзинку краями экрана: <code>basket.x = max(50, min(WIDTH-50, pos[0]))</code>. Обсуждаем, зачем — чтобы корзинка не улетала за край.</p>
+<p>55-60: итог + ДЗ.</p>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<p>«Мышь — это самый простой способ ввода, поэтому начинаем с неё». «Событие — это одноразовая вспышка, <code>on_mouse_down</code> сработает РОВНО один раз за клик». «<code>pos</code> приходит кортежем, как координаты в морском бою: сначала x, потом y». «Не пиши логику в <code>draw()</code> — это место только для рисования». «<code>max(50, min(WIDTH-50, x))</code> — это зажим в коридор, взрослые программисты называют <code>clamp</code>». «Если не реагирует — проверь, что функция называется именно <code>on_mouse_down</code>, с подчёркиваниями, без опечаток». «PyGame Zero сам найдёт все функции <code>on_...</code> и будет вызывать».</p>
+<h2>🎨 Мини-проект / этап сквозного проекта</h2>
+<p>Сквозной #1, часть 2. Корзинка движется за мышью, реагирует на клик сменой спрайта. Яблоко продолжает падать (из ДЗ). Пока ловить не умеем — это урок 39.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Сделать так, чтобы при клике правой кнопкой (<code>button == mouse.RIGHT</code>) корзинка «подпрыгивала» на 20 пикселей вверх и возвращалась через 0.2 сек. 2. Добавить ещё одно яблоко на другой x-координате, падающее с другой скоростью. 3. Записать 20-секундное видео игры и отправить в чат.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Корзинка корректно следует за мышью, не выезжает за экран. При клике происходит видимая реакция (смена спрайта или подпрыгивание). Ребёнок объясняет разницу между <code>on_mouse_move</code> и <code>on_mouse_down</code>.</p>
+<h2>⚠️ Сложности и решения</h2>
+<p>«Корзинка дёргается» — это нормально, мышь шлёт много событий. «Кликаю — ничего не происходит» — проверяем имя функции и что используем <code>basket.image = '...'</code> без расширения <code>.png</code>. «<code>clock</code> не определён» — в PyGame Zero он есть автоматически, но если IDE ругается — <code>from pgzero.clock import clock</code> (в редких случаях).</p>
+<h2>🎁 Бонус</h2>
+<p>«Звёздная задача»: зажать левую кнопку — корзинка оставляет «след» (список позиций, в <code>draw()</code> рисуем <code>screen.draw.line(...)</code> между ними). Это предвосхищает работу со списками и циклами в контексте игр.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Если корзинка «прыгает странно» — ребёнок копирует код в YandexGPT и спрашивает «почему на клике спрайт мигает только иногда». Учится формулировать вопрос с контекстом.</p>
+<hr>
+</div>
+</body>
+</html>

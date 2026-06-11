@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 33 — ИИ вокруг нас | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card__icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.25));margin-bottom:14px;font-size:22px}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  .kv{display:flex;flex-direction:column;gap:14px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:12px 0;border-bottom:1px dashed var(--card-border)}
+  .kv__item:last-child{border-bottom:none}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--cyan);flex:0 0 180px;font-weight:500}
+  .kv__val{font-size:16px;color:var(--text);line-height:1.45}
+
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  .timeline{display:flex;flex-direction:column;gap:12px}
+  .timeline__row{display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:flex-start;padding:14px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--cyan)}
+  .timeline__body h3{font-size:17px;margin-bottom:4px}
+  .timeline__body p{font-size:14px;color:var(--muted)}
+
+  .diagram{width:100%;max-width:700px;margin:0 auto;display:block}
+  .emo{font-size:48px;line-height:1}
+  .hero-num{font-size:clamp(80px,14vw,180px);font-weight:800;line-height:0.9;letter-spacing:-0.04em;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li,
+  .slide.active .timeline__row{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1),.slide.active .timeline__row:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .timeline__row:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .timeline__row:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4),.slide.active .timeline__row:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5),.slide.active .timeline__row:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .timeline__row:nth-child(6){animation-delay:360ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">22</span></div>
+
+<main class="deck" id="deck">
+
+<!-- 1. COVER -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Первый урок нового модуля — ИИ! Создай вау-момент: спроси ребёнка, где он сегодня уже встретил ИИ. Большинство не знает, что YouTube-рекомендации, Алиса, разблокировка лица — это всё ИИ. Цель урока: поменять картину мира.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №33</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        ИИ вокруг нас
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 1b. Разбор домашнего задания -->
+<section class="slide"
+  data-notes="Начни с разбора домашнего задания урока 32. Спроси, что получилось, что было сложным. Вручи бейджи за выполненное ДЗ. Переход: 'Сегодня никакого кода — только самое важное: понять ИИ.'">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span></h2>
+    <p class="lead">Урок 32 → переходим к самому интересному модулю: ИИ!</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card card--violet">
+        <h3>Что проверяем из урока 32</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Написал ли проект с классами и наследованием?</li>
+          <li>Работает ли override методов?</li>
+          <li>Есть ли super().__init__() в дочернем классе?</li>
+          <li>Можешь ли объяснить разницу: класс vs экземпляр?</li>
+        </ul>
+      </div>
+      <div class="card card--cyan">
+        <h3>Мост к уроку 33</h3>
+        <p style="margin-top:10px;font-size:15px">ООП, которое мы изучили — это один подход к программированию. ИИ — это другой: вместо жёстких правил <code>if/elif</code> программа <b>обучается на данных</b>. Это революция в разработке игр.</p>
+        <div style="margin-top:10px">
+          <span class="badge-green">Модуль ООП ✓</span>
+          <span style="margin-left:8px;font-weight:600;color:var(--amber)">→ Модуль ИИ 🤖</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. EdisonGames — ИИ-отдел -->
+<section class="slide"
+  data-notes="EdisonGames — вымышленная игровая студия, где ребёнок работает. В этом модуле он становится ИИ-инженером отдела. Пусть это ощущается как настоящая работа.">
+  <div class="slide__inner">
+    <h2><span class="accent">EdisonGames</span> — ИИ-отдел открыт!</h2>
+    <p class="lead">Ты переходишь на новую должность — AI Engineer</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card card--glow">
+        <div class="card__icon">🏢</div>
+        <h3>Добро пожаловать в ИИ-отдел</h3>
+        <p>4 урока, 4 направления: понять ИИ → использовать ИИ → встроить ИИ в IDE → создать сайт с ИИ. Ты уже умеешь Python, ООП, структуры данных. Теперь добавим суперсилу.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎯</div>
+        <h3>Цель модуля</h3>
+        <p>Научиться работать с ИИ-инструментами как настоящий разработчик: не бояться, не доверять слепо, применять там, где выгодно.</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">📅</div>
+        <h3>Уроки модуля 9</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li><b>Урок 33</b> — ИИ вокруг нас (сегодня)</li>
+          <li><b>Урок 34</b> — YandexGPT и Perplexity для кода</li>
+          <li><b>Урок 35</b> — ИИ-IDE и автодополнение</li>
+          <li><b>Урок 36</b> — Проект: сайт-визитка с ИИ</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card__icon">🏅</div>
+        <h3>Бейдж модуля</h3>
+        <p>«Друг ИИ» — получишь после защиты проекта на уроке 36. Это один из самых ценных бейджей курса.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Plan -->
+<section class="slide"
+  data-notes="Покажи план урока. Сегодня нет кода — только демонстрации и обсуждения. Скажи: 'Иногда самые важные уроки — без кода. Сегодня мы меняем картину мира.'">
+  <div class="slide__inner">
+    <h2>План урока — <span class="accent">60 минут</span></h2>
+    <p class="lead">Пять этапов, от «что такое ИИ» до «три правила безопасного использования»</p>
+    <div class="timeline" style="margin-top:16px">
+      <div class="timeline__row">
+        <div class="timeline__time">0–10 мин</div>
+        <div class="timeline__body"><h3>Что такое ИИ</h3><p>ИИ vs обычная программа. Иерархия: ИИ → ML → Deep Learning</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">10–25 мин</div>
+        <div class="timeline__body"><h3>ИИ в жизни</h3><p>Где ты встречаешь ИИ каждый день: смартфон, игры, музыка, карты</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">25–40 мин</div>
+        <div class="timeline__body"><h3>Демонстрация</h3><p>Открываем Алису, YandexGPT, GigaChat — тестируем вместе</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">40–55 мин</div>
+        <div class="timeline__body"><h3>Галлюцинации ИИ</h3><p>Когда ИИ уверенно врёт. Как распознать. Как проверять</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55–60 мин</div>
+        <div class="timeline__body"><h3>3 правила + ДЗ</h3><p>Главные правила работы с ИИ, которые программисты используют каждый день</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Hook — 10 мест -->
+<section class="slide"
+  data-notes="Мозговой штурм: где ребёнок уже встретил ИИ сегодня? Не давай подсказок — пусть сам вспоминает. YouTube-рекомендации, разблокировка телефона, Алиса, навигатор — всё это ИИ. Пусть удивится сам.">
+  <div class="slide__inner" style="text-align:center;align-items:center">
+    <div class="hero-num">10</div>
+    <h2 style="margin-top:12px">мест, где ты встретил <span class="accent">ИИ сегодня</span></h2>
+    <p class="lead" style="max-width:720px;margin:0 auto">Не замечал? Сейчас найдём. Назови 5 — получишь пять очков в ИИ-отделе.</p>
+    <div class="grid grid--4" style="margin-top:24px;max-width:900px">
+      <div class="card"><div style="font-size:32px;margin-bottom:8px">📱</div><p style="font-size:14px;color:var(--text)">Разблокировка лицом</p></div>
+      <div class="card"><div style="font-size:32px;margin-bottom:8px">🎬</div><p style="font-size:14px;color:var(--text)">YouTube рекомендует видео</p></div>
+      <div class="card"><div style="font-size:32px;margin-bottom:8px">🗺️</div><p style="font-size:14px;color:var(--text)">Навигатор строит маршрут</p></div>
+      <div class="card"><div style="font-size:32px;margin-bottom:8px">✉️</div><p style="font-size:14px;color:var(--text)">Фильтр спама в почте</p></div>
+    </div>
+    <div class="quote-block" style="margin-top:20px;text-align:left;max-width:780px">
+      «ИИ уже не будущее — это сегодняшний завтрак, обед и ужин»
+    </div>
+  </div>
+</section>
+
+<!-- 5. ИИ vs обычная программа -->
+<section class="slide"
+  data-notes="Ключевое отличие: обычная программа — жёсткие правила (if-else), знает точно. ИИ — учился на данных, угадывает лучшее. Пример: калькулятор всегда точен, нейросеть угадывает перевод — иногда ошибается. Это фундамент всего модуля.">
+  <div class="slide__inner">
+    <h2>ИИ vs обычная <span class="accent">программа</span></h2>
+    <p class="lead">В чём принципиальная разница?</p>
+    <svg class="diagram" viewBox="0 0 900 260" style="margin-top:16px;max-width:900px">
+      <defs>
+        <linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
+        <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/>
+        </marker>
+      </defs>
+      <rect x="20" y="30" width="380" height="200" rx="18" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
+      <text x="210" y="65" text-anchor="middle" fill="#c4b5fd" font-family="Inter" font-size="18" font-weight="700">Обычная программа</text>
+      <rect x="60" y="85" width="300" height="40" rx="8" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.3)" stroke-width="1"/>
+      <text x="210" y="111" text-anchor="middle" fill="#E5E7EB" font-family="JetBrains Mono" font-size="14">if x &gt; 0: return "положительное"</text>
+      <text x="210" y="155" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Жёсткие правила</text>
+      <text x="210" y="178" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Всегда точный ответ</text>
+      <text x="210" y="201" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Не умеет «угадывать»</text>
+      <text x="210" y="225" text-anchor="middle" fill="#10B981" font-family="Inter" font-size="13">✓ Калькулятор, сортировка</text>
+      <rect x="500" y="30" width="380" height="200" rx="18" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.3)" stroke-width="1.5"/>
+      <text x="690" y="65" text-anchor="middle" fill="#67e8f9" font-family="Inter" font-size="18" font-weight="700">Нейросеть / ИИ</text>
+      <rect x="540" y="85" width="300" height="40" rx="8" fill="rgba(6,182,212,0.12)" stroke="rgba(6,182,212,0.3)" stroke-width="1"/>
+      <text x="690" y="111" text-anchor="middle" fill="#E5E7EB" font-family="JetBrains Mono" font-size="13">train(million_examples) → predict</text>
+      <text x="690" y="155" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Училась на примерах</text>
+      <text x="690" y="178" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Угадывает лучший ответ</text>
+      <text x="690" y="201" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="14">Может ошибаться</text>
+      <text x="690" y="225" text-anchor="middle" fill="#10B981" font-family="Inter" font-size="13">✓ Перевод, распознавание лица</text>
+      <text x="450" y="140" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="24" font-weight="800">VS</text>
+    </svg>
+    <div class="card" style="margin-top:8px">
+      <p><b style="color:var(--cyan)">Аналогия:</b> Калькулятор всегда считает 2+2=4. Нейросеть угадывает перевод слова — иногда ошибается, но справляется с миллионом слов.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Иерархия ИИ → ML → DL -->
+<section class="slide"
+  data-notes="Три уровня иерархии: ИИ (самый широкий) → ML (машинное обучение) → Deep Learning (глубокое обучение). ChatGPT, Алиса — это Deep Learning. Объясни: чем глубже — тем мощнее, но и тем сложнее объяснить 'почему' сработало.">
+  <div class="slide__inner">
+    <h2>Иерархия <span class="accent">ИИ → ML → DL</span></h2>
+    <p class="lead">Три уровня — от широкого понятия к конкретной технологии</p>
+    <div style="display:flex;gap:32px;align-items:center;margin-top:16px">
+      <svg viewBox="0 0 340 340" style="width:300px;flex:0 0 300px">
+        <defs>
+          <linearGradient id="c1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7C3AED" stop-opacity="0.15"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0.08"/></linearGradient>
+        </defs>
+        <circle cx="170" cy="170" r="155" fill="url(#c1)" stroke="rgba(124,58,237,0.4)" stroke-width="2"/>
+        <text x="50" y="55" fill="#c4b5fd" font-family="Inter" font-size="16" font-weight="700">Искусственный интеллект</text>
+        <text x="50" y="72" fill="#94A3B8" font-family="Inter" font-size="12">Любая программа «похожая на интеллект»</text>
+        <circle cx="170" cy="185" r="105" fill="rgba(6,182,212,0.12)" stroke="rgba(6,182,212,0.45)" stroke-width="2"/>
+        <text x="95" y="115" fill="#67e8f9" font-family="Inter" font-size="14" font-weight="700">Machine Learning</text>
+        <text x="85" y="132" fill="#94A3B8" font-family="Inter" font-size="11">Учится на данных</text>
+        <circle cx="170" cy="205" r="62" fill="rgba(236,72,153,0.15)" stroke="rgba(236,72,153,0.5)" stroke-width="2"/>
+        <text x="170" y="195" text-anchor="middle" fill="#f9a8d4" font-family="Inter" font-size="12" font-weight="700">Deep Learning</text>
+        <text x="170" y="212" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="10">Нейросети</text>
+        <text x="170" y="228" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="10">GPT, Алиса</text>
+      </svg>
+      <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+        <div class="card card--glow">
+          <h3 style="color:#c4b5fd">ИИ (Artificial Intelligence)</h3>
+          <p>Любая система, имитирующая интеллект. Включает шахматные движки, рекомендательные системы, навигаторы.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:#67e8f9">ML (Machine Learning)</h3>
+          <p>Программы, которые учатся на примерах. Сортировка спама, предсказание цен, распознавание изображений.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:#f9a8d4">Deep Learning (нейросети)</h3>
+          <p>Многослойные нейронные сети. ChatGPT, Midjourney, Алиса, Google Translate — это здесь.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6b. Типы машинного обучения -->
+<section class="slide"
+  data-notes="Три типа ML: обучение с учителем (самое распространённое), без учителя (кластеризация), с подкреплением (игровые ИИ). Примеры из реальных игр делают это живым. Не нужно запоминать математику — только концепции.">
+  <div class="slide__inner">
+    <h2>Три типа <span class="accent">машинного обучения</span></h2>
+    <p class="lead">Supervised, Unsupervised, Reinforcement — как учится ИИ</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--violet">
+        <div style="font-size:28px;margin-bottom:10px">👨‍🏫</div>
+        <h3>Обучение с учителем</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:#c4b5fd">Supervised Learning</b><br>Данные с правильными ответами. Нейросеть учится соответствию «вход→выход».</p>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+          <b>Примеры:</b> распознавание лиц, фильтр спама, предсказание цен
+        </div>
+      </div>
+      <div class="card card--cyan">
+        <div style="font-size:28px;margin-bottom:10px">🔍</div>
+        <h3>Обучение без учителя</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:#67e8f9">Unsupervised Learning</b><br>Данные без меток. ИИ сам ищет паттерны и группирует похожее.</p>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+          <b>Примеры:</b> рекомендации YouTube, сегментация игроков, аномалии
+        </div>
+      </div>
+      <div class="card card--green">
+        <div style="font-size:28px;margin-bottom:10px">🎮</div>
+        <h3>Обучение с подкреплением</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:#86efac">Reinforcement Learning</b><br>ИИ пробует действия, получает награду/штраф, учится побеждать.</p>
+        <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+          <b>Примеры:</b> AlphaGo, OpenAI Five (Dota2), боты в Starcraft
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <p style="font-size:14px"><b style="color:var(--amber)">В нашем курсе:</b> Мы будем использовать уже обученные модели через API. Обучение с нуля требует мощных серверов и месяцев работы — это задача для больших компаний.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Как нейросеть учится -->
+<section class="slide"
+  data-notes="Объясни через метафору обучения: нейросеть видит миллион кошек и собак с подписями. Постепенно 'понимает' паттерны. Это и есть обучение с учителем.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">нейросеть учится</span>?</h2>
+    <p class="lead">Данные → Паттерны → Предсказание — три шага обучения</p>
+    <svg class="diagram" viewBox="0 0 900 220" style="margin-top:16px;max-width:900px">
+      <defs>
+        <marker id="am3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/>
+        </marker>
+      </defs>
+      <rect x="10" y="50" width="200" height="130" rx="16" fill="rgba(124,58,237,0.1)" stroke="rgba(124,58,237,0.4)" stroke-width="1.5"/>
+      <text x="110" y="90" text-anchor="middle" font-size="36">📚</text>
+      <text x="110" y="120" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="16" font-weight="600">Данные</text>
+      <text x="110" y="143" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Миллион примеров</text>
+      <text x="110" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">с правильными ответами</text>
+      <line x1="215" y1="115" x2="285" y2="115" stroke="#06B6D4" stroke-width="2" marker-end="url(#am3)"/>
+      <rect x="295" y="50" width="220" height="130" rx="16" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.4)" stroke-width="1.5"/>
+      <text x="405" y="90" text-anchor="middle" font-size="36">🧠</text>
+      <text x="405" y="120" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="16" font-weight="600">Нейросеть учится</text>
+      <text x="405" y="143" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Ищет паттерны</text>
+      <text x="405" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Настраивает веса</text>
+      <line x1="520" y1="115" x2="590" y2="115" stroke="#06B6D4" stroke-width="2" marker-end="url(#am3)"/>
+      <rect x="600" y="50" width="200" height="130" rx="16" fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.4)" stroke-width="1.5"/>
+      <text x="700" y="90" text-anchor="middle" font-size="36">🎯</text>
+      <text x="700" y="120" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="16" font-weight="600">Предсказание</text>
+      <text x="700" y="143" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Новые данные →</text>
+      <text x="700" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">угадывает ответ</text>
+    </svg>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card">
+        <p><b style="color:var(--cyan)">Пример:</b> 1 млн фото кошек с подписью «кошка» → нейросеть запоминает: вертикальные зрачки, острые уши, мягкая шерсть</p>
+      </div>
+      <div class="card">
+        <p><b style="color:var(--cyan)">Итог:</b> Показываем новое фото — нейросеть угадывает «кошка» с точностью 99%</p>
+      </div>
+      <div class="card">
+        <p><b style="color:var(--cyan)">Важно:</b> Нейросеть не «думает» как человек. Она ищет математические паттерны в числах</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. ИИ в твоей жизни -->
+<section class="slide"
+  data-notes="Пройди по каждому пункту и попроси ребёнка вспомнить, когда он это встречал. Сделай это личным — сегодня он разблокировал телефон лицом (ИИ), слушал рекомендации (ИИ), видел автокоррекцию (ИИ).">
+  <div class="slide__inner">
+    <h2>ИИ в <span class="accent">твоей жизни</span></h2>
+    <p class="lead">Ты используешь ИИ каждый день — даже не зная об этом</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card card--glow">
+        <div class="card__icon">📱</div>
+        <h3>Смартфон</h3>
+        <p>Разблокировка лицом, автокоррекция текста, фильтры в камере, голосовой помощник Алиса/Siri</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎬</div>
+        <h3>Развлечения</h3>
+        <p>YouTube предлагает следующее видео, Spotify — плейлист, Кинопоиск — фильм на вечер</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎮</div>
+        <h3>Игры</h3>
+        <p>NPC с умным поведением, процедурная генерация карт, анти-чит системы, адаптивная сложность</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">🗺️</div>
+        <h3>Навигация</h3>
+        <p>Яндекс.Карты предсказывают пробки, строят оптимальный маршрут с учётом погоды и ДТП</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">✉️</div>
+        <h3>Безопасность</h3>
+        <p>Фильтр спама в почте, антивирус, система антифрода в банке — всё это ML-модели</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">🎵</div>
+        <h3>Музыка</h3>
+        <p>Шазам распознаёт песню за 5 секунд. Автоперевод субтитров. Генерация музыки по описанию</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8b. Нейросеть в Python — демо-перцептрон -->
+<section class="slide"
+  data-notes="Покажи простейшую нейросеть — перцептрон — прямо в коде. Без библиотек. Это не то, что используется в реальных ИИ, но показывает принцип весов и активации. Ключевой вопрос: как компьютер 'решает' задачу без if-else?">
+  <div class="slide__inner">
+    <h2>Нейросеть в Python: <span class="accent">перцептрон</span></h2>
+    <p class="lead">Простейшая нейросеть — без библиотек, только математика</p>
+    <div class="compiler" data-lang="python" contenteditable="true" spellcheck="false"># Простейшая нейросеть: перцептрон
+# Учится определять: число > 0 или нет?
+
+def activate(x):
+    """Функция активации: 1 если x>=0, иначе 0."""
+    return 1 if x >= 0 else 0
+
+def predict(inputs, weights, bias):
+    """Перцептрон: взвешенная сумма + активация."""
+    total = sum(x * w for x, w in zip(inputs, weights))
+    return activate(total + bias)
+
+def train(data, labels, epochs=10, lr=0.1):
+    """Обучение: корректируем веса на ошибках."""
+    weights = [0.0] * len(data[0])
+    bias = 0.0
+    for epoch in range(epochs):
+        errors = 0
+        for inputs, label in zip(data, labels):
+            pred = predict(inputs, weights, bias)
+            error = label - pred
+            # Обновляем веса
+            weights = [w + lr * error * x
+                       for w, x in zip(weights, inputs)]
+            bias += lr * error
+            errors += abs(error)
+        print(f"Эпоха {epoch+1}: ошибок = {errors}")
+    return weights, bias
+
+# Задача: определить знак числа
+# Входные данные: [число], метка: 1 если>0, 0 иначе
+data   = [[5], [-3], [8], [-1], [2], [-7]]
+labels = [ 1,   0,   1,   0,   1,   0  ]
+
+print("Обучаем...")
+w, b = train(data, labels, epochs=5)
+print("\nПроверяем:")
+for x in [3, -2, 10, -5]:
+    r = predict([x], w, b)
+    print(f"  {x} → {'положительное' if r else 'отрицательное'}")</div>
+    <div class="compiler-output"></div>
+  </div>
+</section>
+
+<!-- 9. ИИ в играх -->
+<section class="slide"
+  data-notes="Особое внимание играм — ребёнок понимает это лично. NPC в GTA, противники в FIFA, генерация мира в Minecraft — всё это ИИ разного уровня. Мы будем добавлять ИИ в игру на уроке 36 и потом в PyGame.">
+  <div class="slide__inner">
+    <h2>ИИ в <span class="accent">играх</span></h2>
+    <p class="lead">Как нейросети и ML делают игры умнее</p>
+    <svg class="diagram" viewBox="0 0 900 200" style="margin-top:12px;max-width:900px">
+      <rect x="10" y="20" width="200" height="140" rx="14" fill="rgba(124,58,237,0.1)" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
+      <text x="110" y="65" text-anchor="middle" font-size="32">🤖</text>
+      <text x="110" y="95" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="14" font-weight="600">Умные NPC</text>
+      <text x="110" y="115" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Обходят препятствия,</text>
+      <text x="110" y="132" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">атакуют умно</text>
+      <rect x="230" y="20" width="200" height="140" rx="14" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.35)" stroke-width="1.5"/>
+      <text x="330" y="65" text-anchor="middle" font-size="32">🗺️</text>
+      <text x="330" y="95" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="14" font-weight="600">Генерация мира</text>
+      <text x="330" y="115" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Minecraft, No Man's Sky —</text>
+      <text x="330" y="132" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">бесконечные карты</text>
+      <rect x="450" y="20" width="200" height="140" rx="14" fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/>
+      <text x="550" y="65" text-anchor="middle" font-size="32">⚔️</text>
+      <text x="550" y="95" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="14" font-weight="600">Адаптивный враг</text>
+      <text x="550" y="115" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Учится играть как ты —</text>
+      <text x="550" y="132" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">не даёт скучать</text>
+      <rect x="670" y="20" width="215" height="140" rx="14" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/>
+      <text x="778" y="65" text-anchor="middle" font-size="32">🛡️</text>
+      <text x="778" y="95" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="14" font-weight="600">Анти-чит</text>
+      <text x="778" y="115" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Valve, Riot Games —</text>
+      <text x="778" y="132" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">ловит читеров по поведению</text>
+    </svg>
+    <div class="card" style="margin-top:12px">
+      <p><b style="color:var(--violet)">Вывод для нас:</b> В модуле PyGame (уроки 37–40) мы сами напишем элементы ИИ — случайное поведение яблок, адаптивная скорость. А на уроке 36 — добавим настоящий ИИ-API.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Тестируем ИИ-ассистентов (green cover — демо-пауза) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Открываем браузер и тестируем Алису live. 3 запроса: простой, средний (задача), творческий (стишок). Пусть ребёнок сам пишет запросы. Фиксируем: где отлично, где странно.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Разберём на скринкасте:<br>тестируем ИИ вместе
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 10b. Как писать хорошие промпты -->
+<section class="slide"
+  data-notes="Промпт — это твоё задание ИИ. Чем точнее задание, тем лучше результат. Формула КОНТЕКСТ+РОЛЬ+ЗАДАЧА+ФОРМАТ — это не теория, это практика. Попроси ребёнка переформулировать плохой промпт в хороший прямо сейчас.">
+  <div class="slide__inner">
+    <h2>Хороший <span class="accent">промпт</span> — хороший ответ</h2>
+    <p class="lead">Формула: КОНТЕКСТ + РОЛЬ + ЗАДАЧА + ФОРМАТ</p>
+    <div class="grid grid--2" style="margin-top:10px;align-items:start">
+      <div>
+        <div class="card" style="border-color:rgba(252,165,165,0.3);background:rgba(252,165,165,0.05);margin-bottom:10px">
+          <h3 style="color:#fca5a5;font-size:14px">❌ Плохой промпт</h3>
+          <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:13px;margin-top:8px;font-family:'JetBrains Mono',monospace;color:#fca5a5">
+            объясни python
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:8px">Результат непредсказуем — для кого? для чего? какой уровень?</p>
+        </div>
+        <div class="card card--green">
+          <h3 style="color:#6ee7b7;font-size:14px">✓ Хороший промпт</h3>
+          <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:12px;margin-top:8px;font-family:'JetBrains Mono',monospace;color:#86efac;line-height:1.6">
+            Ты — терпеливый учитель программирования.<br>
+            Я — школьник 11 лет, только начал Python.<br>
+            Объясни что такое список (list) — три предложения,<br>
+            один простой пример кода, без сложных слов.
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:8px">Точный контекст → предсказуемый результат</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card--violet">
+          <h3 style="font-size:15px">4 компонента</h3>
+          <dl style="font-size:13px;line-height:2;margin-top:10px">
+            <dt style="color:var(--cyan);font-weight:600">КОНТЕКСТ</dt>
+            <dd style="margin-left:12px;color:var(--muted)">Кто ты, какой уровень знаний, чем занимаешься</dd>
+            <dt style="color:var(--cyan);font-weight:600">РОЛЬ</dt>
+            <dd style="margin-left:12px;color:var(--muted)">Кем должен быть ИИ (учитель, код-ревьювер, переводчик)</dd>
+            <dt style="color:var(--cyan);font-weight:600">ЗАДАЧА</dt>
+            <dd style="margin-left:12px;color:var(--muted)">Что конкретно нужно сделать</dd>
+            <dt style="color:var(--cyan);font-weight:600">ФОРМАТ</dt>
+            <dd style="margin-left:12px;color:var(--muted)">Как оформить ответ (3 предложения, список, код)</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Тестируем ИИ-ассистентов — детали -->
+<section class="slide"
+  data-notes="Три уровня запросов: простой, средний, творческий. Попробуй один вопрос в трёх местах и сравни ответы. Площадки: ya.ru/alisa, giga.chat, perplexity.ai.">
+  <div class="slide__inner">
+    <h2>Тестируем <span class="accent">ИИ-ассистентов</span></h2>
+    <p class="lead">Открываем Алису и GigaChat — проверяем вместе</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card card--glow">
+        <div class="card__icon">🟡</div>
+        <h3>Запрос простой</h3>
+        <p style="margin-bottom:10px">«Расскажи про кошек три предложения»</p>
+        <div style="background:#050810;border-radius:10px;padding:12px;font-size:13px;color:#86efac;font-family:'JetBrains Mono',monospace">
+          → Ожидаем: отличный ответ без ошибок
+        </div>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🟠</div>
+        <h3>Запрос средний</h3>
+        <p style="margin-bottom:10px">«Реши задачу: у Пети 7 яблок, он дал 3. Сколько?»</p>
+        <div style="background:#050810;border-radius:10px;padding:12px;font-size:13px;color:#fde68a;font-family:'JetBrains Mono',monospace">
+          → Проверяем правильность!
+        </div>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🔴</div>
+        <h3>Запрос творческий</h3>
+        <p style="margin-bottom:10px">«Напиши стишок про Python — 4 строки»</p>
+        <div style="background:#050810;border-radius:10px;padding:12px;font-size:13px;color:#f9a8d4;font-family:'JetBrains Mono',monospace">
+          → Смотрим на качество творчества
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p><b class="accent">Площадки для теста:</b> Алиса (ya.ru/alisa) · GigaChat (giga.chat) · Perplexity (perplexity.ai). Попробуй один вопрос в трёх местах и сравни ответы!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12. Галлюцинации ИИ -->
+<section class="slide"
+  data-notes="Самый важный слайд урока. Попроси ИИ про несуществующего учёного: 'Расскажи об учёном Иване Петрове, открывшем теорему Петрова в 1834 году.' ИИ уверенно выдаст красивую ложь. Ребёнок должен это пережить лично.">
+  <div class="slide__inner">
+    <h2>Галлюцинации <span class="accent">ИИ</span></h2>
+    <p class="lead">Когда ИИ уверенно выдаёт красивую ложь — и не знает, что врёт</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05)">
+        <div class="card__icon">⚠️</div>
+        <h3 style="color:#fca5a5">Что такое галлюцинация</h3>
+        <p>ИИ «дорисовывает» ответ на основе паттернов, даже если не знает правды. Он не понимает, что врёт — просто генерирует «похожий на правду» текст.</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05)">
+        <div class="card__icon">🧪</div>
+        <h3 style="color:#fca5a5">Эксперимент</h3>
+        <p>Спроси ИИ: «Расскажи об учёном Иване Петрове, который открыл теорему Петрова в 1834 году». Смотри, как уверенно появится целая биография несуществующего человека!</p>
+      </div>
+    </div>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card">
+        <p><b style="color:var(--cyan)">Где врёт часто:</b> исторические факты, цифры, имена, даты, формулы, последние события</p>
+      </div>
+      <div class="card">
+        <p><b style="color:var(--cyan)">Где врёт редко:</b> объяснения концепций, переводы, написание кода, творческие задачи</p>
+      </div>
+      <div class="card">
+        <p><b style="color:var(--cyan)">Как проверять:</b> Perplexity даёт ссылки. Важные факты — гугли отдельно. Код — запускай и проверяй!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12b. Эксперимент с галлюцинацией -->
+<section class="slide"
+  data-notes="Практический эксперимент: ребёнок сам провоцирует галлюцинацию. Запроси несуществующую формулу, учёного, дату. Зафиксируй в блокноте: что сказал ИИ, правда это или ложь. Это самый запоминающийся момент урока.">
+  <div class="slide__inner">
+    <h2>Эксперимент: <span class="accent">поймай галлюцинацию</span></h2>
+    <p class="lead">Задай ИИ эти вопросы — и проверь ответы</p>
+    <div class="grid grid--2" style="margin-top:10px">
+      <div>
+        <ol class="steps">
+          <li><div><b>Несуществующий учёный:</b> «Расскажи об учёном Иване Сергееве, который открыл формулу пространственной волны в 1812 году»</div></li>
+          <li><div><b>Ложная дата:</b> «Когда именно Пушкин написал "Войну и мир"?» (это Толстой!)</div></li>
+          <li><div><b>Математика:</b> «Чему равно 17 × 23 × 41?» — посчитай сам и сравни</div></li>
+          <li><div><b>Последние события:</b> «Кто выиграл Чемпионат мира по футболу в 2026 году?»</div></li>
+        </ol>
+      </div>
+      <div>
+        <div class="card card--violet" style="margin-bottom:10px">
+          <h3 style="font-size:15px">Что фиксируем</h3>
+          <div style="font-size:13px;margin-top:8px;line-height:1.8">
+            <div style="color:var(--cyan)">Уверен ли ИИ в ответе?</div>
+            <div style="color:var(--muted)">Правильный ли ответ?</div>
+            <div style="color:var(--cyan)">Есть ли ссылки на источники?</div>
+            <div style="color:var(--muted)">Как понять что это ложь?</div>
+          </div>
+        </div>
+        <div class="card card--green">
+          <h3 style="font-size:15px">Вывод</h3>
+          <p style="font-size:13px;margin-top:8px">ИИ говорит уверенно даже когда врёт. Перцептрон не чувствует стыда за ошибку. Твоя критическая проверка — единственная защита.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Три правила работы с ИИ -->
+<section class="slide"
+  data-notes="Три правила — финал теоретической части. Попроси ребёнка повторить их своими словами. Они будут актуальны на протяжении всего курса и всей карьеры. Это важнее любого кода.">
+  <div class="slide__inner">
+    <h2>Три правила <span class="accent">работы с ИИ</span></h2>
+    <p class="lead">Запомни как формулу — она поможет всю карьеру</p>
+    <ol class="steps" style="margin-top:20px">
+      <li>
+        <div>
+          <b style="color:var(--cyan)">ИИ угадывает, а не знает точно</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">Калькулятор вычисляет. Нейросеть предсказывает. Результат ИИ — это его «лучшее предположение», не истина в последней инстанции.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b style="color:var(--cyan)">Важное всегда проверяй</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">Код из ИИ — запускай и тестируй. Факты — гугли дополнительно. Perplexity даёт ссылки — кликай по ним. Не верь слепо никогда.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b style="color:var(--cyan)">ИИ — помощник, не замена твоего мозга</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">Сначала 5 минут думай сам. Потом — спрашивай ИИ. Если получил код от ИИ — пойми его прежде, чем использовать. Иначе учёбы нет.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 14. ИИ-инструменты для разработчика -->
+<section class="slide"
+  data-notes="Сравни три инструмента, которые мы будем использовать. Perplexity — для фактов, YandexGPT — для текстов и кода, GigaChat — российская альтернатива. Пусть ребёнок сам решит, каким пользоваться для разных задач.">
+  <div class="slide__inner">
+    <h2>ИИ-инструменты для <span class="accent">разработчика</span></h2>
+    <p class="lead">Три сервиса, которые мы будем использовать в этом модуле</p>
+    <div class="kv" style="margin-top:16px">
+      <div class="kv__item">
+        <div class="kv__key">YandexGPT</div>
+        <div class="kv__val">Объяснение ошибок, написание кода, генерация текстов. Работает на русском отлично. Доступ: ya.ru/alisa или 300.ya.ru</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">GigaChat</div>
+        <div class="kv__val">Российский аналог ChatGPT от Сбербанка. Встроен в GigaIDE. Хорош для код-ревью. Доступ: giga.chat</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">Perplexity</div>
+        <div class="kv__val">ИИ с поиском в интернете. Даёт ссылки на источники. Идеален для проверки фактов. Доступ: perplexity.ai</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">Алиса</div>
+        <div class="kv__val">Голосовой ассистент Яндекса. Удобна для разговорных вопросов и быстрых ответов. ya.ru/alisa</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. Практика: 3 задания с ИИ -->
+<section class="slide"
+  data-notes="Практика: ребёнок сам открывает инструменты и выполняет задания. Не помогай — дай 15 минут. Твоя задача — контролировать, что ребёнок проверяет ответы ИИ, а не принимает их на веру.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">3 задания с ИИ</span></h2>
+    <p class="lead">Выбери 2 из 3 — выполни самостоятельно</p>
+    <ol class="steps" style="margin-top:16px">
+      <li>
+        <div>
+          <b>Проверь факт в Perplexity</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">Спроси о любимом животном, потом нажми на ссылку в ответе — убедись, что информация правдивая. Запиши: совпало или нет?</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Попроси объяснить тему из школы</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">В YandexGPT: «Я учусь в школе, мне 12 лет. Объясни [тему из алгебры/физики] простыми словами с примером». Оцени ответ: понятно или нет?</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Сравни ответы трёх ИИ</b>
+          <p style="margin-top:4px;color:var(--muted);font-size:15px">Задай один вопрос в Алису, GigaChat и Perplexity. Найди 2 различия в ответах. Кто объяснил лучше?</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- 16. Мини-проект «ИИ за день» -->
+<section class="slide"
+  data-notes="Мини-проект: таблица 'ИИ за день'. Ребёнок делает скриншоты 10 мест, где встретил ИИ, и составляет таблицу в Google Slides. Это артефакт урока — пусть сохранит и покажет родителям.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span class="accent">«ИИ за день»</span></h2>
+    <p class="lead">Составь таблицу — 10 мест, где ты встретил ИИ сегодня</p>
+    <div class="card card--glow" style="margin-top:16px">
+      <h3>Формат таблицы</h3>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--card-border)">
+              <th style="text-align:left;padding:8px 12px;color:var(--cyan);font-weight:600">#</th>
+              <th style="text-align:left;padding:8px 12px;color:var(--cyan);font-weight:600">Место</th>
+              <th style="text-align:left;padding:8px 12px;color:var(--cyan);font-weight:600">Тип ИИ</th>
+              <th style="text-align:left;padding:8px 12px;color:var(--cyan);font-weight:600">Оценка</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:8px 12px;color:var(--muted)">1</td>
+              <td style="padding:8px 12px">YouTube</td>
+              <td style="padding:8px 12px;color:var(--muted)">Рекомендации</td>
+              <td style="padding:8px 12px">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:8px 12px;color:var(--muted)">2</td>
+              <td style="padding:8px 12px">Смартфон</td>
+              <td style="padding:8px 12px;color:var(--muted)">Разблокировка лицом</td>
+              <td style="padding:8px 12px">⭐⭐⭐⭐</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;color:var(--muted)">3–10</td>
+              <td style="padding:8px 12px;color:var(--muted)" colspan="3">— твои находки...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p>Сохрани в Google Slides или Яндекс.Презентациях. Скриншот отправь в чат курса. Это твой первый артефакт ИИ-модуля!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 16b. Профессии с ИИ -->
+<section class="slide"
+  data-notes="Покажи, что ИИ не убивает профессии, а меняет их. ML-инженер, промпт-инженер, data scientist — новые роли. Разработчики игр с ИИ — это именно то, к чему готовит этот курс.">
+  <div class="slide__inner">
+    <h2>Профессии с <span class="accent">ИИ</span></h2>
+    <p class="lead">ИИ меняет профессии — создаёт новые, усиливает старые</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--violet">
+        <div style="font-size:28px;margin-bottom:8px">🧑‍💻</div>
+        <h3>ML-инженер</h3>
+        <p style="font-size:13px;margin-top:8px">Проектирует и обучает нейросети. Python + TensorFlow/PyTorch. Зарплата в РФ: 250–500 тыс./мес.</p>
+      </div>
+      <div class="card card--cyan">
+        <div style="font-size:28px;margin-bottom:8px">✍️</div>
+        <h3>Промпт-инженер</h3>
+        <p style="font-size:13px;margin-top:8px">Формулирует задания для ИИ-систем. Новая профессия 2022+. Работает в ChatGPT, Midjourney, Stable Diffusion.</p>
+      </div>
+      <div class="card card--green">
+        <div style="font-size:28px;margin-bottom:8px">📊</div>
+        <h3>Data Scientist</h3>
+        <p style="font-size:13px;margin-top:8px">Анализирует данные, строит модели. Pandas, NumPy, sklearn. Самая востребованная профессия 2020-х.</p>
+      </div>
+    </div>
+    <div class="grid grid--2" style="margin-top:10px">
+      <div class="card card--yellow">
+        <div style="font-size:24px;margin-bottom:8px">🎮</div>
+        <h3>Game AI Developer</h3>
+        <p style="font-size:13px;margin-top:8px">Добавляет умных NPC, процедурную генерацию, балансировку сложности. Именно этому мы учимся!</p>
+      </div>
+      <div class="card" style="border-color:rgba(255,255,255,0.1)">
+        <h3 style="font-size:14px">Что ИИ усиливает</h3>
+        <ul class="clean" style="font-size:13px;margin-top:8px">
+          <li>Разработчик + GitHub Copilot = x2 скорость</li>
+          <li>Дизайнер + Midjourney = больше вариантов</li>
+          <li>Программист + ChatGPT = быстрее отладка</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17. Критическое мышление -->
+<section class="slide"
+  data-notes="Развиваем критическое мышление. ИИ — это инструмент. Как молоток: можно построить дом, можно разбить окно. Ключевой вопрос: 'Для чего ИИ хорош?' Пусть ребёнок сам сформулирует список сильных и слабых сторон.">
+  <div class="slide__inner">
+    <h2>Критическое мышление: <span class="accent">когда использовать ИИ?</span></h2>
+    <p class="lead">ИИ — как молоток. Он хорош для гвоздей, но не для шурупов</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.05)">
+        <div class="card__icon">✅</div>
+        <h3 style="color:#86efac">ИИ отлично помогает</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Объяснить концепцию простыми словами</li>
+          <li>Найти ошибку в коде и объяснить</li>
+          <li>Сгенерировать идеи и черновики</li>
+          <li>Перевести текст</li>
+          <li>Написать шаблонный код</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05)">
+        <div class="card__icon">⚠️</div>
+        <h3 style="color:#fca5a5">ИИ опасен без проверки</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Точные исторические даты и имена</li>
+          <li>Математические вычисления (может ошибиться)</li>
+          <li>Медицинские советы</li>
+          <li>Последние события (данные устаревают)</li>
+          <li>Готовый «финальный» код без тестирования</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 18. Безопасность при работе с ИИ -->
+<section class="slide"
+  data-notes="Важный слайд про безопасность. Никаких личных данных в ИИ: имя + фамилия + город + школа = слишком много. Пароли, адрес, телефон — запрещено категорически. Это гигиена цифровой безопасности.">
+  <div class="slide__inner">
+    <h2>Безопасность при <span class="accent">работе с ИИ</span></h2>
+    <p class="lead">Правила цифровой гигиены, которые должен знать каждый</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.05)">
+        <div class="card__icon">🚫</div>
+        <h3 style="color:#fca5a5">Никогда не пиши в ИИ</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Пароли от любых аккаунтов</li>
+          <li>Домашний адрес и телефон</li>
+          <li>Личные фото и документы</li>
+          <li>Данные банковских карт</li>
+          <li>Полное имя + школа + город вместе</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.05)">
+        <div class="card__icon">✅</div>
+        <h3 style="color:#86efac">Безопасно отправлять</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Код из учебных проектов</li>
+          <li>Текст эссе без личных данных</li>
+          <li>Вопросы про программирование</li>
+          <li>Идеи для игр и проектов</li>
+          <li>Фрагменты кода с ошибками</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px;border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.05)">
+      <p><b style="color:#fde68a">Правило родителя:</b> Любой аккаунт в ИИ-сервисе регистрируй только через родителей. Используй их email и подтверждение.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19. Чек-лист успеха -->
+<section class="slide"
+  data-notes="Чек-лист урока. Попроси ребёнка ответить на каждый пункт. Если не может ответить на 3 — вернись к соответствующему слайду.">
+  <div class="slide__inner">
+    <h2>Чек-лист <span class="accent">успеха</span></h2>
+    <p class="lead">5 пунктов — и ты готов к следующему уроку про ИИ в коде</p>
+    <ul class="clean" style="margin-top:20px">
+      <li>Называю 5+ мест в жизни, где работает ИИ</li>
+      <li>Объясняю разницу: ИИ угадывает, калькулятор вычисляет точно</li>
+      <li>Знаю три уровня иерархии: ИИ → ML → Deep Learning</li>
+      <li>Провёл эксперимент с галлюцинацией — видел, как ИИ уверенно врёт</li>
+      <li>Знаю три правила безопасной работы с ИИ</li>
+    </ul>
+    <div class="quote-block" style="margin-top:20px">
+      Бейдж «Знаток ИИ» — понимаю основы искусственного интеллекта 🤖
+    </div>
+  </div>
+</section>
+
+<!-- 19b. Словарь терминов урока 33 -->
+<section class="slide"
+  data-notes="Словарь — последний шаг перед финалом. Попроси объяснить каждый термин своими словами. ИИ и нейросеть — разные вещи (ИИ шире). ML = обучение на данных. Это понимание останется на всю жизнь.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 33</span></h2>
+    <p class="lead">Ключевые термины — объясни каждый своими словами</p>
+    <dl class="kv" style="margin-top:14px">
+      <div class="kv__row">
+        <dt>Искусственный интеллект</dt>
+        <dd>Широкое понятие: любая система, имитирующая интеллект. Включает ML, шахматные движки, рекомендации</dd>
+      </div>
+      <div class="kv__row">
+        <dt>Machine Learning (ML)</dt>
+        <dd>Раздел ИИ: программы, которые учатся на примерах без явных правил. Находят паттерны в данных</dd>
+      </div>
+      <div class="kv__row">
+        <dt>Deep Learning</dt>
+        <dd>ML с многослойными нейронными сетями. ChatGPT, Midjourney, голосовые помощники — это Deep Learning</dd>
+      </div>
+      <div class="kv__row">
+        <dt>Галлюцинация ИИ</dt>
+        <dd>Когда ИИ уверенно выдаёт неверную информацию. Причина: генерирует «похожий на правду» текст</dd>
+      </div>
+      <div class="kv__row">
+        <dt>Промпт</dt>
+        <dd>Задание для ИИ. Качество ответа напрямую зависит от качества промпта. Формула: КОНТЕКСТ+РОЛЬ+ЗАДАЧА+ФОРМАТ</dd>
+      </div>
+      <div class="kv__row">
+        <dt>Обучение с подкреплением</dt>
+        <dd>ИИ учится через награду и штраф. Используется в игровых ИИ: AlphaGo, Dota2 бот</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<!-- 20. Домашнее задание -->
+<section class="slide"
+  data-notes="ДЗ: 10-строчное эссе про ИИ в учёбе. Потом прогнать через YandexGPT с промптом 'улучши стиль, не меняй смысл' и сравнить версии. Бонус: сравнить три ИИ на одном вопросе.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">Не больше 20 минут. Сегодня — размышления, не код.</p>
+    <div class="card card--glow" style="margin-top:16px">
+      <h3>Эссе «Как я использую ИИ в учёбе»</h3>
+      <ul class="clean" style="margin-top:12px">
+        <li>Напиши 10 строк: что помогает делать ИИ, что нет</li>
+        <li>Прогони через YandexGPT: «Улучши стиль, не меняй смысл»</li>
+        <li>Сравни две версии: что изменил ИИ? Лучше стало?</li>
+        <li>Отправь обе версии (твою и ИИ) в чат курса</li>
+      </ul>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Бонус:</b> Задай один вопрос в Алису, GigaChat и Perplexity. Запиши, кто ответил лучше — и почему. Это начало критического мышления.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 20b. Проверь себя -->
+<section class="slide"
+  data-notes="Самопроверка после урока. Все 5 вопросов без кода — только концепции. Если ребёнок всё ответил — вручай бейдж Знатока ИИ.">
+  <div class="slide__inner">
+    <h2>Проверь себя: <span class="accent">5 вопросов</span></h2>
+    <div class="grid grid--2" style="margin-top:10px;align-items:start">
+      <ol class="steps">
+        <li><div><b>В чём разница</b> между ИИ и нейросетью?</div></li>
+        <li><div><b>Что такое галлюцинация ИИ?</b> — приведи пример</div></li>
+        <li><div><b>Назови три типа ML</b> и один пример для каждого</div></li>
+        <li><div><b>Запиши формулу</b> хорошего промпта (4 компонента)</div></li>
+        <li><div><b>Почему ИИ не всегда прав?</b> Объясни в одном предложении</div></li>
+      </ol>
+      <div class="card card--green">
+        <h3 style="margin-bottom:10px">Ответы</h3>
+        <dl style="font-size:13px;line-height:1.8">
+          <dt style="color:var(--cyan);font-weight:600">1.</dt>
+          <dd style="margin-left:12px;color:var(--muted)">ИИ шире — включает шахматные движки и т.д. Нейросеть — конкретный тип (Deep Learning)</dd>
+          <dt style="color:var(--cyan);font-weight:600">2.</dt>
+          <dd style="margin-left:12px;color:var(--muted)">Уверенно неверный ответ — напр., биография несуществующего учёного</dd>
+          <dt style="color:var(--cyan);font-weight:600">3.</dt>
+          <dd style="margin-left:12px;color:var(--muted)">Supervised (фильтр спама), Unsupervised (кластеризация), Reinforcement (AlphaGo)</dd>
+          <dt style="color:var(--cyan);font-weight:600">4.</dt>
+          <dd style="margin-left:12px;color:var(--muted)">КОНТЕКСТ + РОЛЬ + ЗАДАЧА + ФОРМАТ</dd>
+          <dt style="color:var(--cyan);font-weight:600">5.</dt>
+          <dd style="margin-left:12px;color:var(--muted)">ИИ угадывает лучшее следующее слово/ответ, а не «знает» правду</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 21. Следующий урок -->
+<section class="slide"
+  data-notes="Анонс следующего урока. Урок 34 — практический: как использовать YandexGPT для объяснения ошибок, написания промптов. Ребёнок уйдёт с конкретным инструментом в руках.">
+  <div class="slide__inner">
+    <h2>Следующий урок: <span class="accent">ИИ в коде</span></h2>
+    <p class="lead">Урок 34 — YandexGPT и Perplexity как инструменты разработчика</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card card--glow">
+        <div class="card__icon">🔮</div>
+        <h3>Что нас ждёт</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Формула промпта: КОНТЕКСТ + РОЛЬ + ЗАДАЧА + ФОРМАТ</li>
+          <li>Объясняем ошибки через ИИ</li>
+          <li>Генерируем код — и проверяем его</li>
+          <li>5 реальных задач с ИИ-ассистентом</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card__icon">📝</div>
+        <h3>Подготовься</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Возьми любой старый проект (Виселица или Тамагочи)</li>
+          <li>Найди в нём место, которое не понимаешь</li>
+          <li>Зарегистрируй аккаунт в YandexGPT</li>
+          <li>Придумай 2 вопроса про Python для ИИ</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 22. Кейс-стади: ИИ в реальных играх -->
+<section class="slide"
+  data-notes="Реальные примеры ИИ в играх, которые дети знают. Это делает абстракцию конкретной. Спроси: 'В каких играх ты замечал что-то умное?' Вероятный ответ — поведение врагов, рекомендации в магазинах, генерация карт.">
+  <div class="slide__inner">
+    <h2>ИИ в реальных <span class="accent">играх</span></h2>
+    <p class="lead">Конкретные примеры — от студий, которые ты знаешь</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card card--glow">
+        <div class="card__icon">🕹️</div>
+        <h3>FIFA / NHL — Поведение игроков</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:var(--cyan)">RL (Reinforcement Learning).</b> Виртуальные игроки учатся на миллионах матчей — тактика, позиционирование, дриблинг. Без жёстких правил.</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">🗺️</div>
+        <h3>Minecraft — Процедурная генерация</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:var(--amber)">ML + Шум Перлина.</b> Каждый мир уникален: горы, пещеры, биомы — генерируются алгоритмом, обученным выглядеть «натурально».</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">🔮</div>
+        <h3>Dota 2 — OpenAI Five</h3>
+        <p style="font-size:13px;margin-top:8px"><b style="color:#f9a8d4">Deep RL.</b> Бот сыграл 45 000 лет игровых партий за 10 дней на серверах. Победил чемпионов мира.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b style="color:var(--amber)">EdisonGames применяет:</b> ИИ для балансировки сложности (если игрок умирает 3 раза — враги слабеют автоматически) и рекомендаций скинов в магазине на основе истории покупок.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 22b. Экспресс-практика: промпты для EdisonGames -->
+<section class="slide"
+  data-notes="Практическое задание — написать 5 реальных промптов для задач игровой студии. Это не домашнее задание — делается прямо сейчас, 5-7 минут. Потом один-два ребёнка зачитывают вслух, обсуждаем качество.">
+  <div class="slide__inner">
+    <h2>Экспресс-задание: <span class="accent">5 промптов</span></h2>
+    <p class="lead">Ты — AI Engineer в EdisonGames. Напиши промпт для каждой задачи</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><b>Отладка кода:</b> Напиши промпт, чтобы ИИ объяснил ошибку <code style="color:var(--cyan)">IndexError: list index out of range</code> в контексте игры «Морской бой».</div></li>
+      <li><div><b>Описание персонажа:</b> Попроси ИИ придумать биографию злодея для RPG в жанре киберпанк — 3 абзаца, с трагичной предысторией.</div></li>
+      <li><div><b>Баланс игры:</b> Сформулируй промпт, чтобы получить таблицу характеристик 5 классов персонажей: HP, урон, скорость, спецспособность.</div></li>
+      <li><div><b>Имена предметов:</b> Попроси сгенерировать 10 уникальных названий магических мечей в стиле Norse mythology, с кратким описанием силы каждого.</div></li>
+      <li><div><b>Бонус — критика кода:</b> Напиши промпт: «Посмотри на мой Python-код и скажи, что можно улучшить» — но с контекстом, ролью и форматом ответа.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 22c. Расширенное домашнее задание -->
+<section class="slide"
+  data-notes="Расширенный план ДЗ — для тех, кто хочет глубже. Первые 3 шага обязательные, 4-7 бонусные. Важно: напомни проверить ответ ИИ на галлюцинации — использовать навык критического мышления из урока.">
+  <div class="slide__inner">
+    <h2>Домашнее задание — <span class="accent">расширенный план</span></h2>
+    <p class="lead">7 шагов для настоящего AI Engineer EdisonGames</p>
+    <ol class="steps" style="margin-top:12px">
+      <li><div><b>Напиши эссе</b> «Как я использую ИИ в учёбе» — 10 строк, честно. Где помогает, где мешает.</div></li>
+      <li><div><b>Прогони через YandexGPT:</b> «Улучши стиль, не меняй смысл» — сравни версии. Что изменилось?</div></li>
+      <li><div><b>Сравни 3 ИИ</b> на одном вопросе: Алиса, GigaChat, YandexGPT. Запиши лучший ответ и почему.</div></li>
+      <li><div><b>Найди галлюцинацию</b> — задай вопрос, где ИИ, вероятно, ошибётся (факты, цифры, даты). Проверь в Википедии.</div></li>
+      <li><div><b>Промпт для игры:</b> Придумай персонажа для EdisonGames с помощью ИИ — имя, класс, 3 способности, слабость. Оцени результат.</div></li>
+      <li><div><b>Объясни бабушке/другу</b>, что такое галлюцинация ИИ — одним предложением. Запиши формулировку.</div></li>
+      <li><div><b>Бонус:</b> Найди новость про ИИ за последнюю неделю, которая тебя удивила. Поделись в чате курса.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 22. Final cover green -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрывающий слайд. Скажи: 'Сегодня ты изменил отношение к ИИ. Теперь ты не просто пользователь — ты понимаешь, как это работает. Следующий шаг — научиться использовать ИИ как профессиональный инструмент.'">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        ИИ — твой инструмент!<br>До встречи на уроке 34
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

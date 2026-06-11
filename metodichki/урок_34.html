@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 34 — ИИ-ассистенты в разработке: YandexGPT, Perplexity | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 34</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">ИИ-ассистенты в разработке: YandexGPT, Perplexity</h2>
+  <div class="meta"><span>Отдел:</span> <span>Искусственный</span> <span>интеллект.</span> <span>Неделя:</span> <span>9.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Искусственный интеллект. <strong>Неделя:</strong> 9. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Показать, как ИИ помогает писать код: объясняет ошибки, даёт подсказки, пишет шаблоны. Ввести базу prompt engineering для детей — «контекст, роль, формат».</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает:</p>
+<p>— что такое ИИ-ассистент для разработки;</p>
+<p>— какие задачи решают ассистенты вроде YandexGPT и Perplexity (генерация кода, подсказки, документация);</p>
+<p>— как ИИ-ассистенты помогают экономить время разработчика;</p>
+<p>— что ИИ-ассистент не заменяет разработчика полностью, а выступает как помощник;</p>
+<p>— основные принципы взаимодействия: формулировка вопросов, проверка кода.</p>
+<p>Ученик может:</p>
+<p>— использовать ИИ-ассистентов для написания простого кода;</p>
+<p>— проверять и корректировать код, предложенный ИИ;</p>
+<p>— комбинировать работу ИИ с ручным программированием;</p>
+<p>— объяснять, какие задачи лучше решать с помощью ИИ.</p>
+<h2>🛠️ Инструменты</h2>
+<p>YandexGPT (ya.ru/alisa), GigaChat (giga.chat), Perplexity (perplexity.ai), GigaIDE Desktop.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Браузер + IDE для проверки.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Проверка ДЗ-эссе. Демо: ребёнок даёт плохой промпт «напиши код» vs хороший промпт — получаем небо и землю.</li>
+<li>5–20. Теория. <strong>Формула промпта для детей:</strong> КОНТЕКСТ + РОЛЬ + ЗАДАЧА + ФОРМАТ.</li>
+</ul>
+<p>  - Контекст: «Я учусь Python, мне 12 лет».</p>
+<p>  - Роль: «Ты — добрый учитель программирования».</p>
+<p>  - Задача: «Объясни ошибку <code>IndexError: list index out of range</code>».</p>
+<p>  - Формат: «Сначала простыми словами, потом пример. Не больше 5 строк».</p>
+<p>Показываем плохой промпт («помоги») и хороший — сравниваем ответы.</p>
+<ul>
+<li>20–40. Практика. 5 задач с ИИ-ассистентом:</li>
+</ul>
+<p>  1. Объяснить ошибку из своего старого проекта.</p>
+<p>  2. Попросить сгенерировать 10 имён героев для игры.</p>
+<p>  3. Попросить написать функцию <code>is_prime(n)</code> и САМОМУ проверить её.</p>
+<p>  4. Попросить Perplexity найти документацию по <code>random.sample</code> (с ссылкой на python.org).</p>
+<p>  5. Попросить YandexGPT придумать 3 варианта усложнения для Тамагочи.</p>
+<ul>
+<li>40–55. Разбор и анти-паттерны. Когда ИИ врёт: несуществующие методы, устаревший синтаксис, неправильный импорт. Проверяем ВСЁ, что ИИ выдал, запуском в IDE.</li>
+<li>55–60. Итог. 3 правила: КРФЗ-формула, проверяй запуском, «своим мозгом сначала». ДЗ — багфикс.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«ИИ-ассистент — как друг-старшеклассник, который пишет код. Иногда ошибается».</li>
+<li>«Плохой промпт = плохой ответ. Мусор на входе — мусор на выходе».</li>
+<li>«Формула: КОНТЕКСТ, РОЛЬ, ЗАДАЧА, ФОРМАТ. Запомни эти 4 слова».</li>
+<li>«Всегда говори, что ты ребёнок 12 лет — ответ будет проще».</li>
+<li>«Perplexity даёт источники — не ленись, проверяй по ссылке».</li>
+<li>«Если ИИ дал код — запусти его. Работает? Хорошо. Нет? Разбирайся».</li>
+<li>«ИИ иногда придумывает методы, которых нет. Это называется галлюцинация».</li>
+<li>«Попроси объяснить построчно — это учит».</li>
+<li>«Никогда не отдавай ИИ пароли, адрес, телефон».</li>
+<li>«Правило: сначала 5 минут сам, потом ИИ».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Сборник промптов». Ребёнок делает документ из 10 своих лучших промптов для программиста на Python и сохраняет в Яндекс.Документах.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>Взять свой код из проекта «Виселица» или «Тамагочи», попросить YandexGPT найти 3 улучшения (без переписывания). Применить хотя бы одно. Записать в комментарии <code># совет ИИ: ...</code>.</p>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок пишет промпт по формуле КРФЗ. Обнаруживает и объясняет хотя бы одну галлюцинацию ИИ. Проверяет код ИИ запуском.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>Копирует код ИИ без проверки. Правило: запусти → убедись.</li>
+<li>Даёт слишком короткие промпты. Тренируем длинные с контекстом.</li>
+<li>Верит ИИ слепо. Каждый ответ — «а ты проверил?».</li>
+<li>Пишет промпт по-английски, если боится. Разрешаем, но показываем, что русский работает отлично в YandexGPT.</li>
+<li>Путает YandexGPT и Perplexity. Напоминаем: Perplexity — про факты с ссылками, YandexGPT — про генерацию и объяснение.</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Сравнить ответы YandexGPT и GigaChat на один и тот же сложный промпт. Кто лучше? Субъективно.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Весь урок — ИИ-ассистенты для кода. Ребёнок пишет 5+ промптов, каждый проверяет результат.</p>
+<hr>
+</div>
+</body>
+</html>

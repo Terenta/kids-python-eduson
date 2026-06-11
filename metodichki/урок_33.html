@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 33 — ИИ в повседневной жизни и обучении | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 33</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">ИИ в повседневной жизни и обучении</h2>
+  <div class="meta"><span>Отдел:</span> <span>Искусственный</span> <span>интеллект.</span> <span>Неделя:</span> <span>9.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Искусственный интеллект. <strong>Неделя:</strong> 9. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Показать ребёнку, что ИИ уже окружает его каждый день. Сформировать критическое отношение: где ИИ помогает, где врёт. Это «вводная» к трём следующим урокам.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает:</p>
+<p>— что такое искусственный интеллект (ИИ) и чем он отличается от обычной программы;</p>
+<p>— где ИИ уже используется в повседневной жизни (смартфоны, голосовые помощники, рекомендации, фильтры);</p>
+<p>— как ИИ помогает в обучении;</p>
+<p>— возможности и ограничения ИИ: где он полезен, а где нет.</p>
+<p>Ученик может:</p>
+<p>— использовать ИИ для повседневных задач и обучения.</p>
+<h2>🛠️ Инструменты</h2>
+<p>Браузер. Алиса (ya.ru/alisa), YandexGPT, GigaChat, Perplexity. Без кода на этом уроке — разговорный.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Выход в интернет, аккаунт Яндекса или Сбер ID.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Проверка ДЗ по Тамагочи. Вопрос-мозгоштурм: «Где ты сегодня уже использовал ИИ?».</li>
+<li>5–15. Теория. <strong>Что такое ИИ.</strong> Обычная программа: «если X то Y», жёсткие правила. ИИ: училась на миллионах примеров и угадывает. Пример: калькулятор считает 2+2=4 всегда точно; нейросеть угадывает перевод — иногда ошибается. Примеры в жизни: Алиса, Siri, рекомендации YouTube/Kinopoisk, автофильтр спама, распознавание лица в телефоне, «Шазам», карты с пробками.</li>
+<li>15–25. Демонстрация. Открываем Алису (ya.ru/alisa), задаём 3 вопроса: «расскажи про кота» (простой), «реши задачу про три яблока» (средний), «напиши стишок про Python» (творческий). Смотрим, где справилась отлично, где — средне. То же в GigaChat (giga.chat).</li>
+<li>25–45. Самостоятельная практика. 3 задания на выбор ребёнка:</li>
+</ul>
+<p>  1. Спросить у Perplexity факт про любимое животное, ПРОВЕРИТЬ по источникам (Perplexity даёт ссылки).</p>
+<p>  2. Попросить Алису объяснить тему из школы.</p>
+<p>  3. Попросить YandexGPT пересказать сказку «Колобок» как детектив.</p>
+<p>  Фиксируем: что понравилось, где ИИ соврал (часто!), где был полезен.</p>
+<ul>
+<li>45–55. Разбор «галлюцинаций». Специально просим ИИ придумать «ученого Петрова, родившегося в 1834 году» — смотрим, как он выдаёт уверенный бред. Учим не верить на слово.</li>
+<li>55–60. Итог: 3 правила. 1) ИИ угадывает, не вычисляет. 2) Проверяй важное. 3) ИИ — помощник, не замена мозга. ДЗ — эссе.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«ИИ — не магия, это программа, которая училась на миллионах примеров».</li>
+<li>«Обычная программа знает точно, ИИ — угадывает лучшее».</li>
+<li>«Алиса, Siri, рекомендации в YouTube — всё это ИИ».</li>
+<li>«Perplexity даёт ссылки — всегда проверяй по ним».</li>
+<li>«Галлюцинация — когда ИИ уверенно врёт. Он не знает, что врёт».</li>
+<li>«ИИ не знает последние события, если не подключён к интернету».</li>
+<li>«Нельзя доверять ИИ в математике вслепую — проверяй калькулятором».</li>
+<li>«ИИ прекрасен для идей, черновиков, объяснений. Плох для точных фактов».</li>
+<li>«Важное правило: думай сам, ИИ — второе мнение».</li>
+<li>«Следующие 3 урока — про ИИ именно в программировании».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>Таблица «где я встретил ИИ за день» — 10 примеров со скриншотами в любимой презентации (Google Slides / Яндекс.Документы).</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>Эссе в 10 строк: «Как я использую ИИ в учёбе». Прогнать эссе через YandexGPT с промптом «Улучши стиль, не меняя смысл» — сравнить версии.</p>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок называет 5 мест, где ИИ есть в жизни. Различает «знает точно» и «угадывает». Приводит пример галлюцинации.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>«ИИ всегда прав» — разубеждаем примерами.</li>
+<li>«ИИ сам думает» — объясняем: только статистика.</li>
+<li>Не хочет проверять факты. Правило: «важное — всегда проверяй».</li>
+<li>Передаёт личные данные в ИИ. Запрещаем категорически, объясняем про приватность.</li>
+<li>Списывает готовое из ИИ. Договариваемся: списывать = не учиться.</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Сравнить ответы Алисы, GigaChat и Perplexity на один вопрос. Найти различия. Это — начало критического мышления.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Весь урок. Алиса (общая), YandexGPT (тексты), GigaChat (альтернатива), Perplexity (факты с источниками). Ребёнок открывает каждую и сравнивает.</p>
+<hr>
+</div>
+</body>
+</html>

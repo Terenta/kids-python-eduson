@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 37 — PyGame Zero: первое окно | Python Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:100;}
+  .progress__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 300ms ease;box-shadow:0 0 12px rgba(124,58,237,0.6);}
+
+  .counter{position:fixed;top:18px;right:24px;z-index:90;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .counter b{color:var(--text)}
+
+  .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;font-size:11px;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;letter-spacing:0.03em;opacity:0.7;}
+  .hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--text);}
+
+  .deck{position:relative;z-index:1;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 80px;opacity:0;transform:translateY(30px);transition:opacity 300ms ease, transform 300ms ease;pointer-events:none;overflow:auto;}
+  .slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .slide.prev{transform:translateY(-30px);}
+
+  .slide__inner{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px;}
+
+  .slide--cover{padding:0;}
+  .cover-bubble{background:#fff;border-radius:28px;padding:38px 56px;max-width:580px;text-align:center;position:relative;z-index:2;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+  .cover-bubble--speech::after{content:'';position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:28px solid #fff;}
+
+  .game-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .game-icons svg{position:absolute;opacity:0.22;}
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{display:inline-block;background:var(--green);color:#fff;font-size:15px;font-weight:700;padding:7px 22px;border-radius:999px;margin-bottom:16px;}
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .card--glow::before{content:'';position:absolute;inset:-1px;border-radius:var(--radius);padding:1px;background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text);line-height:1.5;}
+  ul.clean li::before{content:'—';flex:0 0 auto;color:var(--amber);font-weight:700;}
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:15px;line-height:1.55;}
+  ol.steps li::before{content:counter(step);flex:0 0 28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--amber);font-weight:800;font-size:13px;color:#fff;margin-top:2px;}
+
+  pre[class*="language-"]{border-radius:14px!important;padding:18px 20px!important;font-size:13px!important;font-family:'JetBrains Mono',monospace!important;border:1px solid var(--card-border);box-shadow:var(--shadow);line-height:1.6!important;background:#1a1f2e!important;margin:0;}
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{background:rgba(124,58,237,0.15);color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+
+  .terminal{background:#050810;border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a7f3d0;position:relative;}
+  .terminal::before{content:'● ● ●';position:absolute;top:9px;left:13px;font-size:9px;color:#475569;letter-spacing:3px;}
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{background:rgba(245,158,11,0.09);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 20px;font-size:17px;font-weight:600;color:var(--text);line-height:1.5;}
+
+  .notes{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--card-border);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease;}
+  .notes.active{transform:translateY(0)}
+  .notes__header{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,.slide.active ul.clean li,.slide.active ol.steps li{animation:reveal 500ms ease backwards;}
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){.slide{padding:60px 24px 70px}}
+
+  .kv{display:flex;flex-direction:column;gap:10px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--card-border)}
+  .kv__item:last-child{border-bottom:none}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);flex:0 0 160px;font-weight:500}
+  .kv__val{font-size:15px;color:var(--text);line-height:1.45}
+
+  .timeline{display:flex;flex-direction:column;gap:10px}
+  .timeline__row{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:flex-start;padding:12px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:14px}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--amber)}
+  .timeline__body h3{font-size:16px;margin-bottom:4px}
+  .timeline__body p{font-size:13px;color:var(--muted)}
+
+  .hero-num{font-size:clamp(70px,12vw,160px);font-weight:800;line-height:0.9;letter-spacing:-0.04em;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .diagram{width:100%;max-width:700px;margin:0 auto;display:block}
+</style>
+
+<style>
+.compiler{background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);}
+.compiler-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(124,58,237,0.08);border-bottom:1px solid rgba(255,255,255,0.06);}
+.compiler-header .lang-badge{display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.compiler-header .lang-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{padding:14px 18px;color:#E2E8F0;max-height:260px;overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{padding:5px 12px;border:0;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;color:#fff;}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:#050810;color:#86efac;font-size:12.5px;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){outEl.className='compiler-output show error';outEl.textContent='Skulpt загружается... обнови страницу.';return;}
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({output:function(t){outEl.textContent+=t;},read:function(f){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)throw "Файл не найден: "+f;return Sk.builtinFiles["files"][f];},inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000});
+    try{Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);});}catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">30</span></div>
+
+<main class="deck" id="deck">
+
+<!-- 1. Cover purple -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Новый модуль — PyGame! Покажи финальную игру «Поймай яблоко» в готовом виде до начала урока. Ребёнок должен увидеть ЦЕЛЬ — падающие яблоки, движущаяся корзинка, счёт. «За 4 урока ты напишешь это сам.»">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px"><span class="badge-green">Урок №37</span></div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">PyGame Zero —<br>первое окно</h1>
+    </div>
+  </div>
+</section>
+
+<!-- 2. NEW: Разбор домашнего задания -->
+<section class="slide"
+  data-notes="Спроси: «Кто выполнил домашнее задание? Покажи код!» Попроси 2–3 учеников показать свою работу. Разберите вместе — что получилось, что нет. Хвали за любой результат — даже если код не работал, усилие важно.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span></h2>
+    <p class="lead">Что нужно было сделать в прошлый раз — и как это работает</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># Типичное решение прошлого ДЗ
+# Работа с классами и объектами
+
+class Sprite:
+    def __init__(self, name, x, y):
+        self.name = name
+        self.x = x
+        self.y = y
+
+    def move(self, dx, dy):
+        self.x += dx
+        self.y += dy
+        return f"{self.name}: ({self.x}, {self.y})"
+
+# Создаём объект
+hero = Sprite("Герой", 100, 200)
+print(hero.move(10, 5))
+print(hero.move(-3, 8))</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Что проверяем</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>Класс создан с методом <code>__init__</code></li>
+            <li>Атрибуты <code>self.x</code> и <code>self.y</code> корректны</li>
+            <li>Метод обновляет координаты объекта</li>
+            <li>Можно создать несколько экземпляров</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:rgba(34,197,94,0.3)">
+          <p><b style="color:#86efac">Связь с сегодня:</b> В PyGame Zero Actor — это тот же объект с координатами x, y. Мы используем тот же принцип, только PyGame делает магию рисования за нас!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. NEW: Самопроверка -->
+<section class="slide"
+  data-notes="Быстрая самопроверка — 5 вопросов устно. Задавай по одному. Дай 10–15 секунд на обдумывание. Если никто не отвечает — подскажи первое слово. Цель: убедиться, что базовые концепции усвоены перед новым модулем.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <p class="lead">5 вопросов перед новым модулем — ответь без подсказок</p>
+    <ol class="steps" style="margin-top:10px">
+      <li><div>Что такое <span style="color:var(--cyan)">класс</span> в Python? Чем он отличается от объекта?</div></li>
+      <li><div>Зачем нужен параметр <span style="color:var(--cyan)">self</span> в методах класса?</div></li>
+      <li><div>Как называется метод, который вызывается при создании объекта?</div></li>
+      <li><div>Что выведет: <code>a = [1, 2, 3]; a.append(4); print(len(a))</code>?</div></li>
+      <li><div>Как импортировать модуль <code>math</code> и использовать <code>sqrt(16)</code>?</div></li>
+    </ol>
+    <div class="card" style="border-color:rgba(6,182,212,0.3);margin-top:4px">
+      <p><b style="color:#67e8f9">Ответы:</b> 1) Класс — шаблон, объект — экземпляр. 2) self указывает на текущий объект. 3) __init__. 4) Выведет 4. 5) import math; math.sqrt(16).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. EdisonGames context -->
+<section class="slide"
+  data-notes="Новый отдел — Отдел разработки игр. Сквозной проект на 4 урока: «Поймай яблоко». Каждый урок — одна часть игры. К уроку 40 — полноценная игра с меню, счётом и жизнями.">
+  <div class="slide__inner">
+    <h2><span class="accent">EdisonGames</span> — Отдел разработки!</h2>
+    <p class="lead">Следующие 4 урока — сквозной проект: игра «Поймай яблоко»</p>
+    <div class="grid grid--4" style="margin-top:16px">
+      <div class="card card--glow">
+        <h3 style="font-size:15px">Урок 37</h3>
+        <p>Окно, фон, первый спрайт корзинки</p>
+        <span class="badge-green" style="font-size:10px;margin-top:8px;margin-bottom:0;display:inline-block">Сегодня</span>
+      </div>
+      <div class="card"><h3 style="font-size:15px">Урок 38</h3><p>Рисование, спрайты, мышь</p></div>
+      <div class="card"><h3 style="font-size:15px">Урок 39</h3><p>Столкновения, список яблок</p></div>
+      <div class="card"><h3 style="font-size:15px">Урок 40</h3><p>Состояния, счёт, жизни — финал!</p></div>
+    </div>
+    <div class="card" style="border-color:rgba(34,197,94,0.35);background:rgba(34,197,94,0.05)">
+      <p><b style="color:#86efac">Финал урока 40:</b> Корзинка движется за мышью. Яблоки падают. Есть счёт, жизни, меню, экран проигрыша и рестарт. Это настоящая игра!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. NEW: Цели урока -->
+<section class="slide"
+  data-notes="Огласи цели урока. Скажи ученику: «К концу занятия ты сможешь объяснить маме, что такое игровой цикл, и покажешь ей своё первое окно с корзинкой.» Это конкретный, измеримый результат.">
+  <div class="slide__inner">
+    <h2>Цели <span class="accent">урока 37</span></h2>
+    <p class="lead">Что ты умеешь к концу занятия</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><b style="color:var(--cyan)">Понимаю игровой цикл:</b> могу объяснить, зачем нужны <code>draw()</code> и <code>update()</code> и чем они отличаются друг от друга</div></li>
+      <li><div><b style="color:var(--cyan)">Умею создавать окно:</b> знаю константы WIDTH, HEIGHT, TITLE и могу запустить PyGame Zero через терминал командой <code>pgzrun game.py</code></div></li>
+      <li><div><b style="color:var(--cyan)">Работаю с Actor:</b> создаю спрайт из картинки, ставлю его на позицию и рисую на экране через <code>basket.draw()</code></div></li>
+    </ol>
+    <div class="quote-block" style="margin-top:8px">Сегодня ты запустишь своё первое игровое окно. Это первый шаг к настоящей игре!</div>
+  </div>
+</section>
+
+<!-- 6. Plan -->
+<section class="slide"
+  data-notes="Сегодняшний урок: установка PyGame Zero, первое окно, спрайт корзинки. К концу урока — статичная сцена: небо + корзинка. В ДЗ — добавить яблоко, которое падает.">
+  <div class="slide__inner">
+    <h2>План урока — <span class="accent">60 минут</span></h2>
+    <p class="lead">От установки до первого движущегося спрайта</p>
+    <div class="timeline" style="margin-top:14px">
+      <div class="timeline__row"><div class="timeline__time">0–10 мин</div><div class="timeline__body"><h3>Установка + демо финала</h3><p>pip install pgzero. Показываем готовую игру «Поймай яблоко» — ребёнок видит цель.</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">10–20 мин</div><div class="timeline__body"><h3>Теория: игровой цикл</h3><p>Что такое draw() и update(). 60 FPS. Координатная система PyGame Zero.</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">20–35 мин</div><div class="timeline__body"><h3>Первое окно</h3><p>WIDTH, HEIGHT, TITLE. screen.fill(). pgzrun.go(). Запускаем через терминал!</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">35–55 мин</div><div class="timeline__body"><h3>Спрайт корзинки</h3><p>Actor('basket'). Папка images/. Kandinsky для спрайта. basket.draw().</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">55–60 мин</div><div class="timeline__body"><h3>Итог + ДЗ</h3><p>Добавляем движение basket.x += 1 в update(). Домашнее задание: яблоко!</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Hook: 60 FPS -->
+<section class="slide"
+  data-notes="Эмоциональный крючок. Говори: «PyGame Zero — тренажёр для игр. В настоящем PyGame надо писать в 3 раза больше кода. Мы начнём с лёгкого — и за 4 урока сделаем настоящую игру.»">
+  <div class="slide__inner" style="text-align:center;align-items:center">
+    <div class="hero-num">60</div>
+    <h2 style="margin-top:12px">FPS — <span class="accent">60 кадров в секунду</span></h2>
+    <p class="lead" style="max-width:720px;margin:0 auto">PyGame Zero рисует твою игру 60 раз каждую секунду. Каждый раз вызывает draw() и update(). Это и есть игровой цикл — сердце любой игры.</p>
+    <div class="grid grid--3" style="margin-top:24px;max-width:900px">
+      <div class="card"><h3>Minecraft</h3><p>Игровой цикл: обновлять мир, рисовать чанки, обрабатывать ввод</p></div>
+      <div class="card card--glow"><h3>Наша игра</h3><p>draw(): рисуем небо + корзинку + яблоки<br>update(): двигаем яблоки вниз</p></div>
+      <div class="card"><h3>Мультфильм</h3><p>Каждый кадр — отдельная картинка. 24–60 картинок в секунду = движение</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. PyGame Zero vs PyGame -->
+<section class="slide"
+  data-notes="Объясни разницу: PyGame — мощный но сложный. PyGame Zero — обёртка, скрывает сложность, даёт draw() и update() сразу. Идеально для обучения.">
+  <div class="slide__inner">
+    <h2><span class="accent">PyGame Zero</span> vs PyGame</h2>
+    <p class="lead">Почему мы выбрали PyGame Zero для обучения</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card" style="border-color:rgba(245,158,11,0.35)">
+        <h3>PyGame <span style="color:#fca5a5">(сложный)</span></h3>
+        <p style="margin-bottom:10px">15 строк просто для пустого окна.</p>
+<pre><code class="language-python">import pygame
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+clock = pygame.time.Clock()
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    screen.fill((0, 0, 0))
+    pygame.display.flip()
+    clock.tick(60)</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3>PyGame Zero <span style="color:#86efac">(простой)</span></h3>
+        <p style="margin-bottom:10px">8 строк — и окно открыто! PyGame Zero скрывает сложность.</p>
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+TITLE = "Поймай яблоко"
+
+def draw():
+    screen.fill('skyblue')
+
+def update():
+    pass</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Game loop -->
+<section class="slide"
+  data-notes="Ключевая концепция: draw() рисует, update() думает. Они НИКОГДА не должны делать работу друг друга. Это как повар и официант — у каждого своя роль.">
+  <div class="slide__inner">
+    <h2>Игровой цикл: <span class="accent">draw() и update()</span></h2>
+    <p class="lead">Два лучших друга — каждый делает своё дело, 60 раз в секунду</p>
+    <svg class="diagram" viewBox="0 0 900 220" style="margin-top:14px;max-width:900px">
+      <defs><linearGradient id="gc37" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <ellipse cx="450" cy="110" rx="80" ry="38" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.5)" stroke-width="2"/>
+      <text x="450" y="105" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono" font-size="14" font-weight="700">pgzrun</text>
+      <text x="450" y="123" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">60 FPS</text>
+      <rect x="50" y="50" width="240" height="120" rx="14" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.4)" stroke-width="1.5"/>
+      <text x="170" y="88" text-anchor="middle" fill="#67e8f9" font-family="JetBrains Mono" font-size="16" font-weight="700">draw()</text>
+      <text x="170" y="110" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">Рисует на экране</text>
+      <text x="170" y="128" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">фон, спрайты, текст</text>
+      <text x="170" y="148" text-anchor="middle" fill="#475569" font-family="Inter" font-size="11">НЕ меняет состояние!</text>
+      <line x1="295" y1="110" x2="368" y2="110" stroke="#06B6D4" stroke-width="2" stroke-dasharray="4 3"/>
+      <rect x="615" y="50" width="240" height="120" rx="14" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.4)" stroke-width="1.5"/>
+      <text x="735" y="88" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono" font-size="16" font-weight="700">update()</text>
+      <text x="735" y="110" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">Обновляет логику</text>
+      <text x="735" y="128" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">позиции, состояние, ИИ</text>
+      <text x="735" y="148" text-anchor="middle" fill="#475569" font-family="Inter" font-size="11">НЕ рисует ничего!</text>
+      <line x1="532" y1="110" x2="610" y2="110" stroke="#7C3AED" stroke-width="2" stroke-dasharray="4 3"/>
+    </svg>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card"><p><b style="color:#67e8f9">draw():</b> «Нарисуй небо синим. Нарисуй корзинку на позиции (400, 520). Нарисуй счёт в углу.» — только рисование!</p></div>
+      <div class="card"><p><b style="color:#c4b5fd">update():</b> «Сдвинь яблоко вниз на 2 пикселя. Проверь столкновение. Обнови счёт.» — только логика!</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10. NEW: Типичные ошибки draw/update -->
+<section class="slide"
+  data-notes="Разбери ошибки с примерами. Спроси учеников: «Что не так в каждом примере?» Пусть найдут ошибку сами. Объясни: если обновить позицию в draw() — получишь глитчи и непредсказуемое поведение.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> новичков</h2>
+    <p class="lead">Найди ошибку — объясни, почему это неправильно</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:15px;margin-bottom:8px">❌ Логика в draw():</p>
+<pre><code class="language-python">def draw():
+    screen.fill('skyblue')
+    basket.x += 2  # ОШИБКА! Движение в draw()!
+    basket.draw()
+
+def update():
+    pass  # update() пустой</code></pre>
+        <p style="margin-top:8px;color:#fca5a5;font-size:13px">draw() вызывается для рисования, НЕ для обновления состояния. При высоком FPS корзинка полетит слишком быстро!</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:15px;margin-bottom:8px">❌ Рисование в update():</p>
+<pre><code class="language-python">def draw():
+    pass  # draw() пустой!
+
+def update():
+    screen.fill('skyblue')  # ОШИБКА!
+    basket.draw()           # ОШИБКА!</code></pre>
+        <p style="margin-top:8px;color:#fca5a5;font-size:13px">screen и actor.draw() работают только в draw(). В update() вызов screen.fill() вызовет ошибку AttributeError.</p>
+      </div>
+    </div>
+    <div class="card card--glow" style="margin-top:4px">
+      <p><b style="color:#86efac">Правило навсегда:</b> draw() — только рисование. update() — только изменение переменных. Никогда не смешивай!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Coordinate system -->
+<section class="slide"
+  data-notes="Важно: система координат PyGame отличается от математики. Y растёт ВНИЗ. (0,0) — верхний ЛЕВЫЙ угол. Нарисуй на доске — это частая причина ошибок у учеников.">
+  <div class="slide__inner">
+    <h2>Система координат <span class="accent">PyGame Zero</span></h2>
+    <p class="lead">Внимание: Y растёт вниз! Это отличается от математики.</p>
+    <div style="display:flex;gap:32px;margin-top:14px;align-items:flex-start">
+      <svg viewBox="0 0 400 300" style="width:320px;flex:0 0 320px">
+        <defs><marker id="am37" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#fca5a5"/></marker></defs>
+        <rect x="40" y="20" width="340" height="250" rx="12" fill="rgba(6,182,212,0.07)" stroke="rgba(6,182,212,0.3)" stroke-width="1.5"/>
+        <g stroke="rgba(255,255,255,0.05)" stroke-width="1">
+          <line x1="40" y1="95" x2="380" y2="95"/><line x1="40" y1="152" x2="380" y2="152"/><line x1="40" y1="210" x2="380" y2="210"/>
+          <line x1="153" y1="20" x2="153" y2="270"/><line x1="265" y1="20" x2="265" y2="270"/>
+        </g>
+        <line x1="40" y1="20" x2="380" y2="20" stroke="#22c55e" stroke-width="2"/>
+        <line x1="40" y1="20" x2="40" y2="270" stroke="#22c55e" stroke-width="2"/>
+        <text x="55" y="16" fill="#86efac" font-family="JetBrains Mono" font-size="12" font-weight="700">(0, 0)</text>
+        <text x="330" y="16" fill="#67e8f9" font-family="JetBrains Mono" font-size="10">x→800</text>
+        <text x="42" y="265" fill="#67e8f9" font-family="JetBrains Mono" font-size="10">y→600</text>
+        <circle cx="40" cy="20" r="5" fill="#22c55e"/>
+        <circle cx="265" cy="152" r="5" fill="#06B6D4"/>
+        <text x="270" y="150" fill="#67e8f9" font-family="JetBrains Mono" font-size="10">(400,300)</text>
+        <circle cx="153" cy="237" r="7" fill="rgba(124,58,237,0.6)" stroke="#c4b5fd" stroke-width="1.5"/>
+        <text x="158" y="252" fill="#c4b5fd" font-family="JetBrains Mono" font-size="9">basket(200,520)</text>
+        <circle cx="265" cy="44" r="7" fill="rgba(239,68,68,0.6)" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="270" y="40" fill="#fca5a5" font-family="JetBrains Mono" font-size="9">apple(400,50)</text>
+        <line x1="265" y1="51" x2="265" y2="143" stroke="#fca5a5" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#am37)"/>
+        <text x="270" y="95" fill="#94A3B8" font-family="Inter" font-size="9">падает вниз</text>
+        <text x="270" y="107" fill="#94A3B8" font-family="Inter" font-size="9">(y растёт)</text>
+      </svg>
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+        <div class="card card--glow">
+          <h3>Ключевые точки</h3>
+          <div class="kv" style="margin-top:10px">
+            <div class="kv__item"><div class="kv__key">(0, 0)</div><div class="kv__val">Верхний ЛЕВЫЙ угол</div></div>
+            <div class="kv__item"><div class="kv__key">(800, 0)</div><div class="kv__val">Верхний правый угол</div></div>
+            <div class="kv__item"><div class="kv__key">(0, 600)</div><div class="kv__val">Нижний левый угол</div></div>
+            <div class="kv__item"><div class="kv__key">(400, 300)</div><div class="kv__val">Центр экрана 800×600</div></div>
+          </div>
+        </div>
+        <div class="quote-block">Чтобы объект падал — увеличивай Y. Чтобы летел вверх — уменьшай Y. Наоборот от математики!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. NEW: Координаты — практика -->
+<section class="slide"
+  data-notes="Практика с координатами без PyGame — в Python можно проверить логику. Попроси ученика изменить скорость apple_speed и запустить. Пусть посчитает, через сколько шагов яблоко достигнет y=600.">
+  <div class="slide__inner">
+    <h2>Координаты — <span class="accent">практика</span></h2>
+    <p class="lead">Симулируем падение яблока — считаем позиции в Python</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симулируем движение яблока
+WIDTH = 800
+HEIGHT = 600
+
+apple_x = 400  # центр по горизонтали
+apple_y = 50   # начинаем сверху
+apple_speed = 3  # скорость падения
+
+# Симуляция первых 10 шагов
+print("Шаг | apple_y | Статус")
+print("-" * 30)
+for step in range(10):
+    apple_y += apple_speed
+    status = "падает"
+    if apple_y > HEIGHT:
+        status = "вышло за экран!"
+    print(f"  {step+1}  |   {apple_y:3d}   | {status}")</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Что происходит в PyGame</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>update() вызывается 60 раз/сек</li>
+            <li>каждый раз apple_y += speed</li>
+            <li>draw() рисует яблоко на новой позиции</li>
+            <li>когда y > 600 — яблоко «потеряно»</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p><b style="color:#F59E0B">Задание:</b> Измени apple_speed на 10. Через сколько шагов яблоко выйдет за экран? Проверь!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Install -->
+<section class="slide"
+  data-notes="Установка. В терминале: pip install pgzero. Pygame подтянется автоматически. Если ошибка — смотрим версию Python: python --version. Должна быть 3.9+. Создаём папку basket_apple/ и внутри папку images/.">
+  <div class="slide__inner">
+    <h2>Установка <span class="accent">PyGame Zero</span></h2>
+    <p class="lead">Одна команда — и готово. PyGame подтянется автоматически.</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h3>Шаг 1: устанавливаем</h3>
+        <div class="terminal"><div class="terminal__body"><span class="terminal__prompt">$ </span>pip install pgzero<br><span style="color:#94A3B8">Collecting pgzero...</span><br><span style="color:#94A3B8">Installing pygame...</span><br><span style="color:#86efac">Successfully installed pgzero-1.2 pygame-2.5.0</span></div></div>
+        <h3>Шаг 2: структура папок</h3>
+        <div class="terminal"><div class="terminal__body"><span style="color:#86efac">basket_apple/</span><br><span style="color:#94A3B8">&nbsp;&nbsp;game.py</span><br><span style="color:#67e8f9">&nbsp;&nbsp;images/</span><br><span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;basket.png</span><br><span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;apple.png</span></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Важно про images/</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>PyGame Zero ищет картинки ТОЛЬКО в папке <code>images/</code></li>
+            <li>Имя файла = имя в коде: <code>basket.png</code> → <code>Actor('basket')</code></li>
+            <li>Расширение <code>.png</code> в коде НЕ пишем</li>
+            <li>Регистр важен: <code style="color:#fca5a5">Basket.png</code> ≠ <code>basket.png</code></li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <h3 style="color:#fca5a5;font-size:15px">Частые проблемы</h3>
+          <ul class="clean" style="margin-top:6px;font-size:14px">
+            <li>«pgzrun не найден» → <code>python -m pgzero game.py</code></li>
+            <li>«No such file» → проверь папку images/ рядом с game.py</li>
+            <li>«ModuleNotFoundError» → установлено не в ту версию Python</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14. NEW: Структура проекта -->
+<section class="slide"
+  data-notes="Подробно объясни структуру папок. Ученики часто кладут картинки не туда. Покажи: открой проводник, создай папку basket_apple, внутри images. Это занимает 3 минуты, но экономит час на отладке.">
+  <div class="slide__inner">
+    <h2>Структура <span class="accent">проекта</span> — подробно</h2>
+    <p class="lead">Правильная организация файлов — половина успеха</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:12px">Как создать структуру</h3>
+        <ol class="steps">
+          <li><div>Создай папку <code>basket_apple</code> на Рабочем столе</div></li>
+          <li><div>Внутри неё создай папку <code>images</code></div></li>
+          <li><div>Создай файл <code>game.py</code> в папке basket_apple</div></li>
+          <li><div>Открой game.py в VS Code или любом редакторе</div></li>
+          <li><div>В терминале перейди в папку: <code>cd Desktop/basket_apple</code></div></li>
+        </ol>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Что должно получиться</h3>
+          <div class="terminal" style="margin-top:10px"><div class="terminal__body">
+            <span style="color:#86efac">📁 basket_apple/</span><br>
+            <span style="color:#94A3B8">├── 📄 game.py          ← весь код тут</span><br>
+            <span style="color:#67e8f9">└── 📁 images/</span><br>
+            <span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;├── 🖼️ basket.png</span><br>
+            <span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;├── 🖼️ apple.png</span><br>
+            <span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;└── 🖼️ cloud.png</span>
+          </div></div>
+        </div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <h3 style="color:#fca5a5;font-size:14px">Самая частая ошибка</h3>
+          <p style="font-size:13px">game.py лежит НЕ рядом с images/, а внутри неё. PyGame Zero не найдёт картинки!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. First window -->
+<section class="slide"
+  data-notes="Пишем вместе с ребёнком. Каждую строку проговаривай вслух. После написания — запускаем через терминал: pgzrun game.py. Окно открылось с голубым фоном — первая победа! Поздравь громко.">
+  <div class="slide__inner">
+    <h2>Первое <span class="accent">окно</span>!</h2>
+    <p class="lead">Минимальный код для запуска — 7 строк, и окно появится!</p>
+<pre><code class="language-python"># ===== Константы окна =====
+WIDTH = 800       # ширина в пикселях
+HEIGHT = 600      # высота в пикселях
+TITLE = "Поймай яблоко!"  # заголовок окна
+
+# ===== draw(): рисует каждый кадр =====
+def draw():
+    screen.fill('skyblue')  # заливаем небо голубым
+
+# ===== update(): логика каждый кадр =====
+def update():
+    pass  # пока пусто</code></pre>
+    <div class="terminal"><div class="terminal__body"><span class="terminal__prompt">$ </span>pgzrun game.py<br><span style="color:#86efac">→ открывается синее окно 800×600 с заголовком "Поймай яблоко!"</span></div></div>
+    <div class="quote-block">Запускай через терминал, не через F5! Команда: <code>pgzrun game.py</code>. Закрыть окно: Esc или Alt+F4.</div>
+  </div>
+</section>
+
+<!-- 16. NEW: screen.draw примитивы -->
+<section class="slide"
+  data-notes="Покажи все примитивы поочерёдно. screen.draw.filled_rect — для земли/травы. screen.draw.circle — для солнца. screen.draw.line — для горизонта. Пусть ученик попробует нарисовать простую сцену без спрайтов.">
+  <div class="slide__inner">
+    <h2><span style="color:var(--cyan)">screen.draw</span> — рисуем примитивы</h2>
+    <p class="lead">Геометрические фигуры прямо в draw() — без картинок!</p>
+    <div class="grid grid--2" style="margin-top:12px">
+<pre><code class="language-python">def draw():
+    # Фон — небо
+    screen.fill('skyblue')
+
+    # Трава внизу (Rect: x, y, ширина, высота)
+    screen.draw.filled_rect(
+        Rect(0, 550, 800, 50), 'darkgreen')
+
+    # Солнце (центр, радиус, цвет)
+    screen.draw.filled_circle((700, 80), 50, 'yellow')
+
+    # Облако (несколько кругов)
+    screen.draw.filled_circle((200, 120), 40, 'white')
+    screen.draw.filled_circle((240, 110), 50, 'white')
+    screen.draw.filled_circle((280, 120), 40, 'white')
+
+    # Линия горизонта
+    screen.draw.line((0, 550), (800, 550), 'green')</code></pre>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Сигнатуры функций</h3>
+          <div class="kv" style="margin-top:8px">
+            <div class="kv__item"><div class="kv__key" style="flex:0 0 180px">filled_rect(rect, color)</div><div class="kv__val">Закрашенный прямоугольник</div></div>
+            <div class="kv__item"><div class="kv__key" style="flex:0 0 180px">rect(rect, color)</div><div class="kv__val">Контур прямоугольника</div></div>
+            <div class="kv__item"><div class="kv__key" style="flex:0 0 180px">filled_circle(pos, r, c)</div><div class="kv__val">Закрашенный круг</div></div>
+            <div class="kv__item"><div class="kv__key" style="flex:0 0 180px">line(start, end, c)</div><div class="kv__val">Прямая линия</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <p><b style="color:#F59E0B">Совет:</b> Примитивы рисуются поверх друг друга в порядке вызова. Рисуй фон первым, детали — последними!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17. Colors -->
+<section class="slide"
+  data-notes="PyGame Zero поддерживает цвета по имени (как HTML) и RGB-кортежами. Покажи несколько вариантов — пусть ребёнок поменяет цвет фона и запустит снова. Это быстрая победа.">
+  <div class="slide__inner">
+    <h2>Цвета в <span class="accent">PyGame Zero</span></h2>
+    <p class="lead">Три способа задать цвет — выбирай любой</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card card--glow">
+        <h3>По имени</h3>
+<pre><code class="language-python">screen.fill('skyblue')
+screen.fill('white')
+screen.fill('black')
+screen.fill('darkgreen')</code></pre>
+        <p style="margin-top:8px">Удобно! Работает как HTML-цвета</p>
+      </div>
+      <div class="card card--glow">
+        <h3>RGB-кортеж</h3>
+<pre><code class="language-python">screen.fill((135, 206, 235))
+screen.fill((255, 165, 0))
+screen.fill((0, 128, 0))
+screen.fill((30, 30, 50))</code></pre>
+        <p style="margin-top:8px">R, G, B от 0 до 255 каждый</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Фон + трава</h3>
+<pre><code class="language-python">def draw():
+    screen.fill('skyblue')
+    # трава внизу
+    screen.draw.filled_rect(
+        Rect(0, 550, 800, 50),
+        'green')</code></pre>
+        <p style="margin-top:8px">Рисуем прямоугольник для земли!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 18. Actor class -->
+<section class="slide"
+  data-notes="Actor — магическая коробка PyGame Zero. Она знает свою картинку, координаты, и умеет рисоваться. Картинка должна лежать в папке images/ рядом с game.py.">
+  <div class="slide__inner">
+    <h2>Класс <span class="accent">Actor</span> — спрайт в PyGame Zero</h2>
+    <p class="lead">Actor — «волшебная коробка»: знает картинку, позицию, угол</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+TITLE = "Поймай яблоко!"
+
+# Создаём спрайт корзинки
+basket = Actor('basket')    # basket.png из images/
+basket.pos = (400, 520)     # центр корзинки
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()           # рисуем корзинку
+
+def update():
+    pass</code></pre>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Свойства Actor</h3>
+          <div class="kv" style="margin-top:8px">
+            <div class="kv__item"><div class="kv__key">actor.x</div><div class="kv__val">Горизонтальная позиция (центр)</div></div>
+            <div class="kv__item"><div class="kv__key">actor.y</div><div class="kv__val">Вертикальная позиция (центр)</div></div>
+            <div class="kv__item"><div class="kv__key">actor.pos</div><div class="kv__val">Кортеж (x, y) — центр</div></div>
+            <div class="kv__item"><div class="kv__key">actor.image</div><div class="kv__val">Имя картинки (без .png)</div></div>
+            <div class="kv__item"><div class="kv__key">actor.draw()</div><div class="kv__val">Нарисовать на экране</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <p><b style="color:var(--green)">Kandinsky для спрайта:</b> fusionbrain.ai → «корзина для яблок, мультяшная, прозрачный фон, 200×200» → сохранить как basket.png в images/</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 19. Kandinsky sprites -->
+<section class="slide"
+  data-notes="Время для Kandinsky! Ребёнок сам формулирует промпт для корзинки. Дай 10 минут. Спрайт должен быть 200×200 с прозрачным фоном. Если Kandinsky выдаёт большой файл — нужно ресайзить через Paint.">
+  <div class="slide__inner">
+    <h2>Создаём спрайты в <span class="accent">Kandinsky</span></h2>
+    <p class="lead">Бесплатный ИИ для генерации изображений — fusionbrain.ai</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card card--glow">
+        <h3>basket.png</h3>
+        <div style="background:#050810;border-radius:8px;padding:10px;font-size:12px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;margin-top:8px;line-height:1.6">корзина для яблок,<br>вид спереди,<br>мультяшная,<br>прозрачный фон,<br>200×200</div>
+        <p style="margin-top:8px">Стиль: «плоская иллюстрация»</p>
+      </div>
+      <div class="card card--glow">
+        <h3>apple.png</h3>
+        <div style="background:#050810;border-radius:8px;padding:10px;font-size:12px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;margin-top:8px;line-height:1.6">красное яблоко,<br>мультяшное,<br>блестящее,<br>прозрачный фон,<br>200×200</div>
+        <p style="margin-top:8px">Для домашнего задания!</p>
+      </div>
+      <div class="card">
+        <h3>cloud.png (бонус)</h3>
+        <div style="background:#050810;border-radius:8px;padding:10px;font-size:12px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;margin-top:8px;line-height:1.6">белое пушистое<br>облако, мультяшное,<br>прозрачный фон,<br>300×150</div>
+        <p style="margin-top:8px">Декоративный фон</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b style="color:var(--green)">Проблема с размером:</b> Kandinsky генерирует 1024×1024. Нужно уменьшить до 200×200. Windows Paint → Изменить размер → 200×200 пикселей.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 20. NEW: Несколько акторов -->
+<section class="slide"
+  data-notes="Объясни: Actor — это обычная переменная Python. Можно создать сколько угодно акторов. Каждый вызывает draw() отдельно. Порядок draw() важен — рисуется поверх предыдущего.">
+  <div class="slide__inner">
+    <h2>Несколько <span class="accent">акторов</span> на сцене</h2>
+    <p class="lead">Каждый Actor — отдельный объект. Можно создать сколько угодно!</p>
+    <div class="grid grid--2" style="margin-top:12px">
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+TITLE = "Сцена!"
+
+# Создаём несколько акторов
+basket = Actor('basket')
+basket.pos = (400, 520)
+
+apple1 = Actor('apple')
+apple1.pos = (200, 100)
+
+apple2 = Actor('apple')
+apple2.pos = (600, 150)
+
+cloud = Actor('cloud')
+cloud.pos = (300, 80)
+
+def draw():
+    screen.fill('skyblue')
+    screen.draw.filled_rect(Rect(0,550,800,50), 'darkgreen')
+    cloud.draw()    # облако — первым (за яблоками)
+    apple1.draw()
+    apple2.draw()
+    basket.draw()   # корзинка — поверх всего
+
+def update():
+    pass</code></pre>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Порядок рисования</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>Всегда рисуй фон <b>первым</b> — он стирает предыдущий кадр</li>
+            <li>Дальние объекты (облака) — раньше</li>
+            <li>Ближние объекты (корзинка) — позже</li>
+            <li>Текст и HUD — самые последние</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p><b style="color:#F59E0B">Важно:</b> Два Actor с одним именем <code>Actor('apple')</code> — независимые объекты. Изменение позиции apple1 не влияет на apple2!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 21. NEW: Пауза — вопросы (green cover) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов. Спроси: «Что непонятно по Actor и координатам? Попробуй объяснить своими словами, что делает basket.draw().» Дай 3–5 минут на вопросы. Это середина урока — хороший момент для проверки понимания.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Пришло время<br>задавать вопросы
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 22. First movement -->
+<section class="slide"
+  data-notes="Первое движение! Добавляем basket.x += 1 в update() — корзинка поехала вправо. Это момент «вау» для ребёнка. Вводим переменную speed = 2 для управления скоростью.">
+  <div class="slide__inner">
+    <h2>Первое <span class="accent">движение</span>!</h2>
+    <p class="lead">Одна строка в update() — и корзинка оживает</p>
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+TITLE = "Поймай яблоко!"
+
+basket = Actor('basket')
+basket.pos = (400, 520)
+speed = 2  # скорость корзинки
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()
+
+def update():
+    basket.x += speed  # ДВИГАЕМ корзинку вправо!
+    # Через некоторое время корзинка уедет за экран...</code></pre>
+    <div class="card" style="border-color:rgba(245,158,11,0.35)">
+      <p><b style="color:#fde68a">Наблюдение:</b> Корзинка уехала за правый край! Что делать? На следующем уроке мы подвяжем её к мыши. Обсудим: как ограничить движение краями экрана?</p>
+    </div>
+  </div>
+</section>
+
+<!-- 23. NEW: Скорость и направление -->
+<section class="slide"
+  data-notes="Покажи как менять скорость и направление. speed отрицательная — движение влево. Попроси ученика: «Как сделать корзинку вдвое быстрее? Как заставить её двигаться по диагонали?» Пусть поэкспериментирует.">
+  <div class="slide__inner">
+    <h2>Скорость и <span class="accent">направление</span></h2>
+    <p class="lead">Меняй speed — меняй поведение объекта</p>
+    <div class="grid grid--2" style="margin-top:12px">
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+
+basket = Actor('basket')
+basket.pos = (400, 520)
+
+# Скорости по осям
+speed_x = 3   # движение вправо (+ = вправо)
+speed_y = 0   # нет вертикального движения
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()
+
+def update():
+    basket.x += speed_x  # горизонтальное движение
+    basket.y += speed_y  # вертикальное движение
+
+# Примеры значений speed_x и speed_y:
+# (3, 0)  — вправо
+# (-3, 0) — влево
+# (0, 2)  — вниз (падение)
+# (2, -1) — по диагонали вверх-вправо</code></pre>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Таблица направлений</h3>
+          <div class="kv" style="margin-top:8px">
+            <div class="kv__item"><div class="kv__key">x += 3</div><div class="kv__val">→ движение ВПРАВО</div></div>
+            <div class="kv__item"><div class="kv__key">x -= 3</div><div class="kv__val">← движение ВЛЕВО</div></div>
+            <div class="kv__item"><div class="kv__key">y += 2</div><div class="kv__val">↓ движение ВНИЗ</div></div>
+            <div class="kv__item"><div class="kv__key">y -= 2</div><div class="kv__val">↑ движение ВВЕРХ</div></div>
+          </div>
+        </div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция: выбери направление
+speed_x = 3
+speed_y = 1
+
+pos_x, pos_y = 400, 300
+for frame in range(5):
+    pos_x += speed_x
+    pos_y += speed_y
+    print(f"Кадр {frame+1}: x={pos_x}, y={pos_y}")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 24. NEW: Границы экрана -->
+<section class="slide"
+  data-notes="Ограничение движения — важная концепция. Покажи if-else с clamp. Спроси: «Что случится, если убрать эти проверки?» Объясни: в настоящей игре объект должен оставаться на экране.">
+  <div class="slide__inner">
+    <h2>Ограничение <span class="accent">краями экрана</span></h2>
+    <p class="lead">Как не дать корзинке «улететь» за пределы окна</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3);margin-bottom:12px">
+          <p style="color:#fca5a5;font-size:14px;margin-bottom:8px">❌ Без ограничений — улетает:</p>
+<pre><code class="language-python">def update():
+    basket.x += 3  # уедет за экран!</code></pre>
+        </div>
+        <div class="card card--glow">
+          <p style="color:#86efac;font-size:14px;margin-bottom:8px">✓ С ограничением — остаётся:</p>
+<pre><code class="language-python">def update():
+    basket.x += 3
+    # Ограничиваем краями
+    half_w = basket.width // 2
+    if basket.x < half_w:
+        basket.x = half_w
+    if basket.x > WIDTH - half_w:
+        basket.x = WIDTH - half_w</code></pre>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Функция clamp (удобно)</h3>
+<pre><code class="language-python">def clamp(value, min_val, max_val):
+    return max(min_val, min(value, max_val))
+
+def update():
+    basket.x += 3
+    basket.x = clamp(
+        basket.x,
+        40,       # минимум (левый край)
+        WIDTH-40  # максимум (правый край)
+    )</code></pre>
+        </div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">def clamp(v, lo, hi):
+    return max(lo, min(v, hi))
+
+WIDTH = 800
+x = 400
+for step in range(8):
+    x += 60  # быстро едем вправо
+    x = clamp(x, 40, WIDTH-40)
+    print(f"x = {x}")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 25. Full code -->
+<section class="slide"
+  data-notes="Итоговый код урока — полная статичная сцена с облаком. Пусть ребёнок добавит второй Actor — облако на позиции (200, 100). Самостоятельное задание на 10 минут.">
+  <div class="slide__inner">
+    <h2>Полный код <span class="accent">урока 37</span></h2>
+    <p class="lead">Сцена: небо + трава + корзинка + облако</p>
+<pre><code class="language-python">WIDTH = 800
+HEIGHT = 600
+TITLE = "Поймай яблоко!"
+
+# Спрайты
+basket = Actor('basket')
+basket.pos = (400, 520)   # внизу по центру
+
+cloud = Actor('cloud')    # добавь сам!
+cloud.pos = (200, 100)    # вверху слева
+
+def draw():
+    screen.fill('skyblue')                                    # небо
+    screen.draw.filled_rect(Rect(0,550,800,50), 'darkgreen')  # трава
+    cloud.draw()
+    basket.draw()
+
+def update():
+    pass  # движение — на следующем уроке!</code></pre>
+  </div>
+</section>
+
+<!-- 26. NEW: Пошаговая практика -->
+<section class="slide"
+  data-notes="Самостоятельная работа — 15 минут. Ученик строит сцену пошагово. Ты только помогаешь если застрял. Не давай готовый код — только подсказки. Цель: ученик сам запустит что-то своё.">
+  <div class="slide__inner">
+    <h2>Пошаговая <span class="accent">практика</span></h2>
+    <p class="lead">Собери свою сцену — шаг за шагом, без подсказок!</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <ol class="steps">
+        <li><div>Создай файл <code>game.py</code> и папку <code>images/</code> рядом с ним</div></li>
+        <li><div>Напиши константы <code>WIDTH = 800</code>, <code>HEIGHT = 600</code>, <code>TITLE</code></div></li>
+        <li><div>Добавь функцию <code>draw()</code> с <code>screen.fill('skyblue')</code></div></li>
+        <li><div>Добавь <code>screen.draw.filled_rect</code> для травы внизу</div></li>
+        <li><div>Создай Actor корзинки, поставь на <code>(400, 520)</code></div></li>
+        <li><div>Добавь <code>basket.draw()</code> в функцию draw()</div></li>
+        <li><div>Запусти через терминал: <code>pgzrun game.py</code></div></li>
+        <li><div><b style="color:var(--green)">Бонус:</b> добавь Actor облака на позицию <code>(200, 80)</code></div></li>
+      </ol>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Критерии успеха</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>Окно открывается без ошибок</li>
+            <li>Виден синий фон и зелёная трава</li>
+            <li>Корзинка видна внизу экрана</li>
+            <li>Ты можешь объяснить каждую строку</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <h3 style="color:#fca5a5;font-size:14px">Если не работает:</h3>
+          <ul class="clean" style="font-size:13px;margin-top:6px">
+            <li>Проверь: <code>basket.png</code> в папке <code>images/</code>?</li>
+            <li>Запущен терминал из папки game.py?</li>
+            <li>Нет опечаток в именах функций?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 27. Homework -->
+<section class="slide"
+  data-notes="ДЗ: добавить Actor яблока, поставить на (400, 50), в update() добавить apple.y += 2. Яблоко должно падать. Подготовка к уроку 38, где привяжем корзинку к мыши.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">20 минут. Добавляем яблоко и заставляем его падать.</p>
+    <div class="card card--glow" style="margin-top:14px">
+      <h3>Задание: падающее яблоко</h3>
+      <ol class="steps" style="margin-top:12px">
+        <li><div>Сгенерируй <code>apple.png</code> в Kandinsky (красное яблоко, 200×200, прозрачный фон)</div></li>
+        <li><div>Положи в папку <code>images/</code></div></li>
+        <li><div>Добавь Actor: <code>apple = Actor('apple'); apple.pos = (400, 50)</code></div></li>
+        <li><div>В <code>draw()</code> добавь <code>apple.draw()</code></div></li>
+        <li><div>В <code>update()</code> добавь <code>apple.y += 2</code> — яблоко падает!</div></li>
+        <li><div>Запусти через <code>pgzrun game.py</code> и сделай скриншот</div></li>
+      </ol>
+    </div>
+    <div class="card">
+      <p><b class="accent">Бонус:</b> Попробуй сделать корзинку качающейся через import math: <code>basket.x = 400 + math.sin(time) * 100</code>. Это превышение программы, но мотивированные дети справятся!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 28. NEW: Расширенное ДЗ -->
+<section class="slide"
+  data-notes="Расширенное задание для продвинутых учеников. Дай его тем, кто быстро справился с основным. Не обязательно для всех. Это мотивация — «ты уже почти делаешь игру!»">
+  <div class="slide__inner">
+    <h2>Расширенное ДЗ — <span class="accent">для быстрых</span></h2>
+    <p class="lead">Необязательно, но очень круто — заставь яблоко возвращаться!</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция падения с возвратом
+HEIGHT = 600
+apple_y = 50
+apple_speed = 4
+score = 0
+
+print("Симуляция падения яблока:")
+for frame in range(20):
+    apple_y += apple_speed
+    if apple_y > HEIGHT:
+        # Яблоко упало — сбрасываем
+        apple_y = 50
+        score -= 1  # потеряли жизнь
+        print(f"  Кадр {frame+1}: яблоко упало! Счёт: {score}")
+    elif frame % 5 == 0:
+        print(f"  Кадр {frame+1}: y={apple_y}, счёт={score}")</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Задание: яблоко с возвратом</h3>
+          <ol class="steps" style="margin-top:8px">
+            <li><div>Яблоко падает с <code>apple.y += 3</code></div></li>
+            <li><div>Когда <code>apple.y > HEIGHT</code> — сброс: <code>apple.y = 0; apple.x = random.randint(50, 750)</code></div></li>
+            <li><div>Добавь <code>import random</code> в начало файла</div></li>
+            <li><div>Яблоки падают снова и снова — в случайных местах!</div></li>
+          </ol>
+        </div>
+        <div class="card">
+          <p><b style="color:#F59E0B">Это уже механика игры!</b> Следующий шаг — поймать яблоко корзинкой. Это мы сделаем в уроке 39.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 29. Checklist -->
+<section class="slide"
+  data-notes="Критерии успеха. Самое важное — ребёнок объясняет словами чем draw() отличается от update(). Это фундамент всего модуля PyGame.">
+  <div class="slide__inner">
+    <h2>Чек-лист <span class="accent">успеха</span></h2>
+    <p class="lead">5 пунктов — и ты готов к следующему уроку</p>
+    <ul class="clean" style="margin-top:20px">
+      <li>Установил PyGame Zero командой pip install pgzero</li>
+      <li>Запустил pgzrun game.py — окно открылось!</li>
+      <li>Создал Actor корзинки и нарисовал его через basket.draw()</li>
+      <li>Объясняю словами: draw() рисует, update() обновляет логику</li>
+      <li>Знаю, что (0,0) — верхний левый угол, Y растёт вниз</li>
+    </ul>
+    <div class="quote-block" style="margin-top:20px">Бейдж «Первый геймдев» — запустил первое игровое окно на PyGame Zero</div>
+  </div>
+</section>
+
+<!-- 30. Final green cover -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Завершающий слайд. «Сегодня ты запустил первое окно — это фундамент. Следующий урок: корзинка будет следить за твоей мышью. Это уже настоящее управление в игре!»">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Ты геймдев!<br>
+        <span style="font-size:0.65em;font-weight:600;">Урок 38 → Мышь + рисование</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N': e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

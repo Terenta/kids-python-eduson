@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 30 — Как работают инкапсуляция, наследование и полиморфизм | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 30</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работают инкапсуляция, наследование и полиморфизм</h2>
+  <div class="meta"><span>Отдел:</span> <span>Классы.</span> <span>Неделя:</span> <span>8.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Классы. <strong>Неделя:</strong> 8. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Познакомить с тремя «страшными» словами ООП, разложив их на детские понятия. Наследование — как родственники, полиморфизм — как разговор на одном языке, инкапсуляция — как личный дневник с замочком.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает:</p>
+<p>— что такое инкапсуляция — скрытие деталей реализации и защита данных;</p>
+<p>— как создавать закрытые атрибуты и методы с помощью <code>_</code> и <code>__</code>;</p>
+<p>— что такое наследование — создание нового класса на основе существующего;</p>
+<p>— как дочерний класс получает атрибуты и методы родительского класса;</p>
+<p>— что такое полиморфизм — объекты разных классов имеют одинаковые методы, но выполняют их по-своему;</p>
+<p>— зачем эти принципы нужны для упрощения и организации кода.</p>
+<p>Ученик может:</p>
+<p>— использовать закрытые атрибуты и методы;</p>
+<p>— создавать дочерние классы, наследующие свойства родителя;</p>
+<p>— переопределять методы в дочерних классах (полиморфизм);</p>
+<p>— писать программы с простыми иерархиями классов (транспорт → автомобиль/велосипед).</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Colab. YandexGPT — для проверки понимания через вопросы.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Python 3.11+.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Повторение: что такое класс и объект. Демо: два класса-наследника (<code>Cat</code>, <code>Dog</code>) с общим предком <code>Animal</code>.</li>
+<li>5–15. Теория.</li>
+</ul>
+<p>  <strong>Наследование.</strong> Семья: от папы-Animal унаследовали метод <code>eat()</code>. Пишем <code>class Cat(Animal):</code>.</p>
+<p>  <strong>Полиморфизм.</strong> Оба умеют <code>speak()</code>, но кот говорит «мяу», пёс — «гав». Одно слово, разные действия.</p>
+<p>  <strong>Инкапсуляция.</strong> У каждого есть личный дневник <code>_diary</code> (предупреждение «лучше не трогай») и секретный <code>__password</code> (скрывается через name mangling).</p>
+<ul>
+<li>15–25. Совместный кодинг.</li>
+</ul>
+<pre><code class="language-python">class Animal:
+    def __init__(self, name):
+        self.name = name
+    def eat(self):
+        print(f"{self.name} ест")
+    def speak(self):
+        print("...")
+
+class Cat(Animal):
+    def speak(self):
+        print(f"{self.name}: мяу")
+
+class Dog(Animal):
+    def speak(self):
+        print(f"{self.name}: гав")
+
+for a in [Cat("Барсик"), Dog("Рекс")]:
+    a.eat(); a.speak()</code></pre>
+<ul>
+<li>25–45. Самостоятельная задача. Иерархия транспорта. <code>Vehicle</code> → <code>Car</code>, <code>Bike</code>. У каждого свой метод <code>move()</code>. Добавить приватный <code>_fuel</code> и метод <code>refuel()</code>.</li>
+<li>45–55. Разбор. Показываем, что цикл <code>for a in animals</code> работает одинаково и для котов, и для собак — это и есть сила полиморфизма.</li>
+<li>55–60. Итог. 3 пункта: наследование — родственники; полиморфизм — один метод, разное поведение; инкапсуляция — защита данных. ДЗ.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Наследование — как ты унаследовал цвет глаз от родителей».</li>
+<li>«Кошка и собака — оба "животные", но говорят по-разному».</li>
+<li>«Полиморфизм — "много форм". Одно и то же действие, разные формы».</li>
+<li>«<code>_name</code> — "пожалуйста, не трогай снаружи". <code>__name</code> — "реально скрыто"».</li>
+<li>«<code>class Cat(Animal):</code> — Cat это Animal, плюс своё».</li>
+<li>«Если дочь не переопределила метод — получит папин».</li>
+<li>«Переопределение — пишешь метод с тем же именем в дочернем классе».</li>
+<li>«Хочешь вызвать метод родителя? <code>super().__init__(...)</code>».</li>
+<li>«Иерархия — как дерево: машина и велосипед — оба транспорт».</li>
+<li>«Без ООП игра из 1000 строк превращается в кашу. С ООП — в аккуратный шкаф».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>Зоопарк: 5 объектов разных классов-наследников <code>Animal</code>. Цикл печатает «ест» и «говорит» для каждого.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>Создать <code>Vehicle</code> с методом <code>move()</code>, два наследника <code>Car</code> и <code>Bike</code> с переопределением. Добавить приватный <code>_speed</code>. Бонус — попросить YandexGPT придумать 3 необычных транспорта и сделать для них классы.</p>
+<h2>✅ Критерии успеха</h2>
+<p>Пишет класс-наследник, переопределяет метод, понимает, что <code>_</code> — договорённость, а <code>__</code> — сильнее.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>Забывает вызвать <code>super().__init__()</code>. Атрибуты родителя теряются — разбираем.</li>
+<li>Думает, что <code>_</code> реально запрещает доступ. Объясняем: это только соглашение.</li>
+<li>Переопределяет метод с другим именем и удивляется, почему не работает. Должно быть точь-в-точь.</li>
+<li>Путает метод класса и атрибут. Смотрим: метод — со скобками.</li>
+<li>«А зачем три слова сразу?» — разбираем каждое по одной минуте отдельно.</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Три уровня иерархии: <code>Animal</code> → <code>Mammal</code> → <code>Dog</code>. Посмотреть, как наследование работает через несколько этажей.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — для проверки понимания. Промпт: «Дай мне 5 вопросов про наследование в Python для школьника 12 лет, с правильными ответами. Я хочу проверить себя».</p>
+<hr>
+</div>
+</body>
+</html>

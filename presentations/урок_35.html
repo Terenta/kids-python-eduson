@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 35 — ИИ-автодополнение, ИИ-IDE и ИИ-инструменты | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+
+/* ===== Lesson-specific: IDE demo ===== */
+.ide-demo{background:#0c1119;border:1px solid var(--card-border);border-radius:14px;overflow:hidden}
+.ide-titlebar{background:#1a1f2e;padding:10px 16px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.ide-dots span{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
+.ide-dots span:nth-child(1){background:#EF4444}
+.ide-dots span:nth-child(2){background:#F59E0B}
+.ide-dots span:nth-child(3){background:#10B981}
+.ide-body{padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#E2E8F0;line-height:1.6}
+.ide-suggestion{background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:6px;padding:4px 12px;margin-left:4px;color:#c4b5fd;font-size:13px;display:inline-block;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ===== Lesson-specific: compare layout ===== */
+.compare{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:stretch}
+.compare__vs{display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* ===== Lesson-specific: kbd badge ===== */
+.kbd-badge{display:inline-block;padding:3px 8px;border-radius:5px;background:#1F2937;border:1px solid var(--card-border);font-size:12px;font-family:'JetBrains Mono',monospace;color:#E5E7EB;box-shadow:0 2px 0 #0B0F17}
+
+/* ===== Lesson-specific: diagram ===== */
+.diagram{width:100%;max-width:700px;margin:0 auto;display:block}
+
+/* ===== kv ===== */
+.kv{display:flex;flex-direction:column;gap:12px}
+.kv__item{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--card-border)}
+.kv__item:last-child{border-bottom:none}
+.kv__key{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);flex:0 0 130px;font-weight:500}
+.kv__val{font-size:15px;color:var(--text);line-height:1.45}
+
+/* timeline */
+.timeline{display:flex;flex-direction:column;gap:10px}
+.timeline__row{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:flex-start;padding:12px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:14px}
+.timeline__time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--cyan)}
+.timeline__body h3{font-size:16px;margin-bottom:4px}
+.timeline__body p{font-size:13px;color:var(--muted)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">31</span></div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 1: Cover purple -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Демо-урок: начни с того, что печатаешь 'def fibo' в GigaIDE и показываешь, как IDE дописывает функцию Фибоначчи целиком. Ребёнок должен увидеть магию автодополнения в первую минуту — это крючок урока.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №35</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        ИИ-IDE и автодополнение
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Plan -->
+<section class="slide"
+  data-notes="Три главные темы: автодополнение в GigaIDE, Cursor как следующий уровень, Lovable как платформа. Завтра — урок 36 с сайтом-визиткой. Сегодня — репетиция.">
+  <div class="slide__inner">
+    <h2>План урока — <span class="accent">60 минут</span></h2>
+    <p class="lead">От T9 для кода до платформы, которая создаёт сайты по описанию</p>
+    <div class="timeline" style="margin-top:14px">
+      <div class="timeline__row">
+        <div class="timeline__time">0–5 мин</div>
+        <div class="timeline__body"><h3>Проверка ДЗ</h3><p>Смотрим ИИ-ревью кода — до и после. Кто применил совет?</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">5–20 мин</div>
+        <div class="timeline__body"><h3>ИИ-автодополнение в GigaIDE</h3><p>Как работает, как принимать и отклонять, когда доверять</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">20–40 мин</div>
+        <div class="timeline__body"><h3>Практика: 3 функции с ИИ, 3 без</h3><p>Сравниваем скорость и качество</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">40–55 мин</div>
+        <div class="timeline__body"><h3>Lovable.dev — первый промпт</h3><p>Создаём прототип сайта-визитки к уроку 36</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55–60 мин</div>
+        <div class="timeline__body"><h3>Итог + ДЗ</h3><p>3 типа ИИ-инструментов, план сайта на бумаге</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEW SLIDE: Разбор ДЗ урок_34 -->
+<section class="slide"
+  data-notes="Разбор домашнего задания урока 34. Спроси: кто успел попробовать ИИ-ревью своего кода? Что ИИ посоветовал? Какой совет применил? Покажи сравнение кода до/после ревью GigaChat на своём примере.">
+  <div class="slide__inner">
+    <h2>Разбор ДЗ: <span class="accent">код до и после ИИ-ревью</span></h2>
+    <p class="lead">Кто попробовал попросить ИИ улучшить код? Сравниваем результаты.</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">❌ До ИИ-ревью</h3>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">def check(x):
+    if x > 0:
+        return True
+    else:
+        return False
+
+def calc(a, b, c):
+    res = a + b
+    res2 = res * c
+    return res2
+
+print(check(5))
+print(calc(2, 3, 4))</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card card--glow" style="border-color:rgba(34,197,94,0.35)">
+        <h3 style="color:#86efac">✅ После ИИ-ревью</h3>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">def is_positive(number: int) -> bool:
+    """Возвращает True если число положительное."""
+    return number > 0
+
+def calculate_total(base: int, addition: int, multiplier: int) -> int:
+    """Считает (base + addition) * multiplier."""
+    return (base + addition) * multiplier
+
+print(is_positive(5))
+print(calculate_total(2, 3, 4))</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:12px">
+      ИИ-ревью улучшает: имена переменных, type hints, docstrings, убирает лишние else.
+    </div>
+  </div>
+</section>
+
+<!-- NEW SLIDE: Самопроверка перед новым материалом -->
+<section class="slide"
+  data-notes="Проверочные вопросы перед новым материалом. Попроси студентов ответить устно или в тетради. Если кто-то затрудняется — это норм, сегодня разберём.">
+  <div class="slide__inner">
+    <h2>Проверь себя: <span class="accent">что уже знаешь</span></h2>
+    <p class="lead">Ответь на 5 вопросов перед новым материалом</p>
+    <ol class="steps" style="margin-top:16px">
+      <li><div>Что такое ИИ-ассистент в IDE? Для чего он нужен?</div></li>
+      <li><div>Какие горячие клавиши ты уже знаешь в GigaIDE?</div></li>
+      <li><div>Что такое промпт? Как он связан с комментариями в коде?</div></li>
+      <li><div>В чём разница между автодополнением и чатом с ИИ?</div></li>
+      <li><div>Когда НЕЛЬЗЯ нажимать Tab при автодополнении?</div></li>
+    </ol>
+    <div class="card" style="margin-top:12px">
+      <p><b style="color:var(--cyan)">Если затрудняешься</b> — не страшно. Сегодня разберём всё подробно. Запиши вопросы, на которые не смог ответить.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: Hook — T9 для кода -->
+<section class="slide"
+  data-notes="Аналогия: T9 предсказывал следующее слово в SMS — и это было удобно, но иногда смешно. ИИ-автодополнение делает то же самое с кодом, но намного умнее. Оно понимает контекст, видит весь файл, знает Python.">
+  <div class="slide__inner" style="text-align:center;align-items:center">
+    <div style="font-size:60px">⚡</div>
+    <h2 style="margin-top:12px">ИИ-автодополнение — это <span class="accent">T9 для кода</span></h2>
+    <p class="lead" style="max-width:720px;margin:0 auto">Только намного умнее. T9 предсказывал следующее слово. ИИ-IDE предсказывает следующие 20 строк кода — с правильной логикой и синтаксисом.</p>
+    <div class="grid grid--3" style="margin-top:24px;max-width:900px">
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:8px">📱</div>
+        <h3 style="font-size:16px">T9 (телефон)</h3>
+        <p style="font-size:14px">Предсказывает следующее слово. Часто ошибается.</p>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:28px;margin-bottom:8px">💻</div>
+        <h3 style="font-size:16px">ИИ-IDE (GigaIDE)</h3>
+        <p style="font-size:14px">Предсказывает следующий блок кода. Понимает контекст файла.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:8px">🚀</div>
+        <h3 style="font-size:16px">GitHub Copilot</h3>
+        <p style="font-size:14px">Может дописать целую функцию по комментарию. Профессиональный уровень.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Как работает автодополнение -->
+<section class="slide"
+  data-notes="Объясни механизм: IDE отправляет контекст (что уже написано) в языковую модель, та возвращает предсказание. Всё происходит за 200–500ms. Tab — принять, Esc — отклонить. Главное: ЧИТАЙ, прежде чем нажимать Tab.">
+  <div class="slide__inner">
+    <h2>Как работает <span class="accent">ИИ-автодополнение</span></h2>
+    <p class="lead">Что происходит за 0.3 секунды от твоего набора до подсказки</p>
+    <svg class="diagram" viewBox="0 0 900 180" style="margin-top:14px;max-width:900px">
+      <defs>
+        <linearGradient id="g35" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
+        <marker id="am35" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/></marker>
+      </defs>
+      <rect x="10" y="30" width="180" height="120" rx="14" fill="rgba(124,58,237,0.1)" stroke="rgba(124,58,237,0.35)" stroke-width="1.5"/>
+      <text x="100" y="72" text-anchor="middle" font-size="28">👨‍💻</text>
+      <text x="100" y="98" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="13" font-weight="600">Ты набираешь</text>
+      <text x="100" y="118" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono" font-size="11">def calc_tax(</text>
+      <line x1="195" y1="90" x2="235" y2="90" stroke="#06B6D4" stroke-width="2" marker-end="url(#am35)"/>
+      <rect x="240" y="30" width="200" height="120" rx="14" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.35)" stroke-width="1.5"/>
+      <text x="340" y="72" text-anchor="middle" font-size="28">🔌</text>
+      <text x="340" y="98" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="13" font-weight="600">IDE отправляет</text>
+      <text x="340" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">контекст файла в ИИ</text>
+      <text x="340" y="136" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="10">~200ms</text>
+      <line x1="445" y1="90" x2="485" y2="90" stroke="#06B6D4" stroke-width="2" marker-end="url(#am35)"/>
+      <rect x="490" y="30" width="200" height="120" rx="14" fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/>
+      <text x="590" y="72" text-anchor="middle" font-size="28">🧠</text>
+      <text x="590" y="98" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="13" font-weight="600">ИИ предсказывает</text>
+      <text x="590" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">следующие строки</text>
+      <line x1="695" y1="90" x2="735" y2="90" stroke="#06B6D4" stroke-width="2" marker-end="url(#am35)"/>
+      <rect x="740" y="30" width="150" height="120" rx="14" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.35)" stroke-width="1.5"/>
+      <text x="815" y="72" text-anchor="middle" font-size="28">✨</text>
+      <text x="815" y="98" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-size="13" font-weight="600">Tab → принять</text>
+      <text x="815" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">Esc → отклонить</text>
+    </svg>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card card--glow">
+        <h3 style="color:#86efac">Когда принимать (Tab)</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Прочитал — понял — согласен</li>
+          <li>Код делает именно то, что тебе нужно</li>
+          <li>Синтаксис выглядит правильным</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">Когда отклонять (Esc)</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Не понял, что предлагает ИИ</li>
+          <li>Логика не та, что нужна</li>
+          <li>Используется незнакомый метод</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: GigaIDE demo -->
+<section class="slide"
+  data-notes="Показываем реальный интерфейс GigaIDE. Пусть ребёнок сам откроет IDE и попробует написать 'def greet' — посмотрит на подсказку. Главное правило: Tab только после прочтения!">
+  <div class="slide__inner">
+    <h2><span class="accent">GigaIDE</span> с ИИ-ассистентом</h2>
+    <p class="lead">Российская IDE от Сбера с встроенным GigaChat — наш главный рабочий инструмент</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:12px">Пример: пишем начало</h3>
+        <div class="ide-demo">
+          <div class="ide-titlebar">
+            <div class="ide-dots"><span></span><span></span><span></span></div>
+            <span>hello.py — GigaIDE</span>
+          </div>
+          <div class="ide-body" style="font-size:13px">
+<span style="color:#94A3B8"># Функция приветствия</span><br>
+<span style="color:#94A3B8"># Спрашивает имя и возраст</span><br>
+<span style="color:#c4b5fd">def</span> <span style="color:#67e8f9">greet</span><span style="color:#E2E8F0">():</span><br>
+<div class="ide-suggestion" style="animation:none;opacity:0.7">&nbsp;&nbsp;&nbsp;&nbsp;name = input("Как тебя зовут? ")<br>&nbsp;&nbsp;&nbsp;&nbsp;age = int(input("Сколько лет? "))<br>&nbsp;&nbsp;&nbsp;&nbsp;print(f"Привет, {name}! {age} лет — ты уже программист!")</div>
+          </div>
+        </div>
+        <p style="margin-top:10px;font-size:14px;color:var(--muted)">Комментарии — подсказки для ИИ. Чем точнее — тем лучше предложение!</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card card--glow">
+          <h3>Горячие клавиши GigaIDE</h3>
+          <div class="kv" style="margin-top:8px">
+            <div class="kv__item"><div class="kv__key"><span class="kbd-badge">Tab</span></div><div class="kv__val">Принять предложение ИИ</div></div>
+            <div class="kv__item"><div class="kv__key"><span class="kbd-badge">Esc</span></div><div class="kv__val">Отклонить предложение</div></div>
+            <div class="kv__item"><div class="kv__key"><span class="kbd-badge">Alt+\</span></div><div class="kv__val">Запросить предложение вручную</div></div>
+            <div class="kv__item"><div class="kv__key"><span class="kbd-badge">Ctrl+L</span></div><div class="kv__val">Открыть чат с ИИ</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <p style="font-size:14px"><b style="color:var(--cyan)">Секрет:</b> Пиши подробные комментарии ПЕРЕД кодом. ИИ видит их и использует как инструкцию для дополнения.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: Комментарий — промпт для ИИ -->
+<section class="slide"
+  data-notes="Ключевая техника: комментарий — это промпт для автодополнения. Чем точнее комментарий, тем лучше предложение ИИ. Это навык, который ценится в реальной разработке — писать хорошие комментарии.">
+  <div class="slide__inner">
+    <h2>Комментарий — это <span class="accent">промпт для ИИ</span></h2>
+    <p class="lead">Чем подробнее описание в комментарии — тем точнее подсказка</p>
+    <div class="compare" style="margin-top:16px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">❌ Расплывчатый комментарий</h3>
+        <div style="background:#050810;border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#E2E8F0;margin-top:10px;line-height:1.6">
+<span style="color:#94A3B8"># функция</span><br>
+<span style="color:#c4b5fd">def</span> <span style="color:#67e8f9">f</span><span style="color:#E2E8F0">(x):</span><br>
+<span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;...</span>
+        </div>
+        <p style="margin-top:10px;font-size:13px;color:var(--muted)">ИИ не понимает что нужно — предложит что-то случайное</p>
+      </div>
+      <div class="compare__vs">VS</div>
+      <div class="card card--glow" style="border-color:rgba(16,185,129,0.35)">
+        <h3 style="color:#86efac">✅ Конкретный комментарий</h3>
+        <div style="background:#050810;border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#E2E8F0;margin-top:10px;line-height:1.6">
+<span style="color:#94A3B8"># Проверяет является ли число простым</span><br>
+<span style="color:#94A3B8"># Принимает n (int), возвращает True/False</span><br>
+<span style="color:#94A3B8"># Если n &lt; 2 — False. Проверка до sqrt(n)</span><br>
+<span style="color:#c4b5fd">def</span> <span style="color:#67e8f9">is_prime</span><span style="color:#E2E8F0">(n):</span><br>
+<span style="color:#94A3B8">&nbsp;&nbsp;&nbsp;&nbsp;...</span>
+        </div>
+        <p style="margin-top:10px;font-size:13px;color:var(--muted)">ИИ напишет точно то, что описано — можно принимать Tab!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEW SLIDE: Практика — пишем AI-friendly комментарии -->
+<section class="slide"
+  data-notes="Практика: попроси написать 3 варианта комментария к одной функции — плохой, средний, хороший. Потом запустить и посмотреть какой даёт лучшее автодополнение в GigaIDE.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">пишем ИИ-friendly комментарии</span></h2>
+    <p class="lead">Хороший комментарий = точная инструкция для ИИ. Попробуй сам.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Задание: напиши 3 варианта комментария для функции подсчёта очков
+# Вариант 1 (плохой):
+# функция
+
+# Вариант 2 (средний):
+# считает очки игрока
+
+# Вариант 3 (хороший — заполни сам!):
+# Принимает список попаданий (list of bool), возвращает итоговый счёт.
+# Каждое True = +10 очков. Возвращает int.
+
+def calculate_score(hits: list) -> int:
+    return sum(10 for h in hits if h)
+
+# Тест:
+hits = [True, False, True, True, False, True]
+print(f"Очки: {calculate_score(hits)}")  # Ожидаем: 40</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Правило:</b> Чем точнее комментарий описывает ВХОД и ВЫХОД функции — тем лучше предложение ИИ. Используй типы: <code>list of bool</code>, <code>returns int</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- NEW SLIDE: Попробуй сам — функции для ИИ -->
+<section class="slide"
+  data-notes="Самостоятельная работа: написать 3 функции, используя технику «комментарий как промпт». Попроси студента сначала написать подробный комментарий, потом начать def — и только потом смотреть что предложит GigaIDE.">
+  <div class="slide__inner">
+    <h2>Попробуй сам: <span class="accent">3 функции с комментарием-промптом</span></h2>
+    <p class="lead">Напиши сначала подробный комментарий, потом начни def — смотри на подсказку GigaIDE</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Функция 1: Конвертер температур
+# Принимает celsius (float), возвращает fahrenheit (float)
+# Формула: F = C * 9/5 + 32
+def celsius_to_fahrenheit(celsius: float) -> float:
+    return celsius * 9 / 5 + 32
+
+# Функция 2: Калькулятор ИМТ
+# Принимает weight (кг, float) и height (м, float)
+# Возвращает ИМТ = weight / height**2, округлённый до 1 знака
+def calc_bmi(weight: float, height: float) -> float:
+    return round(weight / height ** 2, 1)
+
+# Функция 3: Счётчик гласных
+# Принимает text (str), возвращает количество гласных (int)
+# Гласные: а е ё и о у ы э ю я (русские и английские)
+def count_vowels(text: str) -> int:
+    vowels = "аеёиоуыэюяaeiouy"
+    return sum(1 for c in text.lower() if c in vowels)
+
+print(celsius_to_fahrenheit(100))  # 212.0
+print(calc_bmi(70, 1.75))          # 22.9
+print(count_vowels("Привет мир"))  # 4</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Практика — сравниваем скорость -->
+<section class="slide"
+  data-notes="Главная практика урока: написать 3 функции с автодополнением и 3 без. Засечь время. Сравнить. Вывод должен сделать сам ребёнок — автодополнение экономит время, но нужно понимать принятый код.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">сравниваем скорость</span></h2>
+    <p class="lead">3 функции с ИИ + 3 без ИИ — засекаем время</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:12px;color:#c4b5fd">С ИИ-автодополнением</h3>
+        <ol class="steps">
+          <li><div><b>Пиши комментарий</b> с описанием функции</div></li>
+          <li><div><b>Начни def...</b> — жди подсказку 0.3 секунды</div></li>
+          <li><div><b>Прочитай</b> предложение ИИ</div></li>
+          <li><div><b>Tab</b> — если понятно и верно</div></li>
+          <li><div><b>Запусти</b> и проверь результат</div></li>
+        </ol>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px;color:#67e8f9">Функции для упражнения</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="card">
+            <p style="font-size:14px"><b style="color:#c4b5fd">С ИИ:</b> <code>calc_bmi(weight, height)</code>, <code>celsius_to_fahrenheit(c)</code>, <code>count_vowels(text)</code></p>
+          </div>
+          <div class="card">
+            <p style="font-size:14px"><b style="color:#67e8f9">Без ИИ:</b> <code>max_of_three(a,b,c)</code>, <code>reverse_string(s)</code>, <code>is_palindrome(s)</code></p>
+          </div>
+          <div class="card card--glow">
+            <p style="font-size:14px"><b class="accent">Вопрос после:</b> С ИИ быстрее? Насколько? Всё ли ты понял в принятом коде?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Мини-квиз: что делать -->
+<section class="slide"
+  data-notes="Быстрый квиз после практики скорости. Пусть студент ответит вслух или поднимет руку. Проверяем понимание правил Tab/Esc перед переходом к блоку доверия ИИ.">
+  <div class="slide__inner">
+    <h2>Мини-квиз: <span class="accent">что ты сделаешь?</span></h2>
+    <p class="lead">ИИ предложил код — выбери правильное действие</p>
+    <ol class="steps" style="margin-top:20px">
+      <li><div><b>Ситуация:</b> ИИ дополнил функцию целиком (15 строк). Ты понимаешь только половину. Что делаешь?<br><span style="color:#86efac;font-size:13px">✅ Нажимаю Esc, пишу сам или прошу объяснить каждую строку</span></div></li>
+      <li><div><b>Ситуация:</b> ИИ предложил ровно то что ты хотел написать — простой print() со своими данными. Что делаешь?<br><span style="color:#86efac;font-size:13px">✅ Нажимаю Tab — понимаю, всё верно</span></div></li>
+      <li><div><b>Ситуация:</b> ИИ предложил код с незнакомой функцией os.remove(). Твоя задача — просто вывести текст. Что делаешь?<br><span style="color:#86efac;font-size:13px">✅ Нажимаю Esc — это опасная функция, не имеет отношения к задаче</span></div></li>
+      <li><div><b>Ситуация:</b> ИИ дополнил цикл for — логика правильная, переменные понятные. Что делаешь?<br><span style="color:#86efac;font-size:13px">✅ Нажимаю Tab — понимаю код, он верный</span></div></li>
+      <li><div><b>Ситуация:</b> ИИ предложил код сразу после того как ты начал печатать имя переменной. Ты ещё не закончил мысль. Что делаешь?<br><span style="color:#fde68a;font-size:13px">⚠️ Читаю предложение — если совпадает с задумкой, Tab. Иначе — Esc</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 8: Когда доверять ИИ -->
+<section class="slide"
+  data-notes="Ключевой вопрос: когда доверять ИИ? Ответ: всегда проверяй, никогда не принимай вслепую. Объясни метафору: ИИ как подмастерье — быстрый, но нужен мастер (ты) для проверки качества.">
+  <div class="slide__inner">
+    <h2>Когда <span class="accent">доверять ИИ</span>?</h2>
+    <p class="lead">ИИ ускоряет — ты контролируешь. Это правильный баланс.</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card card--glow" style="border-color:rgba(16,185,129,0.4)">
+        <div style="font-size:32px;margin-bottom:8px">✅</div>
+        <h3 style="color:#86efac">Принимай если</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Прочитал весь предложенный код</li>
+          <li>Понимаешь каждую строку</li>
+          <li>Логика соответствует задаче</li>
+          <li>Запустил и результат верный</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(245,158,11,0.35)">
+        <div style="font-size:32px;margin-bottom:8px">⚠️</div>
+        <h3 style="color:#fde68a">Осторожно если</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Длинный блок кода (10+ строк)</li>
+          <li>Используются незнакомые функции</li>
+          <li>Сложная логика с условиями</li>
+          <li>Код изменяет файлы или данные</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <div style="font-size:32px;margin-bottom:8px">🚫</div>
+        <h3 style="color:#fca5a5">Никогда не принимай</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Не читая вообще</li>
+          <li>Если не понимаешь ни строки</li>
+          <li>Если задача другая, а код похожий</li>
+          <li>Просто «потому что быстрее»</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Главный принцип:</b> ИИ не заменяет понимание — оно ускоряет набор. Если ты не понимаешь принятый код, ты учишь ИИ, а не себя. Это провал обучения.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Типичные ошибки с ИИ-автодополнением -->
+<section class="slide"
+  data-notes="Разбор типичных ошибок. Каждую ошибку спроси у ребёнка: 'Видел такое? Делал сам?'. Это не критика, а нормальный этап обучения. Ошибки с ИИ делают все — опытные тоже.">
+  <div class="slide__inner">
+    <h2>Типичные ошибки <span class="accent">с ИИ-автодополнением</span></h2>
+    <p class="lead">5 ошибок новичков — и как их избежать</p>
+    <div class="grid grid--2" style="margin-top:16px;gap:14px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5;margin-bottom:10px">❌ Ошибка 1</h3>
+        <p style="font-size:14px"><b>Tab без чтения</b> — принял 20 строк незнакомого кода. Код «работает» но делает не то. Потратил час на поиск бага.</p>
+        <p style="margin-top:8px;font-size:13px;color:#86efac">✅ Всегда читай весь принятый блок до запуска</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5;margin-bottom:10px">❌ Ошибка 2</h3>
+        <p style="font-size:14px"><b>Плохой комментарий-промпт</b> — написал «# функция» и удивился, что ИИ предложил что-то рандомное.</p>
+        <p style="margin-top:8px;font-size:13px;color:#86efac">✅ Пиши конкретно: параметры, тип результата, пример</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5;margin-bottom:10px">❌ Ошибка 3</h3>
+        <p style="font-size:14px"><b>Принял похожий код</b> — задача была посчитать среднее, ИИ предложил код для суммы. Выглядело похоже — принял.</p>
+        <p style="margin-top:8px;font-size:13px;color:#86efac">✅ Проверяй результат на конкретных числах</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5;margin-bottom:10px">❌ Ошибка 4</h3>
+        <p style="font-size:14px"><b>Зависимость от ИИ</b> — перестал думать самостоятельно, сразу ждёт подсказки. Перестал учиться.</p>
+        <p style="margin-top:8px;font-size:13px;color:#86efac">✅ Сначала думай 2 минуты сам, потом смотри на ИИ</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: Cursor AI IDE -->
+<section class="slide"
+  data-notes="Cursor — следующий уровень: ИИ-IDE на базе VS Code. Ctrl+K — рефакторинг функции, Ctrl+L — чат. Для детей это знакомство, основной инструмент — GigaIDE. Но важно показать, что весь мир движется в эту сторону.">
+  <div class="slide__inner">
+    <h2><span class="accent">Cursor</span> — следующий уровень</h2>
+    <p class="lead">ИИ-IDE, которым пользуются профессиональные разработчики по всему миру</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card card--glow">
+        <div style="font-size:28px;margin-bottom:8px">⚡</div>
+        <h3>Что умеет Cursor</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li><span class="kbd-badge">Ctrl+K</span> — рефакторинг выделенного кода</li>
+          <li><span class="kbd-badge">Ctrl+L</span> — чат с ИИ про твой код</li>
+          <li>Понимает весь проект, а не только файл</li>
+          <li>Объясняет любую строку при наведении</li>
+          <li>Пишет тесты автоматически</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:8px">🎯</div>
+        <h3>Наш план</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Открываем Cursor — смотрим интерфейс</li>
+          <li>Открываем Тамагочи-проект</li>
+          <li>Ctrl+L: «Объясни, что делает метод tick()»</li>
+          <li>Ctrl+K: «Добавь проверку, что hunger не выходит за 0-10»</li>
+          <li>Сравниваем с GigaIDE</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b style="color:var(--muted)">Важно:</b> Cursor — взрослый инструмент, мы знакомимся. Наш основной редактор — GigaIDE. Cursor требует регистрации и demo-аккаунта. Попробуй вместе с преподавателем.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Cursor практика Ctrl+K и Ctrl+L -->
+<section class="slide"
+  data-notes="Практика Cursor. Ctrl+K — рефакторинг выделенной функции. Ctrl+L — чат о коде. Дети запомнят эти два как суперсилу. Cursor бесплатен для студентов. Покажи на своём экране.">
+  <div class="slide__inner">
+    <h2>Cursor: <span class="accent">Ctrl+K и Ctrl+L</span></h2>
+    <p class="lead">Две команды, которые меняют подход к программированию</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:10px;color:var(--violet)">Ctrl+K — рефакторинг</h3>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">
+# В Cursor: выдели эту функцию, нажми Ctrl+K
+# Напиши: "добавь проверку типа и docstring"
+# ИИ предложит улучшенную версию прямо здесь
+
+def calc(x, y, op):
+    if op == "+":
+        return x + y
+    if op == "-":
+        return x - y
+    if op == "*":
+        return x * y
+    if op == "/":
+        return x / y
+
+print(calc(10, 3, "+"))
+print(calc(10, 3, "/"))
+print(calc(10, 0, "/"))  # Что будет?
+          </div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3 style="color:var(--cyan)">Ctrl+L — чат о коде</h3>
+          <ul class="clean" style="margin-top:8px;font-size:14px">
+            <li>«Объясни что делает эта функция»</li>
+            <li>«Почему здесь ошибка ZeroDivisionError?»</li>
+            <li>«Добавь обработку деления на ноль»</li>
+            <li>«Перепиши более Pythonic»</li>
+          </ul>
+        </div>
+        <div class="card">
+          <p style="font-size:13px"><b style="color:var(--amber)">GigaIDE vs Cursor:</b> GigaIDE предугадывает следующий код. Cursor обсуждает и рефакторит. Оба полезны в разных ситуациях — выбирай правильный инструмент для задачи.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Пауза — переходим к Lovable -->
+<section class="slide slide--cover" style="background:#0B0F17;border:2px solid rgba(34,197,94,0.4);"
+  data-notes="Короткая пауза. Спроси: 'Что круче — GigaIDE или Cursor? Почему?' Дай 1 минуту обсудить. Потом: 'Теперь — инструмент другого уровня. В Lovable вообще не нужно писать код руками!'">
+  <div class="game-icons">
+    <svg width="80" height="80" style="top:20px;left:40px;opacity:0.15" viewBox="0 0 80 80" fill="none">
+      <path d="M40 10 L70 60 L10 60 Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:20px;right:40px;opacity:0.15" viewBox="0 0 80 80" fill="none">
+      <circle cx="40" cy="40" r="32" stroke="white" stroke-width="4" fill="none"/>
+    </svg>
+    <svg width="70" height="70" style="top:50%;left:60px;transform:translateY(-50%);opacity:0.12" viewBox="0 0 70 70" fill="none">
+      <polygon points="35,5 65,50 5,50" fill="white"/>
+    </svg>
+    <svg width="70" height="70" style="top:50%;right:60px;transform:translateY(-50%);opacity:0.12" viewBox="0 0 70 70" fill="none">
+      <rect x="10" y="10" width="50" height="50" rx="8" fill="white"/>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="badge-green" style="margin:0 auto 20px">Переключаемся</div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(18px,2.2vw,28px);line-height:1.3;font-weight:800">
+        GigaIDE предугадывает.<br>Cursor обсуждает.<br>Lovable — <em>создаёт целые сайты!</em>
+      </h1>
+    </div>
+    <p style="color:rgba(255,255,255,0.6);margin-top:20px;font-size:15px">Следующий уровень ИИ-инструментов →</p>
+  </div>
+</section>
+
+<!-- SLIDE 10: Lovable.dev intro -->
+<section class="slide"
+  data-notes="Lovable.dev — главная подготовка к уроку 36. Покажи: вводишь описание сайта словами → платформа генерирует HTML/CSS/JS. Это не 'волшебство', это мощный промпт-инжиниринг под капотом. Ребёнок должен попробовать первый промпт.">
+  <div class="slide__inner">
+    <h2><span class="accent">Lovable.dev</span> — ИИ пишет сайт</h2>
+    <p class="lead">Ты описываешь сайт словами — платформа генерирует HTML/CSS/JS. Подготовка к уроку 36.</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:10px">Первый промпт для Lovable</h3>
+        <div style="background:#050810;border:1px solid rgba(124,58,237,0.4);border-radius:12px;padding:16px;font-size:13px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;line-height:1.6">
+Создай сайт-визитку для школьника.<br>
+Стиль: тёмный фон, зелёный акцент.<br>
+Секции: Hero (имя + подпись),<br>
+Обо мне, Мои проекты, Контакт.<br>
+На русском языке. Адаптивный.
+        </div>
+        <p style="margin-top:10px;font-size:13px;color:var(--muted)">Отправь этот промпт на lovable.dev. Смотри, что получится!</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Как работает Lovable</h3>
+          <ol class="steps" style="margin-top:8px">
+            <li><div>Ты пишешь описание сайта</div></li>
+            <li><div>ИИ генерирует HTML/CSS/JS</div></li>
+            <li><div>Ты вносишь правки новыми промптами</div></li>
+            <li><div>Публикуешь — получаешь ссылку</div></li>
+          </ol>
+        </div>
+        <div class="card">
+          <p style="font-size:14px"><b style="color:var(--cyan)">Регистрация:</b> через Google или Яндекс родителей. Lovable.dev — бесплатный план есть. Для урока 36 нужен аккаунт!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Промпт-инжиниринг для Lovable -->
+<section class="slide"
+  data-notes="Показываем как улучшать промпт. Главная мысль: первый промпт редко идеальный. Каждое улучшение = отдельный маленький промпт. Именно так работают настоящие разработчики с Lovable/v0.dev.">
+  <div class="slide__inner">
+    <h2>Промпт-инжиниринг <span class="accent">для Lovable</span></h2>
+    <p class="lead">Хороший сайт = хорошие промпты. Итерируем шаг за шагом!</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="color:#fca5a5;margin-bottom:10px">❌ Слабый промпт</h3>
+        <div style="background:#050810;border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;font-size:13px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;line-height:1.6">
+Сделай сайт про Python.
+        </div>
+        <p style="margin-top:8px;font-size:13px;color:var(--muted)">Нет деталей — получится что-то случайное. Нет контроля над результатом.</p>
+      </div>
+      <div>
+        <h3 style="color:#86efac;margin-bottom:10px">✅ Сильный промпт</h3>
+        <div style="background:#050810;border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px;font-size:13px;color:#a5f3fc;font-family:'JetBrains Mono',monospace;line-height:1.6">
+Создай сайт-визитку для школьника<br>
+Максима, 12 лет, изучает Python 6 месяцев.<br><br>
+Секции: Hero (имя + заголовок),<br>
+Мои проекты (3 карточки),<br>
+Навыки (иконки), Контакт (форма).<br><br>
+Стиль: тёмный (#0d1117), акцент фиолетовый,<br>
+шрифт моноширинный. На русском. Адаптивный.
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Формула сильного промпта:</b> Кто + Что + Секции + Стиль + Язык + Особенности. Чем больше деталей — тем точнее результат.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Практика: 3 итерации промпта -->
+<section class="slide"
+  data-notes="Практическое задание: улучшить промпт в 3 шага. Пусть сначала напишет плохой промпт, потом улучшает по шагам. Цель — понять что качество результата зависит от качества задания.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">3 итерации промпта</span></h2>
+    <p class="lead">Один и тот же сайт — три версии промпта. Сравниваем результаты!</p>
+    <ol class="steps" style="margin-top:16px">
+      <li><div><b>Итерация 1 — базовый:</b> Опиши сайт в одном предложении. Запусти на Lovable.dev. Запомни что получилось<br>
+      <code style="font-size:12px;color:var(--cyan)">«Сделай сайт-визитку для школьника Максима»</code></div></li>
+      <li><div><b>Итерация 2 — добавь детали:</b> Добавь цвет, шрифт, список секций. Пиши как отдельный уточняющий запрос<br>
+      <code style="font-size:12px;color:var(--cyan)">«Добавь тёмный фон, фиолетовый акцент, секции Hero / Проекты / Контакт»</code></div></li>
+      <li><div><b>Итерация 3 — уточни контент:</b> Добавь конкретные проекты и навыки в карточки<br>
+      <code style="font-size:12px;color:var(--cyan)">«В секции Проекты добавь 3 карточки: Виселица, Тамагочи, Квиз с описанием»</code></div></li>
+      <li><div><b>Сравни результаты:</b> Как изменился сайт от итерации 1 к 3? Что улучшилось? Что ещё хочется изменить?</div></li>
+      <li><div><b>Вывод:</b> Запиши — какие детали в промпте дали наибольшее улучшение? Это и есть промпт-инжиниринг!</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 11: Три типа ИИ-инструментов -->
+<section class="slide"
+  data-notes="Итоговая схема: три типа ИИ-инструментов. Автодополнение (GigaIDE) — помогает набирать. Чат-IDE (Cursor) — помогает думать. Платформы (Lovable) — помогают создавать. У каждого своя ниша.">
+  <div class="slide__inner">
+    <h2>Три типа <span class="accent">ИИ-инструментов</span></h2>
+    <p class="lead">Каждый для своей задачи. Умный разработчик выбирает правильный.</p>
+    <svg class="diagram" viewBox="0 0 900 200" style="margin-top:14px;max-width:900px">
+      <defs><linearGradient id="tt35" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <rect x="10" y="20" width="270" height="160" rx="16" fill="rgba(124,58,237,0.1)" stroke="rgba(124,58,237,0.4)" stroke-width="1.5"/>
+      <text x="145" y="65" text-anchor="middle" font-size="36">⚡</text>
+      <text x="145" y="95" text-anchor="middle" fill="#c4b5fd" font-family="Inter" font-size="16" font-weight="700">Автодополнение</text>
+      <text x="145" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">GigaIDE, GitHub Copilot</text>
+      <text x="145" y="140" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Ускоряет набор кода</text>
+      <text x="145" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">Tab → принять</text>
+      <rect x="315" y="20" width="270" height="160" rx="16" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.35)" stroke-width="1.5"/>
+      <text x="450" y="65" text-anchor="middle" font-size="36">💬</text>
+      <text x="450" y="95" text-anchor="middle" fill="#67e8f9" font-family="Inter" font-size="16" font-weight="700">Чат-IDE</text>
+      <text x="450" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">Cursor, GigaIDE Chat</text>
+      <text x="450" y="140" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Рефакторинг, объяснение</text>
+      <text x="450" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">Ctrl+K, Ctrl+L</text>
+      <rect x="620" y="20" width="270" height="160" rx="16" fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.35)" stroke-width="1.5"/>
+      <text x="755" y="65" text-anchor="middle" font-size="36">🌐</text>
+      <text x="755" y="95" text-anchor="middle" fill="#f9a8d4" font-family="Inter" font-size="16" font-weight="700">Платформы</text>
+      <text x="755" y="118" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">Lovable.dev, Readdy.ai</text>
+      <text x="755" y="140" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">Генерация сайтов/приложений</text>
+      <text x="755" y="163" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="11">Промпт → готовый сайт</text>
+    </svg>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Ты главный:</b> Все три типа инструментов — подмастерья. Ты — мастер. ИИ ускоряет, но понимание остаётся за тобой. Без понимания — нет профессионала.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: ИИ в игровой разработке -->
+<section class="slide"
+  data-notes="Мотивационный слайд: ИИ уже в игровой индустрии. GitHub Copilot в крупных студиях, AI-анимация, генерация текстур. Ребёнок учится инструментам настоящих профессиональных разработчиков.">
+  <div class="slide__inner">
+    <h2>ИИ в <span class="accent">игровой разработке</span></h2>
+    <p class="lead">Инструменты которые ты изучил сегодня — уже в крупнейших игровых студиях мира</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card card--glow">
+        <div style="font-size:32px;margin-bottom:8px">🎮</div>
+        <h3 style="color:var(--violet)">GitHub Copilot в студиях</h3>
+        <p style="font-size:13px;margin-top:6px">Ubisoft, EA, Microsoft используют Copilot в разработке игр. Скорость написания кода вырастает на 55%. Tab работает так же как в GigaIDE.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:32px;margin-bottom:8px">🤖</div>
+        <h3 style="color:var(--cyan)">ИИ-анимация и арт</h3>
+        <p style="font-size:13px;margin-top:6px">Midjourney + Stable Diffusion генерируют концепты персонажей. Motion-capture + ИИ анализирует движения для реалистичной анимации NPC.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:32px;margin-bottom:8px">🌍</div>
+        <h3 style="color:var(--amber)">Процедурная генерация</h3>
+        <p style="font-size:13px;margin-top:6px">No Man's Sky, Minecraft — ИИ генерирует уровни, объекты, диалоги. Бесконечный мир без ручной работы тысяч художников.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">В EdisonGames:</b> Как стажёры студии, вы используете GigaIDE с автодополнением для быстрого кодинга, Lovable для прототипов интерфейсов, ИИ-ревью для улучшения кода. Это не будущее — это настоящее.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12: Правила ИИ-IDE -->
+<section class="slide"
+  data-notes="Правила ИИ-IDE. Особенно важны правила 1, 2, 5. Расспроси ребёнка: 'Что произойдёт, если принять код не читая?'">
+  <div class="slide__inner">
+    <h2>Правила <span class="accent">ИИ-IDE</span></h2>
+    <p class="lead">10 фраз, которые повторяй каждый раз, открывая GigaIDE</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <ul class="clean">
+        <li>Автодополнение — это быстрее, но ты должен понимать принятое</li>
+        <li>Никогда не принимай Tab не читая. Иногда ИИ подсовывает ерунду</li>
+        <li>Cursor — взрослый редактор, мы знакомимся. GigaIDE — рабочий</li>
+        <li>Ctrl+K — рефакторинг, Ctrl+L — чат. Запомни эти две</li>
+        <li>Lovable.dev — ты пишешь словами, он делает сайт. Это промпт-инжиниринг</li>
+      </ul>
+      <ul class="clean">
+        <li>Платформа = быстро, но результат нужно проверять</li>
+        <li>Хороший промпт для сайта = секции + стиль + цвет + аудитория</li>
+        <li>Завтра (урок 36) — твой сайт-визитка. Сегодня — репетиция</li>
+        <li>Ты всё равно главный. ИИ — подмастерье</li>
+        <li>Проверяй сгенерированный код запуском всегда без исключений</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Проверь себя — правила ИИ -->
+<section class="slide"
+  data-notes="Финальная проверка правил перед практической частью. Попроси студента ответить на каждый вопрос вслух. Это важно — убедиться что ключевые принципы усвоены перед ДЗ.">
+  <div class="slide__inner">
+    <h2>Проверь себя: <span class="accent">правила ИИ-IDE</span></h2>
+    <p class="lead">7 вопросов — проверяем главное перед домашним заданием</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <ol class="steps">
+        <li><div>Когда нажимать <b>Tab</b>?<br><span style="color:var(--muted);font-size:12px">Ответ: когда прочитал и понял весь предложенный код</span></div></li>
+        <li><div>Когда нажимать <b>Esc</b>?<br><span style="color:var(--muted);font-size:12px">Ответ: если не понимаешь, или код не соответствует задаче</span></div></li>
+        <li><div>Что такое <b>комментарий-промпт</b>?<br><span style="color:var(--muted);font-size:12px">Ответ: подробный комментарий перед def, который направляет ИИ-автодополнение</span></div></li>
+        <li><div>Чем Cursor отличается от GigaIDE?<br><span style="color:var(--muted);font-size:12px">Ответ: Cursor — чат + рефакторинг, GigaIDE — автодополнение при наборе</span></div></li>
+      </ol>
+      <ol class="steps" start="5">
+        <li><div>Что делает Lovable.dev?<br><span style="color:var(--muted);font-size:12px">Ответ: генерирует полный сайт по текстовому описанию</span></div></li>
+        <li><div>Три типа ИИ-инструментов?<br><span style="color:var(--muted);font-size:12px">Ответ: автодополнение / чат-IDE / генераторная платформа</span></div></li>
+        <li><div>Почему нельзя принимать код не читая?<br><span style="color:var(--muted);font-size:12px">Ответ: можно принять ошибочный или опасный код — потеряешь часы на отладку</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: Репетиция Lovable -->
+<section class="slide"
+  data-notes="Репетиция Lovable. Ребёнок пишет первый промпт для сайта-визитки. Не страшно, что некрасиво — завтра будем улучшать. Главное: почувствовать, как описание превращается в сайт.">
+  <div class="slide__inner">
+    <h2>Репетиция: <span class="accent">первый сайт в Lovable</span></h2>
+    <p class="lead">Открываем Lovable.dev и создаём прототип твоего сайта</p>
+    <div class="card card--glow" style="margin-top:14px">
+      <h3>Промпт для первого сайта-визитки</h3>
+      <div style="background:#050810;border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:16px;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a5f3fc;line-height:1.7">
+Создай сайт-визитку для школьника [ТВОЁ ИМЯ], [ТВОЙ ВОЗРАСТ] лет, изучает Python.<br>
+Стиль: тёмный фон (#0d1117), фиолетовый акцент (#7C3AED), шрифт JetBrains Mono.<br>
+Секции:<br>
+1. Hero — большое имя "[ИМЯ]", подпись "Юный Python-разработчик".<br>
+2. Обо мне — 3 предложения (напиши сам потом).<br>
+3. Мои проекты — карточки: Виселица, Тамагочи, Квиз.<br>
+4. Навыки — Python, ООП, ИИ.<br>
+На русском языке. Адаптивный.
+      </div>
+    </div>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card">
+        <p style="font-size:14px"><b style="color:var(--cyan)">После генерации:</b> Посмотри что получилось. Найди 3 вещи, которые хочешь изменить. Запиши их — завтра исправим.</p>
+      </div>
+      <div class="card">
+        <p style="font-size:14px"><b style="color:var(--cyan)">Правило:</b> Каждое изменение = отдельный промпт. «Поменяй цвет кнопки на синий» — работает лучше, чем большой запрос сразу.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Улучшаем сайт — итерации промптов -->
+<section class="slide"
+  data-notes="После репетиции с первым промптом — учим итерации. Каждый раз улучшаем маленьким уточнением. Это навык продуктовых дизайнеров и фронт-разработчиков. Покажи на своём Lovable аккаунте.">
+  <div class="slide__inner">
+    <h2>Улучшаем сайт: <span class="accent">итерации промптов</span></h2>
+    <p class="lead">Первый промпт — набросок. Дальше — уточнения одним предложением. Так работают профи!</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card card--glow">
+        <h3 style="color:var(--green)">Промпты-улучшения</h3>
+        <ul class="clean" style="margin-top:10px;font-size:13px">
+          <li>«Измени цвет заголовка Hero на градиент фиолетовый → синий»</li>
+          <li>«В карточках проектов добавь теги: Python, ООП, Игра»</li>
+          <li>«Сделай кнопку в Hero с анимацией пульсации»</li>
+          <li>«Добавь тёмный футер с копирайтом»</li>
+          <li>«Шрифт заголовков — Inter, 48px на десктопе»</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <h3>Правило одного изменения</h3>
+          <p style="font-size:13px;margin-top:8px">Каждый промпт = одно изменение. Если просишь 5 вещей сразу — ИИ путается. Маленькие шаги дают лучший контроль результата.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--amber)">Когда остановиться?</h3>
+          <p style="font-size:13px;margin-top:8px">Когда сайт выглядит так, как ты видел в голове. Итерация — инструмент, а не бесконечный процесс.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: Домашнее задание -->
+<section class="slide"
+  data-notes="ДЗ: план сайта-визитки на бумаге (или в заметках). Список из 5 своих Python-проектов. Это подготовка к уроку 36, где будем делать финальный сайт.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">20 минут. Готовимся к финальному проекту урока 36.</p>
+    <div class="card card--glow" style="margin-top:14px">
+      <h3>Задание: план сайта-визитки</h3>
+      <ol class="steps" style="margin-top:12px">
+        <li><div><b>Напиши план на бумаге:</b> 5 секций будущего сайта. Hero, Обо мне, Проекты, Навыки, Контакт — или придумай свои</div></li>
+        <li><div><b>Список проектов:</b> все Python-проекты с курса — Виселица, Тамагочи, Квиз, Записная книжка, и т.д. Кратко что делает каждый</div></li>
+        <li><div><b>Цветовая схема:</b> тёмный фон + один акцентный цвет (зелёный, фиолетовый, синий). Выбери свой стиль!</div></li>
+        <li><div><b>Аватар-идея:</b> думай какого персонажа хочешь — сгенерируем в Kandinsky на следующем уроке</div></li>
+      </ol>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p><b class="accent">Бонус:</b> Попробуй сгенерировать сайт в Lovable с подробным промптом — итерируй 3 раза, улучшая промпт. Принеси ссылку на лучший вариант завтра.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Расширенное ДЗ для отличников -->
+<section class="slide"
+  data-notes="Дополнительные задания для тех кто закончил быстро или хочет глубже. Задания 5-8 — уровень выше базового ДЗ. Необязательно, но поощряется. Покажи слайд только если осталось время.">
+  <div class="slide__inner">
+    <h2>Расширенное ДЗ: <span class="accent">для отличников</span></h2>
+    <p class="lead">Выполнил базовое ДЗ? Вот задания для углубления — уровень «Старший разработчик»</p>
+    <div class="card card--glow" style="margin-top:14px">
+      <ol class="steps" style="margin-top:4px">
+        <li><div><b>Lovable × 5 итераций:</b> Создай сайт и сделай ровно 5 улучшений разными промптами. Запиши каждый промпт и опиши что изменилось</div></li>
+        <li><div><b>Сравни инструменты:</b> Напиши функцию calc_bmi в GigaIDE с автодополнением, потом попроси Cursor её улучшить Ctrl+K. Запиши разницу</div></li>
+        <li><div><b>Промпт-дизайн:</b> Придумай 3 промпта для Lovable: игровой сайт, сайт рецептов, личный блог. Пиши по формуле Кто + Что + Секции + Стиль</div></li>
+        <li><div><b>Python + ИИ-автодополнение:</b> Напиши 5 функций только с техникой «подробный комментарий как промпт». Никакого Tab без прочтения!</div></li>
+        <li><div><b>Мини-презентация:</b> Объясни другу или родителям что такое ИИ-автодополнение за 2 минуты. Используй аналогию T9</div></li>
+        <li><div><b>Bonus:</b> Попробуй Bolt.new или v0.dev — альтернативы Lovable. Сравни: какой интерфейс удобнее, какой результат лучше?</div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: Чек-лист успеха -->
+<section class="slide"
+  data-notes="Проверочные вопросы для ребёнка. Если не может ответить на 2 и более — вернись к соответствующим слайдам.">
+  <div class="slide__inner">
+    <h2>Чек-лист <span class="accent">успеха</span></h2>
+    <p class="lead">5 пунктов — и ты готов к финальному проекту ИИ-модуля</p>
+    <ul class="clean" style="margin-top:20px">
+      <li>Написал функцию с помощью ИИ-автодополнения — и прочитал принятый код</li>
+      <li>Знаю когда нажимать Tab (принять) и когда Esc (отклонить)</li>
+      <li>Попробовал Cursor или GigaIDE Chat — задал вопрос про свой код</li>
+      <li>Создал первый прототип в Lovable.dev с промптом</li>
+      <li>Подготовил план сайта-визитки для урока 36</li>
+    </ul>
+    <div class="quote-block" style="margin-top:20px">
+      Бейдж «ИИ-разработчик» — умею использовать ИИ в среде разработки ⚡
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE NEW: Модульный прогресс -->
+<section class="slide"
+  data-notes="Прогресс-слайд завершения урока. Показывает где мы в модуле ИИ-разработки. Мотивирует — видно сколько сделано. Урок 36 — финальный проект. Напомни: принести ссылку на Lovable-сайт!">
+  <div class="slide__inner">
+    <h2>Прогресс модуля: <span class="accent">ИИ-разработка</span></h2>
+    <p class="lead">4 из 5 уроков ИИ-блока позади. Финальный проект — завтра!</p>
+    <div class="timeline" style="margin-top:20px">
+      <div class="timeline__item" style="opacity:0.5">
+        <div class="timeline__dot" style="background:#22c55e">✓</div>
+        <div class="timeline__body"><h3 style="color:#86efac">Урок 33 — GigaChat как ревьювер</h3><p>ИИ-ревью кода. Промпты для проверки качества. Что значит «хороший код».</p></div>
+      </div>
+      <div class="timeline__item" style="opacity:0.5">
+        <div class="timeline__dot" style="background:#22c55e">✓</div>
+        <div class="timeline__body"><h3 style="color:#86efac">Урок 34 — Промпт-инжиниринг</h3><p>Точные промпты. Zero-shot, few-shot. Как говорить с ИИ на его языке.</p></div>
+      </div>
+      <div class="timeline__item">
+        <div class="timeline__dot" style="background:var(--violet);box-shadow:0 0 0 4px rgba(124,58,237,0.3)">★</div>
+        <div class="timeline__body"><h3 style="color:var(--violet)">Урок 35 — ИИ-IDE (сейчас!)</h3><p>GigaIDE, Cursor, Lovable.dev. Автодополнение, рефакторинг, генерация сайтов.</p></div>
+      </div>
+      <div class="timeline__item" style="opacity:0.6">
+        <div class="timeline__dot" style="background:var(--amber)">36</div>
+        <div class="timeline__body"><h3 style="color:var(--amber)">Урок 36 — Финальный проект</h3><p>Сайт-визитка в Lovable.dev. Публикация. Твой первый настоящий сайт-портфолио!</p></div>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:16px">
+      Ты готов к финальному проекту ИИ-блока! Принеси ссылку на сайт завтра 🚀
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16: Cover green — финал -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрывающий слайд. Скажи: 'Сегодня ты познакомился с инструментами, которые используют тысячи профессиональных разработчиков прямо сейчас. Завтра — создашь свой первый настоящий сайт.'">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        ИИ ускоряет тебя —<br>завтра делаем сайт!
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

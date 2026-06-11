@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 47 — Финальный проект, часть 3: Полировка и защита | Python Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:100;}
+  .progress__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 300ms ease;box-shadow:0 0 12px rgba(124,58,237,0.6);}
+
+  .counter{position:fixed;top:18px;right:24px;z-index:90;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .counter b{color:var(--text)}
+
+  .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;font-size:11px;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;letter-spacing:0.03em;opacity:0.7;}
+  .hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--text);}
+
+  .deck{position:relative;z-index:1;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 80px;opacity:0;transform:translateY(30px);transition:opacity 300ms ease, transform 300ms ease;pointer-events:none;overflow:auto;}
+  .slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .slide.prev{transform:translateY(-30px);}
+
+  .slide__inner{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px;}
+
+  .slide--cover{padding:0;}
+  .cover-bubble{background:#fff;border-radius:28px;padding:38px 56px;max-width:580px;text-align:center;position:relative;z-index:2;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+  .cover-bubble--speech::after{content:'';position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:28px solid #fff;}
+
+  .game-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .game-icons svg{position:absolute;opacity:0.22;}
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{display:inline-block;background:var(--green);color:#fff;font-size:15px;font-weight:700;padding:7px 22px;border-radius:999px;margin-bottom:16px;}
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .card--glow::before{content:'';position:absolute;inset:-1px;border-radius:var(--radius);padding:1px;background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+  .card__icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:rgba(124,58,237,0.15);margin-bottom:10px;font-size:22px;}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text);line-height:1.5;}
+  ul.clean li::before{content:'—';flex:0 0 auto;color:var(--amber);font-weight:700;}
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:15px;line-height:1.55;}
+  ol.steps li::before{content:counter(step);flex:0 0 28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--amber);font-weight:800;font-size:13px;color:#fff;margin-top:2px;}
+
+  pre[class*="language-"]{border-radius:14px!important;padding:18px 20px!important;font-size:15px!important;font-family:'JetBrains Mono',monospace!important;border:1px solid var(--card-border);box-shadow:var(--shadow);line-height:1.6!important;background:#1a1f2e!important;margin:0;}
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{background:rgba(124,58,237,0.15);color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+
+  .terminal{background:#050810;border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a7f3d0;position:relative;}
+  .terminal::before{content:'● ● ●';position:absolute;top:9px;left:13px;font-size:9px;color:#475569;letter-spacing:3px;}
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{background:rgba(245,158,11,0.09);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 20px;font-size:17px;font-weight:600;color:var(--text);line-height:1.5;}
+
+  .notes{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--card-border);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease;}
+  .notes.active{transform:translateY(0)}
+  .notes__header{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,.slide.active ul.clean li,.slide.active ol.steps li{animation:reveal 500ms ease backwards;}
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+  @media(max-width:700px){.slide{padding:60px 24px 70px}}
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);}
+.compiler-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(124,58,237,0.08);border-bottom:1px solid rgba(255,255,255,0.06);}
+.compiler-header .lang-badge{display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.compiler-header .lang-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{padding:14px 18px;color:#E2E8F0;max-height:260px;overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{padding:5px 12px;border:0;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;color:#fff;}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:#050810;color:#86efac;font-size:12.5px;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+
+<style>
+/* Supplemental: lesson-specific components */
+.timeline{display:flex;flex-direction:column;gap:12px}
+.timeline__row{display:grid;grid-template-columns:130px 1fr;gap:20px;align-items:flex-start;padding:14px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;}
+.timeline__time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--amber);}
+.timeline__body h3{font-size:17px;margin-bottom:4px}
+.timeline__body p{font-size:14px;color:var(--muted)}
+
+.kv{display:flex;flex-direction:column;gap:10px}
+.kv__row{display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--card-border);}
+.kv__row:last-child{border-bottom:none;}
+.kv__key{font-size:14px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;}
+.kv__val{font-size:16px;color:var(--text);}
+
+.defence-block{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:18px 22px;position:relative;}
+.defence-block__num{position:absolute;top:-10px;left:16px;background:var(--amber);color:#fff;font-weight:700;font-size:13px;padding:3px 12px;border-radius:999px;}
+.defence-block h3{margin-bottom:6px;margin-top:8px;font-size:16px;}
+.defence-block p{font-size:14px;color:var(--muted);line-height:1.5;}
+.time-tag{display:inline-block;background:rgba(245,158,11,0.1);color:var(--amber);font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
+
+.hero-num{font-size:clamp(60px,10vw,120px);font-weight:800;line-height:1;letter-spacing:-0.04em;}
+
+ul.check-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+ul.check-list li{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--text);padding:10px 14px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;line-height:1.5;}
+ul.check-list li .chk{flex-shrink:0;width:26px;height:26px;border-radius:6px;border:2px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.08);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--green);}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){outEl.className='compiler-output show error';outEl.textContent='Skulpt загружается... обнови страницу.';return;}
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)throw "Файл не найден: "+f;return Sk.builtinFiles["files"][f];},
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">22</span></div>
+
+<main class="deck" id="deck">
+
+<!-- 1. COVER -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 47 — последний рабочий урок перед демо-днём. Три задачи: доделать полировку, записать defence.md, порепетировать. Начни с позитива: «Ты почти финишировал, осталось сделать проект блестящим».">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №47</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Финальный проект,<br>часть 3: Полировка и защита
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Разбор ДЗ урока 46 -->
+<section class="slide"
+  data-notes="Начни урок с разбора ДЗ. Открой код ребёнка из прошлой недели. Спроси: что было сложнее всего? что получилось лучше, чем ожидал? 3-5 минут хватит — главное создать ощущение завершённости перед финальным рывком.">
+  <div class="slide__inner">
+    <h2>Разбор домашнего <span class="accent">задания</span></h2>
+    <p class="lead">Урок 46: ты добавил систему очков, улучшил меню, записал speech.md</p>
+    <div class="grid grid--3" style="margin-top:8px;">
+      <div class="card card--violet">
+        <h3>Система очков</h3>
+        <p>Работает ли score? Сохраняется ли рекорд в файл?</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>Меню игры</h3>
+        <p>Есть главный экран? Можно выйти и перезапустить?</p>
+      </div>
+      <div class="card card--green">
+        <h3>speech.md</h3>
+        <p>Написал 3 абзаца о проекте? Прочитал вслух хотя бы раз?</p>
+      </div>
+    </div>
+    <div class="quote-block">Сегодняшняя цель: полировка + defence.md + репетиция. Это последний рабочий урок перед демо-днём!</div>
+  </div>
+</section>
+
+<!-- 2.5. Разбор видео прогресса -->
+<section class="slide"
+  data-notes="Ребёнок снял 30-сек видео текущего состояния игры и написал 3 вопроса/идеи в notes.md. Смотрите видео вместе — это мотивирует. Уже видно прогресс! Разберите один острый вопрос из notes.md прямо сейчас.">
+  <div class="slide__inner">
+    <h2>Смотрим видео <span class="accent">прогресса</span></h2>
+    <p class="lead">Ты записал 30-секундное видео игры — включаем вместе</p>
+    <div class="grid grid--2">
+      <div class="card">
+        <div class="card__icon">🎬</div>
+        <h3>Видео-срез</h3>
+        <p>Включи запись. Смотрим молча 30 секунд. Потом три слова: «что уже классно»</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">📝</div>
+        <h3>notes.md</h3>
+        <p>Читаем три вопроса/идеи, которые ты записал. Выбираем один острый — разбираем прямо сейчас</p>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="terminal__body">
+        <div class="terminal__prompt"># notes.md — что должно быть</div><br>
+        ## Вопросы для урока 47<br>
+        1. Экран меню не появляется при нажатии R — почему?<br>
+        2. Хочу добавить анимацию взрыва — успею?<br>
+        3. Звук слишком громкий на фоне музыки<br><br>
+        ## Идеи на потом<br>
+        - Добавить рекордный счёт<br>
+        - Сделать 2 уровня сложности
+      </div>
+    </div>
+    <div class="quote-block">«Видео — это твоя машина времени. Через год посмотришь и не поверишь, как далеко зашёл»</div>
+  </div>
+</section>
+
+<!-- 3. Чек-лист полировки -->
+<section class="slide"
+  data-notes="Это ключевой слайд урока. Проходимся по 5 пунктам как по чеклисту. На каждый вопрос — ответ да/нет. Если нет — быстро добавляем. Не тратим больше 5 минут на один пункт.">
+  <div class="slide__inner">
+    <h2>Чек-лист <span class="accent">полировки</span></h2>
+    <p class="lead">Пять вопросов. Да/Нет. Если нет — быстро добавляем</p>
+    <ul class="check-list">
+      <li><div class="chk">1</div><div><strong>Есть ли главное меню?</strong> — Нажатие клавиши START или SPACE начинает игру. Игрок не должен угадывать, как запустить.</div></li>
+      <li><div class="chk">2</div><div><strong>Есть ли экран конца игры?</strong> — «Игра окончена» / «Ты победил» — явный экран, не просто остановка.</div></li>
+      <li><div class="chk">3</div><div><strong>Можно ли перезапустить без выхода?</strong> — Нажатие R или ENTER перезапускает игру без закрытия окна.</div></li>
+      <li><div class="chk">4</div><div><strong>Баланс звука?</strong> — Фоновая музыка тихая (0.3–0.5), эффекты чуть громче (0.6–0.8). Не пережигает уши.</div></li>
+      <li><div class="chk">5</div><div><strong>Понятно ли правило за 5 секунд?</strong> — Попроси кого-то другого запустить. Если через 5 сек не понял — нужна подсказка на экране.</div></li>
+    </ul>
+    <div class="card" style="border-color:rgba(245,158,11,0.3);">
+      <p style="font-size:15px;color:var(--text);">Правило: если пункт занимает больше 5 минут — <strong>пишем в «ideas» и идём дальше</strong>. Полировка не должна сломать то, что работает!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3.5. Ошибки в коде: ❌/✓ -->
+<section class="slide"
+  data-notes="Этот слайд — быстрый разбор типичных ошибок кода, которые обнаруживаются при полировке. Пройдись по каждой паре ❌/✓. Спроси: «Есть ли у тебя такое в проекте?» Если да — чиним сразу.">
+  <div class="slide__inner">
+    <h2>Частые ошибки <span class="accent">при полировке</span></h2>
+    <p class="lead">Смотрим на реальный код и находим что улучшить</p>
+    <div class="grid grid--2" style="margin-top:8px;">
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:18px;">
+        <p style="color:#f87171;font-weight:700;margin-bottom:10px;">❌ Антипаттерны</p>
+        <ul class="clean" style="font-size:14px;gap:8px;">
+          <li><code>x = 1; y = 2; z = 3</code> — магические числа</li>
+          <li>Функция из 80 строк, делает всё сразу</li>
+          <li><code>except:</code> без типа ошибки</li>
+          <li>Переменная <code>a</code>, <code>b</code>, <code>qq2</code> — непонятные имена</li>
+          <li>Один файл с 300+ строками без разделения</li>
+        </ul>
+      </div>
+      <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:18px;">
+        <p style="color:#86efac;font-weight:700;margin-bottom:10px;">✓ Как правильно</p>
+        <ul class="clean" style="font-size:14px;gap:8px;">
+          <li><code>SPEED = 5; MAX_HEALTH = 100</code> — константы</li>
+          <li>Одна функция = одна задача (SRP)</li>
+          <li><code>except ValueError as e:</code> — конкретный тип</li>
+          <li><code>player_speed</code>, <code>enemy_count</code> — говорящие имена</li>
+          <li>Разбивка на файлы: <code>game.py</code>, <code>player.py</code>, <code>ui.py</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Готовые паттерны для полировки -->
+<section class="slide"
+  data-notes="Три самых частых «нет» в чеклисте — меню, экран конца, перезапуск. Даём готовые mini-patterns, чтобы не думать с нуля. Ребёнок вставляет в свой код и адаптирует.">
+  <div class="slide__inner">
+    <h2>Готовые паттерны <span class="accent">для полировки</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <p class="muted" style="font-size:14px;margin-bottom:8px;">Меню + перезапуск (state machine)</p>
+        <pre><code class="language-python">STATE = "menu"  # menu / play / gameover
+
+def draw():
+    screen.fill("black")
+    if STATE == "menu":
+        screen.draw.text("Нажми SPACE для старта",
+            center=(400,300), fontsize=32,
+            color="white")
+    elif STATE == "play":
+        draw_game()
+    elif STATE == "gameover":
+        screen.draw.text("Игра окончена! R = restart",
+            center=(400,300), fontsize=32,
+            color="red")
+
+def on_key_down(key):
+    global STATE
+    if STATE == "menu" and key == keys.SPACE:
+        STATE = "play"
+        reset_game()
+    elif STATE == "gameover" and key == keys.R:
+        STATE = "menu"</code></pre>
+      </div>
+      <div>
+        <p class="muted" style="font-size:14px;margin-bottom:8px;">Подсказка на экране (первые 3 сек)</p>
+        <pre><code class="language-python">hint_timer = 3.0  # секунды показа
+
+def update(dt):
+    global hint_timer
+    if hint_timer > 0:
+        hint_timer -= dt
+
+def draw():
+    screen.fill("black")
+    draw_game()
+    if hint_timer > 0:
+        screen.draw.text(
+            "Стрелки — движение, SPACE — прыжок",
+            topleft=(10,10),
+            fontsize=18, color="yellow",
+            alpha=min(255, int(hint_timer*100))
+        )</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.5. Рефакторинг на Python -->
+<section class="slide"
+  data-notes="Практический рефакторинг с компилятором. Пусть ребёнок сам переписывает «плохой» код в «хороший». Подчеркни: рефакторинг — это профессиональный навык, а не исправление ошибок. Хороший разработчик возвращается к коду и делает его лучше.">
+  <div class="slide__inner">
+    <h2>Рефакторинг: <span class="accent">делаем код чище</span></h2>
+    <p class="lead">Берём рабочий код и делаем его понятнее — не ломая логику</p>
+    <div class="compiler" data-lang="python"># ДО рефакторинга
+def f(p, e):
+    if p[2] > 0 and e[2] > 0:
+        p[2] -= e[1]
+        e[2] -= p[1]
+        print(p[0], p[2], e[0], e[2])
+
+# ПОСЛЕ рефакторинга
+def battle_round(player, enemy):
+    """Один раунд боя: игрок и враг атакуют друг друга."""
+    player['hp'] -= enemy['damage']
+    enemy['hp'] -= player['damage']
+    print(f"{player['name']}: {player['hp']} HP | {enemy['name']}: {enemy['hp']} HP")
+
+hero = {'name': 'Герой', 'hp': 100, 'damage': 15}
+goblin = {'name': 'Гоблин', 'hp': 40, 'damage': 8}
+
+battle_round(hero, goblin)
+battle_round(hero, goblin)</div>
+    <div class="compiler-output"></div>
+  </div>
+</section>
+
+<!-- 5. Охота на баги -->
+<section class="slide"
+  data-notes="20-35 минут — ребёнок сам играет в свою игру 3 минуты, ищет баги. Роль преподавателя: наблюдать. Каждый найденный баг записывается, потом сразу чинится. Это важный опыт: debugging как нормальная рабочая практика.">
+  <div class="slide__inner">
+    <h2>Охота на баги <span class="accent">Bug Hunt</span></h2>
+    <p class="lead">Запускаем игру и играем 3 минуты. Ты — игрок, не автор</p>
+    <div class="grid grid--3">
+      <div class="card">
+        <div class="card__icon">🎮</div>
+        <h3>Шаг 1: Играй</h3>
+        <p>Запусти игру и проходи её как будто первый раз. Попробуй сделать то, чего не планировал</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">📋</div>
+        <h3>Шаг 2: Записывай</h3>
+        <p>Каждый странный момент — в notes.md. «Враг прошёл сквозь стену», «счёт не сбросился»</p>
+      </div>
+      <div class="card">
+        <div class="card__icon">🔧</div>
+        <h3>Шаг 3: Чини</h3>
+        <p>По списку — от самого критичного. Краши и freeze → первыми. Косметика → последней</p>
+      </div>
+    </div>
+    <h3>Приоритеты багов</h3>
+    <ul class="clean">
+      <li><span style="color:#fca5a5;font-weight:700;">Красный:</span> Игра зависает или крашится — чинить немедленно</li>
+      <li><span style="color:#F59E0B;font-weight:700;">Оранжевый:</span> Непонятно правило или объект телепортируется — чинить сейчас</li>
+      <li><span style="color:#fde68a;font-weight:700;">Жёлтый:</span> Мелкая графика не та — чинить если есть время</li>
+      <li><span style="color:#86efac;font-weight:700;">Зелёный:</span> Хочу добавить фичу — в список «ideas», не сейчас</li>
+    </ul>
+    <div class="quote-block">Правило «заморозки кода»: в день защиты код не трогаем. Лучше стабильная игра без новой фичи, чем падающая игра с ней.</div>
+  </div>
+</section>
+
+<!-- 6. Трекер багов на Python -->
+<section class="slide"
+  data-notes="Практика: ребёнок пишет свой список багов в виде Python-кода — это и программирование, и организация. Можно адаптировать под реальный список из notes.md.">
+  <div class="slide__inner">
+    <h2>Трекер багов <span class="accent">на Python</span></h2>
+    <p class="lead">Пишем список своих багов прямо в коде — потом чиним по порядку</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Bug Tracker -- список багов моего проекта
+# Замени на СВОИ баги!
+
+bugs = [
+    {"id": 1, "priority": "RED",    "desc": "При смерти игра зависает"},
+    {"id": 2, "priority": "ORANGE", "desc": "Счёт не сбрасывается при рестарте"},
+    {"id": 3, "priority": "YELLOW", "desc": "Фон немного смещён"},
+    {"id": 4, "priority": "GREEN",  "desc": "Хочу добавить взрыв"},
+]
+
+priority_order = {"RED": 0, "ORANGE": 1, "YELLOW": 2, "GREEN": 3}
+bugs.sort(key=lambda b: priority_order[b["priority"]])
+
+icons = {"RED": "KRIT", "ORANGE": "WARN", "YELLOW": "INFO", "GREEN": "IDEA"}
+
+print("=== МОЙ ПЛАН ДЕБАГИНГА ===")
+print()
+to_fix = []
+to_later = []
+
+for bug in bugs:
+    if bug["priority"] in ("RED", "ORANGE"):
+        to_fix.append(bug)
+    else:
+        to_later.append(bug)
+
+print("ЧИНИМ СЕЙЧАС:")
+for bug in to_fix:
+    print(f"  [{icons[bug['priority']]}] #{bug['id']}: {bug['desc']}")
+
+print()
+print("ПОТОМ / ИДЕИ:")
+for bug in to_later:
+    print(f"  [{icons[bug['priority']]}] #{bug['id']}: {bug['desc']}")
+
+print()
+print(f"Критичных багов: {len(to_fix)}")
+print(f"Задач на потом: {len(to_later)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6.5. Техника Резиновая уточка -->
+<section class="slide"
+  data-notes="Техника «резиновой уточки» — настоящий инструмент профессиональных разработчиков. Расскажи историю: легенда гласит, что разработчики объясняли баг резиновой уточке — и сами находили решение. Пусть ребёнок попробует объяснить вслух один баг из своего списка тебе, как будто ты ничего не знаешь о его коде.">
+  <div class="slide__inner">
+    <h2>Техника <span class="accent">«Резиновой уточки»</span></h2>
+    <p class="lead">Объясни баг вслух — и часто сам найдёшь решение</p>
+    <div class="grid grid--2" style="margin-top:8px;">
+      <div>
+        <ol class="steps">
+          <li>Возьми любой баг из своего трекера</li>
+          <li>Объясни его вслух — как будто учишь меня с нуля</li>
+          <li>Говори каждую строку кода: «здесь я делаю X, потому что Y»</li>
+          <li>В какой-то момент сам заметишь: «Стоп, вот где ошибка!»</li>
+        </ol>
+        <p style="margin-top:12px;font-size:14px;color:var(--muted);">Этот метод работает, потому что когда мы объясняем — мы думаем линейно и находим то, что пропустили глазами</p>
+      </div>
+      <div class="card card--cyan" style="align-self:start;">
+        <h3>Зачем это работает?</h3>
+        <dl class="kv" style="margin-top:8px;">
+          <div class="kv__row"><dt>Мозг</dt><dd>переключается с «написать» на «объяснить»</dd></div>
+          <div class="kv__row"><dt>Логика</dt><dd>становится линейной, а не параллельной</dd></div>
+          <div class="kv__row"><dt>Ошибки</dt><dd>всплывают при словесном описании</dd></div>
+        </dl>
+        <div class="quote-block" style="margin-top:10px;font-size:13px;">У Amazon и Google разработчики используют «rubber duck debugging» официально</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. Подготовка defence.md -->
+<section class="slide"
+  data-notes="35-50 минут — самый важный кусок. Открываем новый файл defence.md в папке проекта. Ребёнок заполняет его по шаблону. Преподаватель не диктует — только помогает если ребёнок застрял. 15 минут должны уйти на написание.">
+  <div class="slide__inner">
+    <h2>Структура <span class="accent">защиты</span></h2>
+    <p class="lead">Открываем <code>defence.md</code> и заполняем по шаблону — сам, я только подсказываю</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+      <div class="defence-block">
+        <div class="defence-block__num">Часть 1</div>
+        <div class="time-tag">1 минута</div>
+        <h3>Что делает моя программа</h3>
+        <p>2-3 предложения. «Моя игра называется... Главный герой... Цель игрока...» Без технических деталей!</p>
+      </div>
+      <div class="defence-block">
+        <div class="defence-block__num">Часть 2</div>
+        <div class="time-tag">1–2 минуты</div>
+        <h3>Демо — живой показ</h3>
+        <p>Конкретные шаги: запускаю → показываю меню → играю 30 сек → проигрываю → показываю рестарт</p>
+      </div>
+      <div class="defence-block">
+        <div class="defence-block__num">Часть 3</div>
+        <div class="time-tag">1 минута</div>
+        <h3>Самая сложная часть + как решил</h3>
+        <p>Конкретно: «Коллизии не работали → спросил YandexGPT → оказалось, я проверял не тот прямоугольник»</p>
+      </div>
+      <div class="defence-block">
+        <div class="defence-block__num">Часть 4</div>
+        <div class="time-tag">30 секунд</div>
+        <h3>Что бы я улучшил</h3>
+        <p>2 конкретных улучшения. «Добавил бы второй уровень» и «Сделал бы анимацию взрыва»</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Шаблон defence.md -->
+<section class="slide"
+  data-notes="Покажи этот файл как код — пусть ребёнок скопирует в свой defence.md и заполнит. Скобки [] — это места для ввода. Не торопи, дай 10-12 минут.">
+  <div class="slide__inner">
+    <h2>Шаблон <span class="accent">defence.md</span></h2>
+    <p class="lead">Скопируй в свой файл и заполни скобки <code>[...]</code> своими словами</p>
+    <pre><code class="language-python"># defence.md -- моя защита проекта
+
+## Часть 1: О проекте (1 мин)
+Меня зовут [ИМЯ]. Я прошёл [48] уроков Python.
+
+Мой финальный проект называется «[НАЗВАНИЕ]».
+Это игра, где [ЧТО ДЕЛАЕТ ИГРОК].
+Главный герой -- [КТО]. Цель -- [ЧТО НУЖНО СДЕЛАТЬ].
+
+## Часть 2: Демо (1-2 мин)
+1. Запускаю игру -- вот так выглядит меню
+2. Нажимаю [КЛАВИША] -- начинается игра
+3. Показываю механику: [ЧТО ДЕЛАЕТ ИГРОК]
+4. Вот как выглядит проигрыш / выигрыш
+5. Показываю рестарт: нажимаю [R/ENTER]
+
+## Часть 3: Сложность и решение (1 мин)
+Самое сложное было: [ЧТО БЫЛО ТРУДНО].
+Решил так: [КАК РЕШИЛ -- ИИ? Сам? Спросил?].
+
+## Часть 4: Улучшения (30 сек)
+Если бы было больше времени:
+1. [УЛУЧШЕНИЕ 1]
+2. [УЛУЧШЕНИЕ 2]
+
+## Роль ИИ в проекте
+- Kandinsky: [ЧТО ГЕНЕРИРОВАЛ]
+- YandexGPT: [ЧЕМ ПОМОГ]
+- Сам написал: весь основной код</code></pre>
+  </div>
+</section>
+
+<!-- 9. Репетиция защиты -->
+<section class="slide"
+  data-notes="50-60 минут — репетиция. Ребёнок говорит 3-5 минут по defence.md. Я слушаю молча. Потом даю 2-3 конкретных замечания: где скомкано, где хорошо, где расширить. Никаких общих «молодец». Конкретика: «Часть про коллизии была отличной, а про рестарт расскажи подробнее».">
+  <div class="slide__inner">
+    <h2>Репетируем <span class="accent">защиту</span></h2>
+    <p class="lead">Говоришь 3–5 минут по заметкам. Я слушаю молча. Потом — конкретная обратная связь</p>
+    <div class="grid grid--2">
+      <div>
+        <h3>Правила репетиции</h3>
+        <ul class="clean">
+          <li>Говори <strong>по defence.md</strong>, но своими словами — не читай дословно</li>
+          <li>Если сбился — <strong>сделай паузу</strong> и продолжай. Молчание — это нормально</li>
+          <li>Показывай игру <strong>во время</strong> рассказа, не до и не после</li>
+          <li>Говори про ИИ <strong>честно</strong>: «Код писал сам, картинки сгенерировал в Kandinsky»</li>
+          <li>Не говори «я тупил» — говори <strong>«столкнулся со сложностью»</strong></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Обратная связь преподавателя</h3>
+        <div class="kv">
+          <div class="kv__row"><div class="kv__key">Хорошо</div><div class="kv__val">Что понравилось конкретно (2 примера)</div></div>
+          <div class="kv__row"><div class="kv__key">Расширить</div><div class="kv__val">Где можно добавить деталь (1 момент)</div></div>
+          <div class="kv__row"><div class="kv__key">Скомкано</div><div class="kv__val">Где говорил слишком быстро (если есть)</div></div>
+          <div class="kv__row"><div class="kv__key">Итог</div><div class="kv__val">«Ты готов к демо-дню» или «Порепетируй ещё раз дома»</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">«Защита — это история твоего пути. Идея → сложность → решение. Не отчёт об ошибках, а рассказ победителя»</div>
+  </div>
+</section>
+
+<!-- 9.5. Как выглядит хорошая защита -->
+<section class="slide"
+  data-notes="Покажи ребёнку разницу между слабой и сильной защитой. Не критикуй — говори «вот что бывает» и «вот что круто». Потом попроси: «Твоя защита будет больше похожа на левый или правый столбик?» Пусть честно ответит.">
+  <div class="slide__inner">
+    <h2>Хорошая vs плохая <span class="accent">защита</span></h2>
+    <p class="lead">Смотрим на реальные примеры — учимся на различиях</p>
+    <div class="grid grid--2" style="margin-top:8px;">
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:18px;">
+        <p style="color:#f87171;font-weight:700;margin-bottom:12px;">❌ Слабая защита</p>
+        <ul class="clean" style="font-size:14px;gap:10px;">
+          <li>«Я сделал игру, вот она»</li>
+          <li>Читает код строка за строкой без объяснений</li>
+          <li>На вопрос «почему так?» отвечает «не знаю»</li>
+          <li>Говорит об ошибках с извинениями</li>
+          <li>Монотонно, тихо, не смотрит на слушателей</li>
+        </ul>
+      </div>
+      <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:14px;padding:18px;">
+        <p style="color:#86efac;font-weight:700;margin-bottom:12px;">✓ Сильная защита</p>
+        <ul class="clean" style="font-size:14px;gap:10px;">
+          <li>«Я создал игру X, потому что хотел Y»</li>
+          <li>Показывает функции: «вот здесь происходит…»</li>
+          <li>«Я выбрал словарь, потому что поиск быстрее»</li>
+          <li>«Была проблема с X — я решил её через Y»</li>
+          <li>Уверенно, смотрит на собеседника, улыбается</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:12px;">Хорошая защита — это рассказ о твоём мышлении, а не демонстрация кода</div>
+  </div>
+</section>
+
+<!-- 10. Словарь уверенного выступающего -->
+<section class="slide"
+  data-notes="Разбираем конкретные фразы — что говорить вместо типичных ошибок. Это как словарь уверенного выступающего. Попроси ребёнка повторить несколько фраз вслух — это помогает запомнить.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">уверенного выступающего</span></h2>
+    <p class="lead">Что говорить вместо типичных ошибок</p>
+    <div class="grid grid--2">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);">
+        <p style="color:#fca5a5;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Так не надо</p>
+        <ul class="clean">
+          <li><span style="color:#fca5a5;">«Я тупил и не понимал»</span></li>
+          <li><span style="color:#fca5a5;">«Ну, в общем, игра такая, типа...»</span></li>
+          <li><span style="color:#fca5a5;">«ИИ мне всё написал»</span></li>
+          <li><span style="color:#fca5a5;">«Я не знаю, почему так работает»</span></li>
+          <li><span style="color:#fca5a5;">«Проект плохой, я мало успел»</span></li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(34,197,94,0.3);">
+        <p style="color:#86efac;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Говори так</p>
+        <ul class="clean">
+          <li><span style="color:#86efac;">«Столкнулся со сложностью и вот как решил»</span></li>
+          <li><span style="color:#86efac;">«Моя игра — это... Цель игрока — ...»</span></li>
+          <li><span style="color:#86efac;">«Kandinsky помог с картинками, код — мой»</span></li>
+          <li><span style="color:#86efac;">«Здесь я применил коллизии из урока 39»</span></li>
+          <li><span style="color:#86efac;">«За 48 уроков я сделал 11 проектов»</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block">Главное правило публичного выступления: <strong>говори медленнее, чем думаешь нужно</strong>. Паузы — не враг, а инструмент.</div>
+  </div>
+</section>
+
+<!-- 11. Генератор начала защиты -->
+<section class="slide"
+  data-notes="Интерактивное упражнение — ребёнок вводит данные о своём проекте и получает готовую заготовку вступительной части. Весело и мотивирует. Потом копируют в defence.md.">
+  <div class="slide__inner">
+    <h2>Генератор <span class="accent">начала защиты</span></h2>
+    <p class="lead">Запускай, введи данные своего проекта — получишь готовое вступление</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Генератор вступления к защите
+# Замени данные на свои!
+
+# --- ДАННЫЕ О ПРОЕКТЕ ---
+name = "Артём"
+project_name = "Звёздный охотник"
+genre = "аркада"
+hero = "космический корабль"
+goal = "уничтожить 30 астероидов и не погибнуть"
+ai_tool = "Kandinsky"
+ai_usage = "создал 5 спрайтов: корабль, астероиды, взрыв"
+hardest = "коллизии с вращающимися астероидами"
+solution = "спросил YandexGPT, использовал radius вместо rect"
+lessons = 48
+projects = 11
+# -------------------------
+
+speech = f"""
+=== ВСТУПЛЕНИЕ К ЗАЩИТЕ ===
+
+Привет! Меня зовут {name}.
+Я прошёл {lessons} уроков Python в Eduson Kids
+и сделал {projects} проектов, включая финальный.
+
+Мой финальный проект называется '{project_name}'.
+Это {genre}, где управляешь {hero}.
+Цель игрока -- {goal}.
+
+В проекте я использовал {ai_tool}: {ai_usage}.
+Самым сложным было: {hardest}.
+Решил это так: {solution}.
+
+=========================
+"""
+
+print(speech)
+print("Длина вступления примерно:", len(speech.split()), "слов")
+print("Примерное время (100 слов/мин):", round(len(speech.split()) / 100, 1), "минуты")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. Финальный чек-лист проекта -->
+<section class="slide"
+  data-notes="Перед тем как закрыть ноутбук — финальный чеклист. 10 пунктов. Каждый галочка = да/нет. Если всё зелёное — проект готов к защите! Если есть красные — договариваемся что делать вечером дома.">
+  <div class="slide__inner">
+    <h2>Финальный чек-лист <span class="accent">готовности</span></h2>
+    <p class="lead">10 галочек — если все зелёные, ты готов к демо-дню!</p>
+    <div class="grid grid--2">
+      <div>
+        <h3 style="margin-bottom:10px;">Проект</h3>
+        <ul class="check-list">
+          <li><div class="chk">✓</div>Игра запускается без ошибок</li>
+          <li><div class="chk">✓</div>Есть меню + экран конца игры</li>
+          <li><div class="chk">✓</div>Рестарт работает без перезапуска</li>
+          <li><div class="chk">✓</div>Есть хотя бы 3 спрайта из Kandinsky</li>
+          <li><div class="chk">✓</div>Есть хотя бы 2 звука или музыка</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px;">Защита</h3>
+        <ul class="check-list">
+          <li><div class="chk">✓</div>defence.md заполнен и сохранён</li>
+          <li><div class="chk">✓</div>Репетиция проведена (хотя бы раз)</li>
+          <li><div class="chk">✓</div>README.md обновлён и актуален</li>
+          <li><div class="chk">✓</div>Знаю 3 техники, которые применил</li>
+          <li><div class="chk">✓</div>Морально готов к демо-дню</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block">Структура папки перед защитой: <code>my_game/</code> → <code>game.py</code> · <code>README.md</code> · <code>defence.md</code> · <code>notes.md</code> · <code>images/</code> · <code>sounds/</code></div>
+  </div>
+</section>
+
+<!-- 13. Золотое правило демо-дня -->
+<section class="slide"
+  data-notes="Очень важный слайд. Психологическая подготовка. Особенно для детей, которые хотят добавить «ещё одну фичу». Правило заморозки кода — это профессиональный подход.">
+  <div class="slide__inner">
+    <h2>Золотое правило <span class="accent">демо-дня</span></h2>
+    <div style="text-align:center;padding:16px 0;">
+      <div class="hero-num">🔒</div>
+      <p style="font-size:clamp(22px,2.8vw,34px);font-weight:700;margin:12px 0;">В день защиты<br><span class="accent">код не трогаем</span></p>
+      <p class="lead" style="max-width:600px;margin:0 auto;">Стабильная игра без новой фичи лучше, чем падающая игра с ней</p>
+    </div>
+    <div class="grid grid--3">
+      <div class="card" style="border-color:rgba(34,197,94,0.3);">
+        <div class="card__icon">✅</div>
+        <h3>Можно</h3>
+        <ul class="clean" style="font-size:14px;">
+          <li>Практиковать речь</li>
+          <li>Смотреть своё видео</li>
+          <li>Поиграть для уверенности</li>
+          <li>Обновить defence.md</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3);">
+        <div class="card__icon">❌</div>
+        <h3>Нельзя</h3>
+        <ul class="clean" style="font-size:14px;">
+          <li>Добавлять новые механики</li>
+          <li>Менять архитектуру кода</li>
+          <li>«Быстро добавить фичу»</li>
+          <li>Обновлять библиотеки</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card__icon">💡</div>
+        <h3>Если что-то сломалось</h3>
+        <p>Восстанови последнюю рабочую копию. Всегда держи backup файл <code>game_backup.py</code></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14. Расписание демо-дня -->
+<section class="slide"
+  data-notes="Даём ребёнку полное представление о том, что будет на уроке 48. Это снижает тревогу — когда знаешь формат, не боишься.">
+  <div class="slide__inner">
+    <h2>Что будет на <span class="accent">демо-дне</span></h2>
+    <p class="lead">Урок 48 — это праздник, а не экзамен. Знаешь формат — нет сюрпризов</p>
+    <div class="timeline">
+      <div class="timeline__row">
+        <div class="timeline__time">0:00 – 5:00</div>
+        <div class="timeline__body"><h3>Приветствие</h3><p>Преподаватель представляет формат. Родители подключаются. Атмосфера — праздничная!</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">5:00 – 10:00</div>
+        <div class="timeline__body"><h3>Вступительная речь</h3><p>«Меня зовут... Я прошёл 48 занятий... Вот мой финальный проект». Показываешь постер/обложку</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">10:00 – 15:00</div>
+        <div class="timeline__body"><h3>Живое демо</h3><p>Запускаешь игру, показываешь 3-5 минут геймплея. Объясняешь что происходит на экране</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">15:00 – 25:00</div>
+        <div class="timeline__body"><h3>Рассказ + вопросы</h3><p>Сложности, решения, роль ИИ, планы на будущее. 2-3 вопроса от родителей/преподавателя</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">50:00 – 60:00</div>
+        <div class="timeline__body"><h3>Награждение</h3><p>Сертификат «Выпускник», бейдж, групповое фото. Разговор о следующем шаге</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14.5. Мид-лессон зелёный брейк -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Зелёный экран — перерыв перед финальным блоком. Встаньте, потянитесь. Вы уже сделали полировку, трекер багов, defence.md и репетицию — это огромный объём! Осталось: домашнее задание, критерии и бейджи.">
+  <div class="game-icons">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="320" height="320" style="top:-60px;right:-60px;transform:rotate(15deg)">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;">
+    <div class="cover-bubble cover-bubble--speech">
+      <p style="font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Финальный рывок</p>
+      <h1 style="font-size:clamp(28px,4vw,48px);color:#0f172a;line-height:1.15;">Последнее ДЗ<br>+ отдыхаем</h1>
+      <p style="color:#374151;margin-top:14px;font-size:16px;">Полировка ✓ &nbsp;·&nbsp; Баги ✓ &nbsp;·&nbsp; defence.md ✓ &nbsp;·&nbsp; Репетиция ✓</p>
+      <p style="color:#6b7280;margin-top:8px;font-size:14px;">Осталось: домашнее задание и бейджи!</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15. ДЗ — автозащита -->
+<section class="slide"
+  data-notes="Домашнее задание очень конкретное. Автозащита на видео — самый эффективный способ подготовиться. Ребёнок сам слышит себя со стороны и замечает, что можно улучшить.">
+  <div class="slide__inner">
+    <h2>Домашнее <span class="accent">задание</span></h2>
+    <p class="lead">Три задачи — последнее ДЗ курса. Завтра демо-день!</p>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Запиши «автозащиту» — 5 минут на видео</strong><br>
+          <span style="color:var(--muted);font-size:14px;">Один перед камерой, по defence.md, показываешь игру. Пересмотри запись — найди 2 места, где скомкал или торопился. Внеси правки.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Сохрани backup: скопируй <code>game.py</code> → <code>game_backup.py</code></strong><br>
+          <span style="color:var(--muted);font-size:14px;">Страховка на случай если что-то сломается во время демо. Один файл, 30 секунд работы.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Психологическая подготовка: «Я готов»</strong><br>
+          <span style="color:var(--muted);font-size:14px;">Скажи вслух перед сном: «За 48 уроков я написал игру. Завтра я покажу её миру». Звучит смешно, но работает!</span>
+        </div>
+      </li>
+    </ol>
+    <div class="quote-block">Совет: перед сном не открывай код. Поиграй в свою игру как игрок — просто в удовольствие. Ты это заслужил.</div>
+  </div>
+</section>
+
+<!-- 16. Критерии успеха -->
+<section class="slide"
+  data-notes="Показываем критерии — что значит «урок прошёл успешно». Преподаватель тоже смотрит на эти критерии, это не сюрприз.">
+  <div class="slide__inner">
+    <h2>Критерии <span class="accent">успеха</span></h2>
+    <p class="lead">Урок прошёл хорошо, если...</p>
+    <div class="grid grid--2">
+      <div class="card" style="border-color:rgba(34,197,94,0.3);">
+        <div class="card__icon">🎮</div>
+        <h3>Проект</h3>
+        <ul class="clean" style="margin-top:8px;font-size:15px;">
+          <li>Стабильно работает 3+ минут без багов</li>
+          <li>Есть меню и экран конца</li>
+          <li>Рестарт работает</li>
+          <li>Минимум 3 спрайта + 2 звука</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(124,58,237,0.3);">
+        <div class="card__icon">🎤</div>
+        <h3>Защита</h3>
+        <ul class="clean" style="margin-top:8px;font-size:15px;">
+          <li>defence.md полностью заполнен</li>
+          <li>Репетиция проведена, речь 3-5 мин</li>
+          <li>Ребёнок говорит уверенно о своём вкладе</li>
+          <li>Готов к демо-дню психологически</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid grid--3">
+      <div class="card" style="text-align:center;">
+        <p style="font-size:32px;font-weight:800;color:var(--amber);">150–250</p>
+        <p style="font-size:14px;color:var(--muted);">строк кода в финальном проекте</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="font-size:32px;font-weight:800;color:var(--cyan);">3+</p>
+        <p style="font-size:14px;color:var(--muted);">состояния игры (menu/play/gameover)</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <p style="font-size:32px;font-weight:800;color:var(--green);">5 мин</p>
+        <p style="font-size:14px;color:var(--muted);">уверенная речь без бумажки</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17. Волноваться — нормально -->
+<section class="slide"
+  data-notes="Работа с тревогой перед защитой — очень важна для детей 8-14. Нормализуем волнение. Даём конкретные техники. Преподаватель тоже волновался на своей первой презентации.">
+  <div class="slide__inner">
+    <h2>Волноваться — <span class="accent">нормально</span></h2>
+    <p class="lead">Даже опытные программисты нервничают перед демо. Вот как это используют в свою пользу</p>
+    <div class="grid grid--2">
+      <div>
+        <h3>Три техники</h3>
+        <ol class="steps">
+          <li><div><strong>Дыхание 4-7-8</strong><br><span style="color:var(--muted);font-size:14px;">Вдох 4 сек → задержка 7 сек → выдох 8 сек. Повторить 3 раза. Снижает пульс.</span></div></li>
+          <li><div><strong>«Это не экзамен»</strong><br><span style="color:var(--muted);font-size:14px;">Демо-день — это показ, а не оценка. Ты уже сделал игру — это факт, который не отнять.</span></div></li>
+          <li><div><strong>Маленькая защита дома</strong><br><span style="color:var(--muted);font-size:14px;">Покажи игру маме/папе/другу. Первое выступление всегда самое сложное — пусть оно будет дома.</span></div></li>
+        </ol>
+      </div>
+      <div>
+        <h3>Если что-то пошло не так</h3>
+        <ul class="clean">
+          <li>Игра не запускается → запусти backup файл, скажи «бывает, вот запасной план»</li>
+          <li>Забыл что говорить → посмотри в defence.md, пауза — это нормально</li>
+          <li>Застрял на вопросе → «Хороший вопрос, я об этом не думал — займусь после»</li>
+          <li>Замёрзли руки → это адреналин, он помогает, сделай вдох и продолжай</li>
+        </ul>
+        <div class="quote-block" style="margin-top:12px;">«Ошибки на защите — нормально. Спокойно перезапускай и продолжай»</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 18. Портфолио -->
+<section class="slide"
+  data-notes="Напомни ребёнку, что у него уже есть 11 проектов! Это огромный путь. Портфолио — реальная ценность. Для детей 12+ — можно загрузить на GitHub.">
+  <div class="slide__inner">
+    <h2>Твоё портфолио: <span class="accent">11 проектов</span></h2>
+    <p class="lead">За 48 уроков ты создал полноценное портфолио разработчика</p>
+    <div class="grid grid--4">
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🐍</div><h3 style="font-size:15px;">Проект 1</h3><p>Змейка · уроки 1-6</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🔢</div><h3 style="font-size:15px;">Проект 2</h3><p>Угадай число · уроки 7-10</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🎨</div><h3 style="font-size:15px;">Проект 3</h3><p>Рисовалка · уроки 11-14</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🤖</div><h3 style="font-size:15px;">Проект 4</h3><p>Чат-бот · уроки 15-18</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🎭</div><h3 style="font-size:15px;">Проект 5</h3><p>ИИ-история · уроки 19-22</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🎯</div><h3 style="font-size:15px;">Проект 6</h3><p>Поймай яблоко · уроки 23-26</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🏃</div><h3 style="font-size:15px;">Проекты 7-8</h3><p>Бегалка + Арена · уроки 27-34</p></div>
+      <div class="card"><div style="font-size:24px;margin-bottom:6px;">🎮</div><h3 style="font-size:15px;">Проекты 9-10</h3><p>Dino / Asteroids · уроки 35-44</p></div>
+    </div>
+    <div class="quote-block">+ Проект 11: <strong>Твоя уникальная финальная игра</strong> — демонстрируешь завтра!</div>
+  </div>
+</section>
+
+<!-- 19. После демо-дня -->
+<section class="slide"
+  data-notes="Показываем что будет дальше — это мотивирует. Демо-день — не конец, а старт. Для 12+ есть реальный путь к олимпиадам и фрилансу.">
+  <div class="slide__inner">
+    <h2>После демо-дня — <span class="accent">три пути</span></h2>
+    <p class="lead">Это не конец, это точка старта нового этапа</p>
+    <div class="grid grid--3">
+      <div class="card" style="border-color:rgba(124,58,237,0.3);">
+        <div class="card__icon">🚀</div>
+        <h3>Vibe Coding Step 2</h3>
+        <p>Следующий курс: веб-разработка, API, первый сайт. Для тех, кто хочет большего</p>
+        <p style="margin-top:10px;"><span style="color:var(--amber);font-weight:700;">Для 10+</span></p>
+      </div>
+      <div class="card" style="border-color:rgba(34,197,94,0.3);">
+        <div class="card__icon">🏆</div>
+        <h3>Олимпиады</h3>
+        <p>Олимпиада «Я — профессионал», Яндекс.Кубок, школьные олимпиады по информатике</p>
+        <p style="margin-top:10px;"><span style="color:var(--green);font-weight:700;">Для 12+</span></p>
+      </div>
+      <div class="card">
+        <div class="card__icon">💼</div>
+        <h3>Первые заказы</h3>
+        <p>Freelancehunt, kwork — первые микро-проекты. Портфолио из 11 проектов уже есть</p>
+        <p style="margin-top:10px;"><span style="color:var(--cyan);font-weight:700;">Для 14+</span></p>
+      </div>
+    </div>
+    <div class="quote-block">«За 48 занятий вы прошли путь от print("Hello, World!") до собственной игры. Это не мало — это очень много»</div>
+  </div>
+</section>
+
+<!-- 20. Финальный отчёт проекта -->
+<section class="slide"
+  data-notes="Финальное интерактивное упражнение — ребёнок заполняет данные о своём проекте и получает красивый итоговый отчёт. Это весело и мотивирует перед демо-днём.">
+  <div class="slide__inner">
+    <h2>Финальный отчёт <span class="accent">проекта</span></h2>
+    <p class="lead">Заполни данные — получи красивый итог своего проекта для defence.md</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Финальный отчёт проекта -- заполни своими данными!
+
+project = {
+    "name": "Звёздный охотник",
+    "lines_of_code": 187,
+    "sprites": 5,
+    "sounds": 3,
+    "states": ["menu", "play", "pause", "gameover"],
+    "mechanics": ["движение", "стрельба", "коллизии", "счёт", "жизни"],
+    "ai_tools": {"Kandinsky": 5, "YandexGPT": 4},
+    "bugs_fixed": 8,
+    "hardest_bug": "коллизии с вращающимися астероидами",
+    "dev_hours": 12,
+}
+
+print("=" * 45)
+print(f"  ФИНАЛЬНЫЙ ПРОЕКТ: '{project['name']}'")
+print("=" * 45)
+print()
+print("  СТАТИСТИКА:")
+print(f"    Строк кода:    {project['lines_of_code']}")
+print(f"    Спрайтов:      {project['sprites']}")
+print(f"    Звуков:        {project['sounds']}")
+print(f"    Состояний:     {len(project['states'])} -- {', '.join(project['states'])}")
+print()
+print("  МЕХАНИКИ:")
+for m in project['mechanics']:
+    print(f"    + {m}")
+print()
+print("  ИИ-ИНСТРУМЕНТЫ:")
+for tool, count in project['ai_tools'].items():
+    print(f"    {tool}: использован {count} раз")
+print()
+print("  ПУТЬ РАЗРАБОТКИ:")
+print(f"    Пофиксено багов: {project['bugs_fixed']}")
+print(f"    Самый сложный:   {project['hardest_bug']}")
+print(f"    Часов вложено:   ~{project['dev_hours']}")
+print()
+print("  ИТОГ: ПРОЕКТ ГОТОВ К ДЕМО-ДНЮ!")
+print("=" * 45)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 20.5. Проверь себя: 5 вопросов -->
+<section class="slide"
+  data-notes="Быстрый самопроверочный блок перед бейджами. Задай вопросы устно — пусть ребёнок отвечает. Не экзамен, а разминка. Открой ответы через 30 секунд размышления. Цель — закрепить ключевые понятия урока.">
+  <div class="slide__inner">
+    <h2>Проверь себя: <span class="accent">5 вопросов</span></h2>
+    <ol class="steps">
+      <li>Что такое «рефакторинг» и чем он отличается от исправления бага?</li>
+      <li>Что значит «принцип единой ответственности» (SRP) для функции?</li>
+      <li>Как работает техника «резиновой уточки»?</li>
+      <li>Что должно быть в файле defence.md? Назови 3 раздела.</li>
+      <li>Почему в день защиты нельзя добавлять новые фичи?</li>
+    </ol>
+    <div class="card card--green" style="margin-top:16px;">
+      <h3>Ответы:</h3>
+      <ol style="margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--text);padding-left:20px;">
+        <li>Рефакторинг — улучшение структуры без изменения поведения. Баг-фикс меняет поведение.</li>
+        <li>Функция делает одну вещь, несёт одну ответственность.</li>
+        <li>Объясняешь баг вслух (уточке/другу) — мозг переключается и сам находит ошибку.</li>
+        <li>Идея проекта + самый сложный момент + чем горжусь (+ любые другие разделы).</li>
+        <li>Риск сломать стабильную игру ради фичи — лучше стабильная без новшества.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 20.7. Словарь терминов урока 47 -->
+<section class="slide"
+  data-notes="Закрепляем термины урока. Пройдись по словарю быстро — 2-3 минуты. Можно попросить ребёнка объяснить термин своими словами. Этот слайд хорошо работает как финальная «прокрутка» знаний перед бейджами.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 47</span></h2>
+    <dl class="kv">
+      <div class="kv__row"><dt>Рефакторинг</dt><dd>улучшение структуры кода без изменения его поведения: лучше читаемость, проще поддержка</dd></div>
+      <div class="kv__row"><dt>SRP</dt><dd>Single Responsibility Principle — принцип единой ответственности: одна функция делает одно дело</dd></div>
+      <div class="kv__row"><dt>Rubber duck debugging</dt><dd>техника: объясняешь баг вслух — мозг переключается и сам находит ошибку</dd></div>
+      <div class="kv__row"><dt>defence.md</dt><dd>файл с планом устной защиты проекта: идея → сложность → решение → чем горжусь</dd></div>
+      <div class="kv__row"><dt>Code freeze</dt><dd>правило «заморозки»: за день до демо новый код не добавляется, только стабилизация</dd></div>
+      <div class="kv__row"><dt>Полировка</dt><dd>финальный этап разработки: UX-детали, меню, перезапуск, понятные имена, удаление мусора</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- 21. Бейджи урока -->
+<section class="slide"
+  data-notes="Выдача бейджа за урок 47. Два бейджа: «Проект готов» за полировку + «Оратор» за подготовленную речь. Торжественно объяви каждый!">
+  <div class="slide__inner" style="text-align:center;align-items:center;">
+    <h2>Ты получаешь <span class="accent">бейджи!</span></h2>
+    <div class="grid grid--2" style="max-width:700px;margin:0 auto;">
+      <div class="card" style="text-align:center;padding:32px 24px;border-color:rgba(34,197,94,0.3);">
+        <div style="font-size:56px;margin-bottom:14px;">🎮</div>
+        <h3 style="font-size:18px;margin-bottom:8px;">Проект готов!</h3>
+        <p>Финальная игра отполирована, протестирована и готова к публичному показу</p>
+        <p style="margin-top:12px;"><span class="badge-green" style="font-size:13px;">Финальный проект</span></p>
+      </div>
+      <div class="card" style="text-align:center;padding:32px 24px;border-color:rgba(124,58,237,0.3);">
+        <div style="font-size:56px;margin-bottom:14px;">🎤</div>
+        <h3 style="font-size:18px;margin-bottom:8px;">Оратор</h3>
+        <p>Написал defence.md, провёл репетицию и готов уверенно выступить перед аудиторией</p>
+        <p style="margin-top:12px;"><span style="display:inline-block;background:var(--violet);color:#fff;font-size:13px;font-weight:700;padding:7px 22px;border-radius:999px;">Защита готова</span></p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:16px;">Остался один урок — <strong style="color:var(--text);">Демо-день</strong>. Ты готов!</p>
+  </div>
+</section>
+
+<!-- 22. COVER GREEN — финал -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрываем урок 47 на высокой ноте. Завтра демо-день — ребёнок должен уйти с ощущением готовности и гордости. Пожелай удачи лично.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Завтра ты покажешь это миру.<br>
+        Я горжусь тобой.
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+</body>
+</html>

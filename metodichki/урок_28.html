@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 28 — Проект: «Виселица» + генерация презентации игры | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 28</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Проект: «Виселица» + генерация презентации игры</h2>
+  <div class="meta"><span>Отдел:</span> <span>Проектирование</span> <span>структур.</span> <span>Неделя:</span> <span>7.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Проектирование структур. <strong>Неделя:</strong> 7. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Собрать в одной программе всё, что ребёнок прошёл: строки, списки, множества, словари, циклы <code>while</code>/<code>for</code>, условия, <code>random</code>. Написать рабочую игру «Виселица» и сделать презентацию проекта через ИИ.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик может:</p>
+<p>— реализовывать повторяющиеся действия с помощью <code>while</code> и <code>for</code>;</p>
+<p>— использовать условные конструкции для ветвления логики;</p>
+<p>— писать и вызывать функции для структурирования кода;</p>
+<p>— использовать глобальные и локальные переменные корректно;</p>
+<p>— обрабатывать ввод пользователя и проверять корректность;</p>
+<p>— применять модуль <code>random</code> для выбора случайного элемента;</p>
+<p>— реализовывать счётчики и переменные состояния;</p>
+<p>— комбинировать циклы, условия и коллекции для практических задач.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE или Colab. YandexGPT — для генерации тематических слов (животные, города) и сборки итоговой презентации. GigaChat — альтернатива.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Python 3.11+, модуль <code>random</code> (встроенный).</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Демо готовой «Виселицы» у преподавателя. Ребёнок видит цель.</li>
+<li>5–15. Разбор архитектуры на листочке. <code>words</code> — кортеж слов (неизменяемый). <code>secret</code> — случайное из них. <code>guessed</code> — множество угаданных букв. <code>stats</code> — словарь {"победы": 0, "поражения": 0}. Рисуем поток: выбор слова → пока есть жизни → буква → проверка → обновление.</li>
+<li>15–25. Совместный кодинг. Пишем функцию <code>show(word, guessed)</code> — возвращает строку «к _ т _ к». Пишем выбор слова через <code>random.choice</code>.</li>
+<li>25–45. Самостоятельная задача. Ребёнок пишет главный цикл <code>while</code>: жизни (6), ввод буквы, валидация, обновление множества, условия победы/поражения. Преподаватель помогает наводящими.</li>
+<li>45–55. Тесты и фиксы. Играем 2 раза. Зовём YandexGPT: «объясни вот этот баг» / «помоги написать красивую функцию вывода виселицы ASCII-артом».</li>
+<li>55–60. Генерация презентации через ИИ. Промпт: «Напиши короткую презентацию из 5 слайдов про мою игру "Виселица" на Python для ребёнка 12 лет. Выдели, что я использовал множество, словарь, кортеж». Защита — 2 минуты. ДЗ — добавить темы слов.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Это капстоун отдела — проверка, что ты ВСЁ понял».</li>
+<li>«Сначала план на бумаге, потом код. Всегда».</li>
+<li>«Слова — кортеж, потому что список слов не должен меняться во время игры».</li>
+<li>«Угаданные буквы — множество, чтобы нельзя было засчитать одну букву дважды».</li>
+<li>«Статистика — словарь: "победы" → число, "поражения" → число».</li>
+<li>«<code>random.choice(words)</code> вернёт одно случайное слово».</li>
+<li>«Если игрок уже вводил букву — скажи ему, не наказывай жизнью».</li>
+<li>«Цикл <code>while lives > 0 and '_' in displayed</code> — элегантное завершение».</li>
+<li>«Повесил? Покажи слово целиком, пусть ребёнок увидит, что ему загадали».</li>
+<li>«В конце обязательно спроси — ещё раз? И обновляй словарь статистики».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>Файл <code>hangman.py</code>, ~70–100 строк.</p>
+<pre><code class="language-python">import random
+
+WORDS = ("python", "кортеж", "множество", "словарь", "виселица")
+
+def play():
+    secret = random.choice(WORDS)
+    guessed = set()
+    lives = 6
+    while lives &gt; 0:
+        shown = " ".join(c if c in guessed else "_" for c in secret)
+        print(shown, f"жизни: {lives}")
+        if "_" not in shown:
+            print("Победа! Слово было:", secret); return True
+        letter = input("Буква: ").lower().strip()
+        if letter in guessed:
+            print("Уже было"); continue
+        guessed.add(letter)
+        if letter not in secret:
+            lives -= 1
+    print("Поражение. Слово было:", secret)
+    return False
+
+stats = {"победы": 0, "поражения": 0}
+while True:
+    if play(): stats["победы"] += 1
+    else: stats["поражения"] += 1
+    print(stats)
+    if input("Ещё? д/н: ") != "д": break</code></pre>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>Добавить темы слов: словарь <code>{"животные": (...), "города": (...)}</code>, игрок выбирает тему. Запросить у YandexGPT 20 слов по каждой теме.</p>
+<h2>✅ Критерии успеха</h2>
+<p>Игра запускается, не падает на повторных буквах, корректно завершается победой/поражением, статистика копится.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>Забывает <code>.lower()</code> — игрок ввёл «А», слово — «а». Разбираем.</li>
+<li>Не учитывает повтор буквы — тратятся жизни зря. Чиним через <code>if letter in guessed</code>.</li>
+<li><code>random.choice</code> на списке одного элемента — работает, ребёнок боится. Успокаиваем.</li>
+<li>Путает множество и список. Напоминаем: дубликаты нам не нужны.</li>
+<li>Пишет бесконечный цикл без <code>break</code>. Ctrl+C + разбор.</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Добавить ASCII-виселицу, 7 стадий по количеству жизней. YandexGPT сгенерирует арт.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>1) Генерация тематических слов. 2) Объяснение бага. 3) Сборка презентации-защиты проекта из 5 слайдов. Промпт защиты: «Я школьник, написал игру Виселица. Помоги составить презентацию из 5 слайдов: 1-что делает, 2-демо, 3-структуры данных которые я использовал (кортеж/множество/словарь), 4-самая сложная часть, 5-что улучшу. Пиши простым языком».</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 46 — Разработка итогового проекта, часть 2 | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 46</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Разработка итогового проекта, часть 2</h2>
+  <div class="meta"><span>Отдел:</span> <span>Финальный</span> <span>проект</span> <span>Неделя:</span> <span>23</span> <span>Возраст:</span> <span>8-14</span> </div>
+  <p><strong>Отдел:</strong> Финальный проект  <strong>Неделя:</strong> 23  <strong>Возраст:</strong> 8-14</p>
+<h2>🎯 Цель</h2>
+<p>Добавить главные игровые механики. К концу урока проект должен быть играбельным хотя бы 1 минуту — есть цель, есть процесс, есть условие конца.</p>
+<h2>📚 Результаты</h2>
+<p>Ученик умеет применять к своему проекту всё, что изучил: списки объектов, коллизии, состояния, звук, анимацию. Ученик начинает активно работать с ИИ как с дебаггером: «объясни эту ошибку», «подскажи, почему не работает этот кусок».</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, PyGame Zero, Kandinsky, YandexGPT как дебаггер и ассистент по идеям.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Та же папка проекта с урока 45. Добавляем звуки в <code>sounds/</code>, дополнительные спрайты. <code>notes.md</code> ведём активно.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p>0-5: смотрим 3 вопроса из <code>notes.md</code>, отвечаем на первый.</p>
+<p>5-10: определяем приоритет на урок — 3 пункта из плана, самых важных для «играбельности».</p>
+<p>10-35: самостоятельная работа с подсказками. Ребёнок реализует механики. Роль преподавателя: читать код по запросу, подсказывать паттерны из прошлых уроков («вспомни, как в 39 уроке мы проверяли коллизии списком»), поощрять применение ИИ для дебага.</p>
+<p>35-45: добавление графики. Меняем заглушки на картинки из Kandinsky. Если картинки не хватает — генерим прямо на уроке.</p>
+<p>45-55: звук. Хотя бы один ключевой звук подключён (ловля, удар, взрыв — по смыслу).</p>
+<p>55-60: демо. Ребёнок показывает проект в текущем состоянии, отмечает галочками, что из плана уже сделано.</p>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<p>«Сегодня делаем мясо проекта, украшения потом». «Плохо играется лучше, чем идеально выглядит — механика первична». «Если кусок не работает 15 минут — скопируй ошибку в YandexGPT с вопросом „что это значит?“, это нормальный рабочий приём». «Не изобретай велосипед — возьми паттерн из проекта „Поймай яблоко“ и перепиши под себя». «README обновляем каждый урок — это лента прогресса, на защите будет полезно». «Если хочется добавить новую фичу, не в плане — пиши в notes „идеи на потом“, не отвлекайся».</p>
+<h2>🎨 Мини-проект / этап сквозного проекта</h2>
+<p>Финальный проект, этап 2. На выходе: играбельная 1-минутная версия с базовой графикой и одним звуком. 70-120 строк кода.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Доделать ОДНУ фичу из плана, которую не успел на уроке. 2. Записать 30-сек видео текущего состояния. 3. В <code>notes.md</code> — три новых вопроса или идеи для урока 47.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Проект играется от запуска до «выигрыш/проигрыш» без крашей. Есть хотя бы 2 спрайта из Kandinsky, один звук. Ребёнок активно использует ИИ для объяснения ошибок (видно по <code>notes.md</code>).</p>
+<h2>⚠️ Сложности и решения</h2>
+<p>«Переоценил сложность, не успеваю» — режем план. Лучше 3 механики крепко, чем 7 на соплях. «ИИ даёт код, который не работает» — прекрасный учебный момент, разбираем почему (галлюцинация, устаревшая версия, неверный контекст). «Скучно доделывать» — переключаемся на графику/звук, это вдохновляет, потом обратно к логике.</p>
+<h2>🎁 Бонус</h2>
+<p>«Звёздная задача»: добавить в проект что-то, чего нет ни в одном уроке курса — например, частицы (маленькие точки, разлетающиеся при взрыве), плавное появление объектов, комбо-очки.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — основной рабочий день. Учимся копировать ошибку и код, просить объяснить. Kandinsky — добавляем графику. Perplexity (для 12+) — найти документацию PyGame Zero по нестандартному вопросу.</p>
+<hr>
+</div>
+</body>
+</html>

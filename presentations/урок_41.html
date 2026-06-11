@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 41 — Звук и музыка в PyGame Zero | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:100;}
+  .progress__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 300ms ease;box-shadow:0 0 12px rgba(124,58,237,0.6);}
+
+  .counter{position:fixed;top:18px;right:24px;z-index:90;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .counter b{color:var(--text)}
+
+  .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;font-size:11px;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;letter-spacing:0.03em;opacity:0.7;}
+  .hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--text);}
+
+  .deck{position:relative;z-index:1;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 80px;opacity:0;transform:translateY(30px);transition:opacity 300ms ease, transform 300ms ease;pointer-events:none;overflow:auto;}
+  .slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .slide.prev{transform:translateY(-30px);}
+
+  .slide__inner{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px;}
+
+  .slide--cover{padding:0;}
+  .cover-bubble{background:#fff;border-radius:28px;padding:38px 56px;max-width:580px;text-align:center;position:relative;z-index:2;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+  .cover-bubble--speech::after{content:'';position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:28px solid #fff;}
+
+  .game-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .game-icons svg{position:absolute;opacity:0.22;}
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{display:inline-block;background:var(--green);color:#fff;font-size:15px;font-weight:700;padding:7px 22px;border-radius:999px;margin-bottom:16px;}
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .card--glow::before{content:'';position:absolute;inset:-1px;border-radius:var(--radius);padding:1px;background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+  .card__icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.25));margin-bottom:14px;font-size:22px;}
+
+  .dept{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:15px 20px;display:flex;flex-direction:column;gap:6px;}
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text);line-height:1.5;}
+  ul.clean li::before{content:'—';flex:0 0 auto;color:var(--amber);font-weight:700;}
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:15px;line-height:1.55;}
+  ol.steps li::before{content:counter(step);flex:0 0 28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--amber);font-weight:800;font-size:13px;color:#fff;margin-top:2px;}
+
+  pre[class*="language-"]{border-radius:14px!important;padding:18px 20px!important;font-size:15px!important;font-family:'JetBrains Mono',monospace!important;border:1px solid var(--card-border);box-shadow:var(--shadow);line-height:1.6!important;background:#1a1f2e!important;margin:0;}
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{background:rgba(124,58,237,0.15);color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+
+  .terminal{background:#050810;border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a7f3d0;position:relative;}
+  .terminal::before{content:'● ● ●';position:absolute;top:9px;left:13px;font-size:9px;color:#475569;letter-spacing:3px;}
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{background:rgba(245,158,11,0.09);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 20px;font-size:17px;font-weight:600;color:var(--text);line-height:1.5;}
+
+  .discussion-text{font-size:clamp(28px,4.5vw,56px);font-weight:700;color:var(--text);line-height:1.15;}
+
+  .dl-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);color:var(--amber);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;text-decoration:none;transition:background 0.15s;}
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  .kv{display:flex;flex-direction:column;gap:10px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--card-border);}
+  .kv__item:last-child{border-bottom:none}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);flex:0 0 220px;font-weight:500;}
+  .kv__val{font-size:15px;color:var(--text);line-height:1.45}
+
+  .timeline{display:flex;flex-direction:column;gap:10px}
+  .timeline__row{display:grid;grid-template-columns:130px 1fr;gap:16px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--cyan);}
+  .timeline__body h3{font-size:16px;margin-bottom:3px}
+  .timeline__body p{font-size:13px;color:var(--muted)}
+
+  .notes{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--card-border);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease;}
+  .notes.active{transform:translateY(0)}
+  .notes__header{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,.slide.active .dept,.slide.active ul.clean li,.slide.active ol.steps li{animation:reveal 500ms ease backwards;}
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){.slide{padding:60px 24px 70px}}
+</style>
+
+<style>
+.compiler{background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);}
+.compiler-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(124,58,237,0.08);border-bottom:1px solid rgba(255,255,255,0.06);}
+.compiler-header .lang-badge{display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.compiler-header .lang-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{padding:14px 18px;color:#E2E8F0;max-height:260px;overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{padding:5px 12px;border:0;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;color:#fff;}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:#050810;color:#86efac;font-size:12.5px;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){outEl.className='compiler-output show error';outEl.textContent='Skulpt загружается... обнови страницу.';return;}
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)throw "Файл не найден: "+f;return Sk.builtinFiles["files"][f];},
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">32</span></div>
+
+<main class="deck" id="deck">
+
+<!-- 1. COVER -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 41 — звуки и музыка в PyGame Zero. Финальная полировка игры «Поймай яблоко». Начни с провокации: запусти свою игру БЕЗ звука, потом ту же игру СО звуком. Пусть ученик сам услышит разницу. Ключевая фраза: «Звук — это 50% ощущения от игры».">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №41</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Звук и музыка<br>в PyGame Zero
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 2. NARRATIVE -->
+<section class="slide"
+  data-notes="Сквозная история курса. EdisonGames — наш воображаемый игровой стартап. Мы прошли огромный путь от пустого экрана до полноценной игры. Сегодня — финальный штрих: звук. Спроси: что уже готово в игре?">
+  <div class="slide__inner" style="text-align:center;align-items:center">
+    <h2><span class="accent">EdisonGames</span> — финальная полировка</h2>
+    <p class="lead" style="max-width:800px;margin:0 auto">Уже 4 урока мы строим игру «Поймай яблоко». Меню — готово. Коллизии — работают. Счёт и жизни — есть. Осталась одна деталь, которая превращает прототип в настоящую игру...</p>
+    <div style="margin-top:24px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
+      <div class="card" style="min-width:160px;text-align:center;padding:18px">
+        <div style="font-size:32px">✅</div>
+        <p style="margin-top:8px;font-size:14px">Графика<br>и спрайты</p>
+      </div>
+      <div class="card" style="min-width:160px;text-align:center;padding:18px">
+        <div style="font-size:32px">✅</div>
+        <p style="margin-top:8px;font-size:14px">Управление<br>мышью</p>
+      </div>
+      <div class="card" style="min-width:160px;text-align:center;padding:18px">
+        <div style="font-size:32px">✅</div>
+        <p style="margin-top:8px;font-size:14px">Состояния<br>и счёт</p>
+      </div>
+      <div class="card card--glow" style="min-width:160px;text-align:center;padding:18px">
+        <div style="font-size:32px">🎵</div>
+        <p style="margin-top:8px;font-size:14px;color:var(--cyan)">Звук<br>← сегодня</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. PLAN -->
+<section class="slide"
+  data-notes="Временной план урока. 60 минут плотно, но реалистично. Обрати внимание на блок поиска звуков — это самое интересное для учеников.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <p class="lead">Находим звуки, подключаем, балансируем — и игра заиграет буквально</p>
+    <div class="timeline" style="margin-top:14px">
+      <div class="timeline__row">
+        <div class="timeline__time">0–5 мин</div>
+        <div class="timeline__body"><h3>Разбор ДЗ</h3><p>Смотрим сохранение рекорда в файл из урока 40</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">5–15 мин</div>
+        <div class="timeline__body"><h3>Теория: звук vs музыка</h3><p>Разница между sounds и music, форматы файлов, freesound.org</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">15–30 мин</div>
+        <div class="timeline__body"><h3>Поиск и загрузка звуков</h3><p>Находим catch.wav, lose.wav, click.wav на freesound.org, фильтр CC0</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">30–45 мин</div>
+        <div class="timeline__body"><h3>Подключение эффектов</h3><p>sounds.catch.play(), sounds.lose.play(), sounds.click.play()</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">45–55 мин</div>
+        <div class="timeline__body"><h3>Фоновая музыка</h3><p>music.play('bg'), set_volume, pause в состоянии 'paused'</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55–60 мин</div>
+        <div class="timeline__body"><h3>Итог + ДЗ</h3><p>Слушаем результат, обсуждаем баланс громкостей</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. THEORY: Sound vs Music -->
+<section class="slide"
+  data-notes="Ключевое разделение. sounds — короткие эффекты (до 3 секунд). music — длинные треки, которые зацикливаются. PyGame Zero держит их раздельно из-за разного способа воспроизведения в памяти. Это важно понять до начала практики.">
+  <div class="slide__inner">
+    <h2><span class="accent">sounds</span> против <span class="accent">music</span></h2>
+    <p class="lead">Два разных объекта для двух разных задач</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card card--glow">
+        <div class="card__icon">💥</div>
+        <h3>sounds — короткие эффекты</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Хруст, щелчок, взрыв, монетка</li>
+          <li>Длина: 0.1–3 секунды</li>
+          <li>Форматы: <code>.wav</code>, <code>.ogg</code></li>
+          <li>Папка: <code>sounds/</code> рядом с <code>game.py</code></li>
+          <li>Вызов: <code>sounds.имя.play()</code></li>
+          <li>Можно играть несколько одновременно</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎵</div>
+        <h3>music — фоновый трек</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Тема, эмбиент, атмосфера</li>
+          <li>Длина: 1–5 минут, зацикливается</li>
+          <li>Форматы: <code>.ogg</code>, <code>.mp3</code></li>
+          <li>Папка: <code>music/</code> рядом с <code>game.py</code></li>
+          <li>Вызов: <code>music.play('имя')</code></li>
+          <li>Только один трек в любой момент</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block">Никогда не клади минутный трек в папку <code>sounds/</code> — PyGame Zero загружает все звуки в память при старте. Это съест ОЗУ и замедлит запуск.</div>
+  </div>
+</section>
+
+<!-- 5. File structure -->
+<section class="slide"
+  data-notes="Структура папок очень важна. PyGame Zero ищет звуки автоматически по имени файла без расширения. Если файл называется catch.wav, то sounds.catch.play() найдёт его сам. Покажи структуру в своём проекте.">
+  <div class="slide__inner">
+    <h2>Структура <span class="accent">папок</span></h2>
+    <p class="lead">PyGame Zero ищет всё по стандартным папкам — магия в именах</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <div class="terminal">
+          <div class="terminal__body">
+<span class="terminal__prompt">basket_apple/</span><br>
+├── game.py<br>
+├── images/<br>
+│   ├── basket.png<br>
+│   ├── apple_red.png<br>
+│   └── apple_gold.png<br>
+<span style="color:var(--cyan)">├── sounds/</span><br>
+<span style="color:var(--cyan)">│   ├── catch.wav</span><br>
+<span style="color:var(--cyan)">│   ├── lose.wav</span><br>
+<span style="color:var(--cyan)">│   └── click.wav</span><br>
+<span style="color:#86efac">└── music/</span><br>
+<span style="color:#86efac">    └── bg.ogg</span>
+          </div>
+        </div>
+      </div>
+      <div class="card card--glow">
+        <h3>Откуда взять звуки?</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li><span style="color:var(--cyan)">freesound.org</span> — бесплатные звуки, фильтр «CC0» (можно везде)</li>
+          <li><b>Поиск:</b> «apple crunch», «coin collect», «game over jingle»</li>
+          <li>Скачиваем в <code>.wav</code> формате</li>
+          <li>Переименовываем: <code>catch.wav</code>, <code>lose.wav</code></li>
+          <li><span style="color:#86efac">Для музыки:</span> OpenGameArt.org</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- E. How PyGame Zero loads sounds -->
+<section class="slide"
+  data-notes="Объясняем 'магию' имён файлов в PyGame Zero. Паттерн Convention over Configuration — фреймворк ищет файлы сам по соглашению. Ученикам важно понять: нам не нужно писать open(), только следовать соглашению.">
+  <div class="slide__inner">
+    <h2>Как PyGame Zero <span class="accent">находит</span> звуки</h2>
+    <p class="lead">Магия имён — никакого open(), только соглашения</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:12px">Правило именования</h3>
+        <div class="kv">
+          <div class="kv__item">
+            <div class="kv__key"><code>sounds/catch.wav</code></div>
+            <div class="kv__val">→ <code>sounds.catch.play()</code></div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key"><code>sounds/game_over.wav</code></div>
+            <div class="kv__val">→ <code>sounds.game_over.play()</code></div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key"><code>music/bg.ogg</code></div>
+            <div class="kv__val">→ <code>music.play('bg')</code></div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key"><code>music/menu.ogg</code></div>
+            <div class="kv__val">→ <code>music.play('menu')</code></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px">Что происходит внутри</h3>
+        <ol class="steps">
+          <li><div>При старте pgzrun сканирует папку <code>sounds/</code></div></li>
+          <li><div>Загружает все файлы в память как объекты</div></li>
+          <li><div>Создаёт атрибуты объекта <code>sounds</code> с именами файлов</div></li>
+          <li><div>При вызове <code>.play()</code> — мгновенное воспроизведение из памяти</div></li>
+        </ol>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:12px">Это паттерн «Convention over Configuration» — PyGame Zero знает что делать, если ты следуешь соглашению. Django, Ruby on Rails работают так же.</div>
+  </div>
+</section>
+
+<!-- F. Error quiz -->
+<section class="slide"
+  data-notes="Закрепление через квиз. Ученик ищет ошибки в коде — не давай сразу ответ, пусть думают 30-60 секунд. Потом разбери каждую строчку вместе.">
+  <div class="slide__inner">
+    <h2>Найди <span class="accent">ошибки</span> в коде</h2>
+    <p class="lead">Три строки — три потенциальные ошибки. Найди все!</p>
+    <pre style="margin-top:14px"><code class="language-python"># Структура файлов:
+# sounds/Catch.wav
+# sounds/lose.ogg
+# Music/bg.mp3
+
+# Код:
+sounds.catch.play()      # строка 1
+sounds.lose.play()       # строка 2
+music.play('bg.mp3')     # строка 3</code></pre>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card">
+        <h3 style="color:#fca5a5">Строка 1</h3>
+        <p style="margin-top:6px;font-size:14px">Файл <code>Catch.wav</code> — с заглавной буквы. Python чувствителен к регистру. Надо переименовать файл в <code>catch.wav</code>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--green)">Строка 2</h3>
+        <p style="margin-top:6px;font-size:14px">OK! <code>lose.ogg</code> подходит — PyGame Zero поддерживает и <code>.wav</code>, и <code>.ogg</code>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">Строка 3</h3>
+        <p style="margin-top:6px;font-size:14px">Два бага: папка <code>Music/</code> должна быть <code>music/</code> (строчная), и в коде пишем <code>'bg'</code>, не <code>'bg.mp3'</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. sounds API -->
+<section class="slide"
+  data-notes="Ключевые методы sounds. Покажи в живом коде каждый метод. Особо акцентируй на volume — это важно для баланса звуков. Пусть ученики сами изменят громкость и запустят.">
+  <div class="slide__inner">
+    <h2>API звуков: <span class="accent">sounds</span></h2>
+    <p class="lead">Все методы, которые понадобятся</p>
+    <div class="kv" style="margin-top:14px">
+      <div class="kv__item">
+        <div class="kv__key">sounds.catch.play()</div>
+        <div class="kv__val">Воспроизвести звук один раз. Имя файла без расширения.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">sounds.catch.stop()</div>
+        <div class="kv__val">Остановить воспроизведение этого звука.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">sounds.catch.volume</div>
+        <div class="kv__val">Громкость от 0.0 (тишина) до 1.0 (максимум). Устанавливается как атрибут.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">sounds.catch.play(-1)</div>
+        <div class="kv__val">Играть бесконечно (зациклить). Аргумент -1 = бесконечное повторение.</div>
+      </div>
+    </div>
+    <pre style="margin-top:14px"><code class="language-python"># При ловле яблока
+sounds.catch.play()
+
+# Настройка громкости (делаем тише)
+sounds.catch.volume = 0.8
+sounds.lose.volume = 1.0  # потеря жизни — полная громкость
+
+# При клике на кнопку в меню
+sounds.click.play()</code></pre>
+  </div>
+</section>
+
+<!-- 7. music API -->
+<section class="slide"
+  data-notes="Музыкальное API. Главное: music.play() запускает трек из папки music/. music.set_volume(0.3) — тише музыку, чтобы не заглушала эффекты. Пауза в паузе игры — обязательный UX-момент.">
+  <div class="slide__inner">
+    <h2>API музыки: <span class="accent">music</span></h2>
+    <p class="lead">Фоновая музыка — это атмосфера и погружение</p>
+    <div class="kv" style="margin-top:14px">
+      <div class="kv__item">
+        <div class="kv__key">music.play('bg')</div>
+        <div class="kv__val">Играть файл <code>music/bg.ogg</code> с зацикливанием. Имя без расширения.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">music.play_once('jingle')</div>
+        <div class="kv__val">Сыграть один раз, без зацикливания. Хорошо для джинглов победы.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">music.set_volume(0.3)</div>
+        <div class="kv__val">Установить громкость музыки. 0.3 — 30%, оптимально для фона.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">music.pause()</div>
+        <div class="kv__val">Поставить на паузу (запоминает позицию).</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">music.unpause()</div>
+        <div class="kv__val">Продолжить с того же места.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">music.stop()</div>
+        <div class="kv__val">Полностью остановить. При следующем play() начнёт сначала.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- G. Music state machine -->
+<section class="slide"
+  data-notes="Машина состояний для музыки. В игре 4 состояния: menu, playing, paused, game_over. Музыка ведёт себя по-разному в каждом. Нарисуй стрелки между состояниями на доске — это поможет понять переходы.">
+  <div class="slide__inner">
+    <h2>Музыка и <span class="accent">состояния игры</span></h2>
+    <p class="lead">В каждом состоянии — своя логика музыки</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card card--glow">
+        <h3>Таблица состояний</h3>
+        <div class="kv" style="margin-top:10px">
+          <div class="kv__item">
+            <div class="kv__key">menu</div>
+            <div class="kv__val"><code>music.play('menu')</code> — лёгкая мелодия</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">playing</div>
+            <div class="kv__val"><code>music.play('bg')</code> или <code>unpause()</code></div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">paused</div>
+            <div class="kv__val"><code>music.pause()</code> — запоминает позицию!</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">game_over</div>
+            <div class="kv__val"><code>music.stop()</code> + <code>play_once('lose')</code></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px">Правило переходов</h3>
+        <pre><code class="language-python">def on_key_down(key):
+    if key == keys.SPACE:
+        if state == 'menu':
+            state = 'playing'
+            music.play('bg')
+        elif state == 'playing':
+            state = 'paused'
+            music.pause()    # ← не stop!
+        elif state == 'paused':
+            state = 'playing'
+            music.unpause()  # ← не play()!</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- H. GREEN COVER — Пришло время вопросов -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов. Убедись, что ученики поняли разницу между pause/unpause и stop/play. Это ключевой момент — неверное понимание приведёт к багу перезапуска музыки.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <circle cx="40" cy="40" r="36" fill="white" opacity="0.3"/><text x="40" y="52" text-anchor="middle" font-size="36" fill="white" font-weight="800">?</text>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white" opacity="0.3"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white" opacity="0.3"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white" opacity="0.3"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <rect x="15" y="15" width="40" height="40" rx="5" fill="white" opacity="0.3"/>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <rect x="15" y="15" width="40" height="40" rx="5" fill="white" opacity="0.3"/>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Пришло время<br>вопросов!<br>
+        <span style="font-size:0.65em;font-weight:600">pause() vs stop() — в чём разница?</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Volume balance -->
+<section class="slide"
+  data-notes="Баланс громкости — важный навык звукового дизайна. Золотое правило: фоновая музыка никогда не заглушает звуковые эффекты. Дай ученикам поэкспериментировать с числами.">
+  <div class="slide__inner">
+    <h2>Баланс <span class="accent">громкостей</span></h2>
+    <p class="lead">Звуковой дизайн — это наука и искусство одновременно</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card">
+        <h3>Фон (music)</h3>
+        <p style="margin-top:6px">Самый тихий уровень — музыка не должна отвлекать</p>
+        <div class="quote-block" style="margin-top:10px;font-size:20px">0.25–0.35</div>
+      </div>
+      <div class="card">
+        <h3>Обычные эффекты</h3>
+        <p style="margin-top:6px">Ловля яблок, шаги, кнопки</p>
+        <div class="quote-block" style="margin-top:10px;font-size:20px">0.70–0.80</div>
+      </div>
+      <div class="card card--glow">
+        <h3>Важные события</h3>
+        <p style="margin-top:6px">Потеря жизни, game over, победа</p>
+        <div class="quote-block" style="margin-top:10px;font-size:20px">0.90–1.00</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <p><span style="color:var(--amber);font-weight:700">Проверка:</span> включи игру и попроси кого-то другого сыграть. Если они не слышат, что поймали яблоко — музыка слишком громкая. Если музыка раздражает через 30 секунд — тоже слишком громко.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Integration code -->
+<section class="slide"
+  data-notes="Это самый важный слайд — полная интеграция звука в игру. Покажи, где именно в коде добавляются вызовы. Главные места: при ловле яблока, при потере жизни, при старте игры.">
+  <div class="slide__inner">
+    <h2>Интеграция в <span class="accent">игру</span></h2>
+    <p class="lead">Куда именно добавляем вызовы звуков в нашем game.py</p>
+    <pre><code class="language-python"># === НАЧАЛО ФАЙЛА: запускаем музыку сразу ===
+WIDTH = 800
+HEIGHT = 600
+music.play('bg')
+music.set_volume(0.3)
+
+# === В update(): при ловле яблока ===
+def update():
+    for apple in apples[:]:
+        apple.y += apple_speed
+        if basket.colliderect(apple):
+            apples.remove(apple)
+            score += 1
+            sounds.catch.play()  # ЗВУК ЛОВЛИ
+        elif apple.y > HEIGHT:
+            apples.remove(apple)
+            lives -= 1
+            sounds.lose.play()   # ЗВУК ПОТЕРИ
+            if lives == 0:
+                game_state = 'gameover'
+                music.stop()     # СТОП МУЗЫКИ
+
+# === В on_key_down(): при старте из меню ===
+def on_key_down(key):
+    global game_state
+    if key == keys.SPACE:
+        if game_state == 'menu':
+            game_state = 'playing'
+            sounds.click.play()  # ЗВУК КЛИКА
+            music.play('bg')     # ПЕРЕЗАПУСК МУЗЫКИ
+        elif game_state == 'paused':
+            game_state = 'playing'
+            music.unpause()      # ПРОДОЛЖИТЬ МУЗЫКУ
+        elif key == keys.P:
+            if game_state == 'playing':
+                game_state = 'paused'
+                music.pause()    # ПАУЗА МУЗЫКИ</code></pre>
+  </div>
+</section>
+
+<!-- I. Step-by-step integration plan -->
+<section class="slide"
+  data-notes="Алгоритм добавления звука в игру. Ученик идёт по шагам и ничего не пропускает. Каждый шаг можно проверить. Дай ученикам следовать этому плану на практике.">
+  <div class="slide__inner">
+    <h2>Алгоритм: добавить звук <span class="accent">за 7 шагов</span></h2>
+    <p class="lead">Чёткий план — без паники и пропущенных шагов</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><b>Найди звуки</b> на freesound.org (фильтр CC0): <code>catch.wav</code>, <code>lose.wav</code>, <code>click.wav</code></div></li>
+      <li><div><b>Создай папку</b> <code>sounds/</code> рядом с <code>game.py</code>. Переложи файлы туда.</div></li>
+      <li><div><b>Запусти игру</b> без изменений кода — убедись, что запускается без ошибок.</div></li>
+      <li><div><b>Добавь один звук:</b> <code>sounds.catch.play()</code> при ловле яблока. Проверь.</div></li>
+      <li><div><b>Добавь остальные</b> эффекты по одному, каждый раз проверяя.</div></li>
+      <li><div><b>Добавь музыку:</b> <code>music.play('bg')</code> в начале, <code>pause/unpause</code> в состоянии паузы.</div></li>
+      <li><div><b>Настрой баланс</b> громкостей: музыка 0.3, обычные эффекты 0.7–0.8, важные события 0.9–1.0.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 10. Common errors -->
+<section class="slide"
+  data-notes="Типичные ошибки со звуком. Самая частая: файл не найден из-за расширения в имени или неверной папки. Разбери каждую ошибку на живом примере.">
+  <div class="slide__inner">
+    <h2>Частые <span class="accent">ошибки</span> со звуком</h2>
+    <p class="lead">Три ситуации, с которыми столкнётся каждый</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Звук не играет</h3>
+        <p style="margin-top:8px">Проверь имя файла: <code>sounds.catch.play()</code> ищет файл <code>sounds/catch.wav</code>. Без расширения в коде. Без заглавных букв.</p>
+        <div class="terminal" style="margin-top:8px;font-size:12px">
+          <div class="terminal__body">
+            <span style="color:#86efac">✅ catch.wav</span><br>
+            <span style="color:#fca5a5">❌ Catch.wav</span><br>
+            <span style="color:#fca5a5">❌ catch.wav.wav</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Задержка</h3>
+        <p style="margin-top:8px">Файл слишком большой. Оптимально: <code>catch.wav</code> ≤ 100 КБ. Сожми через онлайн-конвертер или Audacity.</p>
+        <p style="margin-top:8px;font-size:14px;color:var(--cyan)">Правило: короткий звук = маленький файл.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Музыка дважды</h3>
+        <p style="margin-top:8px">Вызов <code>music.play('bg')</code> дважды подряд — трек перезапускается. Добавь проверку:</p>
+        <pre style="margin-top:8px;font-size:12px"><code class="language-python">if not music.is_playing():
+    music.play('bg')</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- J. Debugging deep dive -->
+<section class="slide"
+  data-notes="Системный разбор дебаггинга звуковых ошибок. Показывает, что print-дебаггинг работает и здесь. Важный паттерн: добавь print перед play() чтобы убедиться что код вообще доходит до этой строки.">
+  <div class="slide__inner">
+    <h2>Дебаг <span class="accent">звуковых ошибок</span></h2>
+    <p class="lead">Как искать и исправлять — системный подход</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <h3 style="margin-bottom:10px">Диагностика по симптому</h3>
+        <div class="kv">
+          <div class="kv__item">
+            <div class="kv__key">Звук не слышен</div>
+            <div class="kv__val">1. Проверь имя файла (регистр!)<br>2. Добавь <code>print("play!")</code> перед play()<br>3. Убедись что файл в папке <code>sounds/</code></div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">Музыка перезапускается</div>
+            <div class="kv__val">Используешь <code>play()</code> вместо <code>unpause()</code> при продолжении игры</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">Игра тормозит при старте</div>
+            <div class="kv__val">Файлы слишком большие — сожми через Audacity или онлайн-конвертер</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">❌ vs ✅</h3>
+        <pre><code class="language-python"># ❌ Музыка перезапускается при unpause
+elif state == 'paused':
+    state = 'playing'
+    music.play('bg')    # ← перезапуск!
+
+# ✅ Правильно
+elif state == 'paused':
+    state = 'playing'
+    music.unpause()     # ← с той же позиции
+
+# ❌ Расширение в имени
+sounds.catch_wav.play()
+
+# ✅ Правильно
+sounds.catch.play()</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11. Interactive: sound simulation -->
+<section class="slide"
+  data-notes="Интерактивный блок. В браузере PyGame Zero работать не будет, но мы симулируем логику звуковых событий через обычный Python, чтобы ученик понял принцип паттерна. Запусти код и обсуди вывод.">
+  <div class="slide__inner">
+    <h2>Симуляция <span class="accent">звуковых событий</span></h2>
+    <p class="lead">Попробуй — смоделируем логику звука без PyGame</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">class SoundManager:
+    def __init__(self):
+        self.volumes = {
+            'catch': 0.8,
+            'lose': 1.0,
+            'click': 0.7,
+        }
+        self.music_volume = 0.3
+        self.music_playing = False
+        self.music_paused = False
+
+    def play(self, name):
+        vol = self.volumes.get(name, 1.0)
+        print(f"  Звук: [{name}] громкость={vol:.1f} -> ИГРАЕТ")
+
+    def music_play(self, track):
+        self.music_playing = True
+        self.music_paused = False
+        print(f"  Музыка: [{track}] громкость={self.music_volume:.1f} -> ИГРАЕТ (зациклено)")
+
+    def music_pause(self):
+        self.music_paused = True
+        print(f"  Музыка: пауза (запомнена позиция)")
+
+    def music_unpause(self):
+        self.music_paused = False
+        print(f"  Музыка: продолжение с той же позиции")
+
+    def music_stop(self):
+        self.music_playing = False
+        print(f"  Музыка: остановлена")
+
+sounds = SoundManager()
+sounds.music_play('bg')
+print()
+print("=== Игрок поймал яблоко ===")
+sounds.play('catch')
+print()
+print("=== Игрок потерял жизнь ===")
+sounds.play('lose')
+print()
+print("=== Игрок нажал Паузу ===")
+sounds.music_pause()
+print()
+print("=== Игрок продолжил ===")
+sounds.music_unpause()
+print()
+print("=== Игра окончена ===")
+sounds.music_stop()
+sounds.play('lose')</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. Bonus: different sounds -->
+<section class="slide"
+  data-notes="Бонус для тех, кто справился быстро. Разные звуки для разных яблок — небольшая, но очень приятная деталь. Спроси: какие ещё события в игре могут иметь свой звук?">
+  <div class="slide__inner">
+    <h2>Бонус: разные звуки для <span class="accent">разных яблок</span></h2>
+    <p class="lead">Красное — хруст, золотое — звон, зелёное — шуршание</p>
+    <pre style="margin-top:14px"><code class="language-python">def on_apple_caught(apple):
+    # Разный звук зависит от типа яблока
+    if apple.image == 'apple_red':
+        sounds.crunch.play()     # хруст
+        score += 1
+
+    elif apple.image == 'apple_gold':
+        sounds.coin.play()       # звон монетки
+        score += 5               # золотое = 5 очков!
+
+    elif apple.image == 'apple_green':
+        sounds.pop.play()        # хлопок
+        score += 2
+
+    # Убираем яблоко из списка
+    apples.remove(apple)</code></pre>
+    <div class="quote-block" style="margin-top:14px">Звёздная задача: на freesound.org найти 3 разных звука по теме своей игры и подключить каждый к разному событию. Это называется sound design — профессия в игровой индустрии.</div>
+  </div>
+</section>
+
+<!-- K. Random sound variation compiler -->
+<section class="slide"
+  data-notes="Продвинутый трюк — sound pool. В профессиональных играх один звук воспроизводится с вариациями, чтобы не надоедал. Запусти код несколько раз — каждый раз разный вывод. Объясни концепцию.">
+  <div class="slide__inner">
+    <h2>Продвинутый трюк: <span class="accent">случайные звуки</span></h2>
+    <p class="lead">Sound pool — профессиональный приём из AAA-игр</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+# Sound pool — разные вариации одного события
+# В реальной игре: sounds.catch1.play(), sounds.catch2.play()...
+CATCH_SOUNDS = ['catch1', 'catch2', 'catch3']
+PITCH_VARIATIONS = [0.8, 0.9, 1.0, 1.1, 1.2]
+
+def play_catch_sound():
+    """Случайный звук из пула — не надоедает"""
+    sound = random.choice(CATCH_SOUNDS)
+    pitch = random.choice(PITCH_VARIATIONS)
+    # В реальном PGZ: getattr(sounds, sound).play()
+    print(f"  Звук: {sound}, тон: x{pitch:.1f}")
+
+print("=== Ловим 10 яблок ===")
+for i in range(10):
+    print(f"Яблоко #{i+1}:", end=' ')
+    play_catch_sound()
+
+print()
+print("Каждый раз — немного другой звук!")
+print("Запусти ещё раз — набор изменится.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Interactive: volume calculator -->
+<section class="slide"
+  data-notes="Простой код-упражнение — вычислить финальную громкость с учётом мастера. Это понятие из аудиомиксинга. Попроси изменить master_volume на 0.5 и посмотреть результат.">
+  <div class="slide__inner">
+    <h2>Калькулятор <span class="accent">громкости</span></h2>
+    <p class="lead">Поиграй с параметрами — понятие «мастер-громкость»</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Звуковой микшер игры
+# Попробуй изменить master_volume и посмотри на результат!
+
+master_volume = 0.8  # общая громкость (настройки игры)
+
+sounds = {
+    'music':  {'base': 0.3, 'category': 'background'},
+    'catch':  {'base': 0.9, 'category': 'effect'},
+    'lose':   {'base': 1.0, 'category': 'effect'},
+    'click':  {'base': 0.6, 'category': 'ui'},
+}
+
+print(f"Мастер-громкость: {master_volume*100:.0f}%")
+print("=" * 45)
+print(f"{'Звук':<12} {'База':>6} {'Итого':>8} {'Категория'}")
+print("-" * 45)
+
+for name, info in sounds.items():
+    final = info['base'] * master_volume
+    bar = '#' * int(final * 20)
+    print(f"{name:<12} {info['base']:>5.1f}  {final:>6.2f}  {bar}")
+
+print()
+print("Измени master_volume = 0.5 и запусти снова!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14. freesound workflow -->
+<section class="slide"
+  data-notes="Пошаговый воркфлоу для поиска звуков. Акцент на фильтр CC0 — это значит можно использовать бесплатно вообще везде, даже в коммерческих проектах. Открой freesound.org прямо на уроке.">
+  <div class="slide__inner">
+    <h2>Где взять звуки: <span class="accent">freesound.org</span></h2>
+    <p class="lead">Пошаговая инструкция для поиска бесплатных звуков</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><b>Открой</b> <code>freesound.org</code> в браузере. Создай бесплатный аккаунт (нужен для скачивания).</div></li>
+      <li><div><b>Введи запрос</b> по-английски: «apple crunch», «coin collect», «game over», «button click».</div></li>
+      <li><div><b>Фильтр Creative Commons:</b> нажми «CC0» в левом меню. Это лицензия «без ограничений» — можно везде.</div></li>
+      <li><div><b>Фильтр по длине:</b> до 3 секунд для эффектов, до 3 минут для музыки.</div></li>
+      <li><div><b>Прослушай</b> прямо на сайте, выбери лучший.</div></li>
+      <li><div><b>Скачай</b> в формате <code>.wav</code>, переименуй в нужное имя.</div></li>
+      <li><div><b>Положи</b> в папку <code>sounds/</code> рядом с <code>game.py</code>.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- L. OpenGameArt for music -->
+<section class="slide"
+  data-notes="OpenGameArt.org — лучший источник музыки для инди-игр. Показывает конкретный воркфлоу. Фильтр по лицензии CC-BY или CC0 обязателен. Открой сайт прямо на уроке.">
+  <div class="slide__inner">
+    <h2>Музыка с <span class="accent">OpenGameArt.org</span></h2>
+    <p class="lead">Лучший источник бесплатной игровой музыки</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div>
+        <ol class="steps">
+          <li><div><b>Открой</b> <code>opengameart.org</code> в браузере</div></li>
+          <li><div><b>Фильтр по типу:</b> Music</div></li>
+          <li><div><b>Фильтр по лицензии:</b> CC0 или CC-BY</div></li>
+          <li><div><b>Поиск:</b> «platformer», «chiptune», «ambient», «loop», «arcade»</div></li>
+          <li><div><b>Скачай</b> в формате <code>.ogg</code> (лучше для PyGame Zero)</div></li>
+          <li><div><b>Переименуй</b> в <code>bg.ogg</code>, положи в папку <code>music/</code></div></li>
+        </ol>
+      </div>
+      <div class="card card--glow">
+        <h3>Рекомендуемые теги</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>«8-bit» — ретро-пиксельный звук</li>
+          <li>«chiptune» — синтезатор старых игр</li>
+          <li>«upbeat» — весёлая быстрая музыка</li>
+          <li>«loop» — трек уже зациклен</li>
+          <li>«casual game» — лёгкая атмосфера</li>
+        </ul>
+        <div class="quote-block" style="margin-top:10px">CC-BY = укажи автора. CC0 = полная свобода. Для учебных проектов оба подходят!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. Project milestone -->
+<section class="slide"
+  data-notes="Промежуточный итог. Показываем, как выглядит полная версия игры со звуком. Это завершение 5-урочного сквозного проекта «Поймай яблоко». Поздравь учеников — первый большой проект готов!">
+  <div class="slide__inner">
+    <h2>Проект <span class="accent">«Поймай яблоко»</span> — финал</h2>
+    <p class="lead">Мы завершили первый большой сквозной проект курса</p>
+    <div class="grid grid--2" style="margin-top:14px">
+      <div class="card card--glow">
+        <h3>Что реализовано</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Окно, фон, спрайты (урок 37)</li>
+          <li>Управление мышью (урок 38)</li>
+          <li>Коллизии, списки яблок (урок 39)</li>
+          <li>Состояния, счёт, жизни (урок 40)</li>
+          <li>Звуковые эффекты (урок 41 — сегодня)</li>
+          <li>Фоновая музыка с паузой</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3>Параметры проекта</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>~200 строк кода Python</li>
+          <li>4 состояния: меню / игра / пауза / конец</li>
+          <li>3 вида яблок с разной скоростью</li>
+          <li>Звук ловли, потери, клика, фон</li>
+          <li>Сохранение рекорда в файл</li>
+          <li>Проект №1 в портфолио</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M. Next steps for the project -->
+<section class="slide"
+  data-notes="Дорожная карта проекта. После урока 41 у ученика есть первый завершённый проект. Мотивируй: это уже портфолио. Следующие уроки — полировка и новые механики.">
+  <div class="slide__inner">
+    <h2>Дальнейшее <span class="accent">развитие</span> проекта</h2>
+    <p class="lead">«Поймай яблоко» — фундамент. Что нас ждёт дальше?</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card card--glow">
+        <div class="card__icon">⌨️</div>
+        <h3>Урок 42</h3>
+        <p style="margin-top:8px">Клавиатура и анимация. Управление клавишами, анимированные спрайты, плавное движение.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎮</div>
+        <h3>Урок 43+</h3>
+        <p style="margin-top:8px">Новый проект — platformer. Прыжки, гравитация, платформы. Применяем все знания.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🏆</div>
+        <h3>Портфолио</h3>
+        <p style="margin-top:8px">Полноценная игра с менеджером уровней, достижениями. Публикуем, добавляем в резюме.</p>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:14px">Запиши видео игры со звуком и добавь в портфолио: «Python + PyGame Zero, ~200 строк». Это уже впечатляет работодателей!</div>
+  </div>
+</section>
+
+<!-- N. Final self-check -->
+<section class="slide"
+  data-notes="Финальная самопроверка. Не тест — рефлексия. Пусть ученики честно оценят каждый пункт. Разбери вместе те пункты, где большинство отвечают ❌.">
+  <div class="slide__inner">
+    <h2>Итоговая <span class="accent">самопроверка</span></h2>
+    <p class="lead">Что ты можешь сделать самостоятельно после урока?</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div>Создать папку <code>sounds/</code> и положить в неё <code>.wav</code> файлы <span style="color:var(--green)">✅ / ❌</span></div></li>
+      <li><div>Вызвать <code>sounds.catch.play()</code> при ловле яблока <span style="color:var(--green)">✅ / ❌</span></div></li>
+      <li><div>Запустить фоновую музыку через <code>music.play('bg')</code> <span style="color:var(--green)">✅ / ❌</span></div></li>
+      <li><div>Поставить музыку на паузу (<code>music.pause()</code>) и продолжить (<code>music.unpause()</code>) <span style="color:var(--green)">✅ / ❌</span></div></li>
+      <li><div>Объяснить разницу между <code>music.pause()</code> и <code>music.stop()</code> <span style="color:var(--green)">✅ / ❌</span></div></li>
+      <li><div>Настроить баланс: музыка ≤ 0.35, эффекты 0.7–1.0 <span style="color:var(--green)">✅ / ❌</span></div></li>
+    </ol>
+    <div class="card" style="margin-top:14px"><span style="color:var(--amber);font-weight:700">6/6</span> — ты звуковой дизайнер! &nbsp;<span style="color:var(--amber);font-weight:700">4–5/6</span> — хороший результат, доработаем в ДЗ. &nbsp;<span style="color:var(--amber);font-weight:700">&lt;4</span> — повтори слайды 4–9.</div>
+  </div>
+</section>
+
+<!-- 16. Homework -->
+<section class="slide"
+  data-notes="Домашнее задание — записать видео со звуком. Очень важно: звук должен быть слышен в записи. Самый простой способ — экранная запись с захватом системного звука.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">Три задания — не больше 20 минут каждое</p>
+    <div class="grid grid--3" style="margin-top:14px">
+      <div class="card card--glow">
+        <div class="card__icon">🏆</div>
+        <h3>Задание 1</h3>
+        <p style="margin-top:8px">Добавить специальный звук «ачивка» при ловле 10 яблок подряд. Используй счётчик <code>combo</code>.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🔇</div>
+        <h3>Задание 2</h3>
+        <p style="margin-top:8px">На экране Game Over — <code>music.stop()</code>. При рестарте — музыка запускается заново. Проверь, что музыка не накапливается.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎬</div>
+        <h3>Задание 3</h3>
+        <p style="margin-top:8px">Записать видео игры со звуком (экранная запись) и отправить в чат. Звук должен быть слышен!</p>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:14px">Бонус: найди на freesound.org три разных звука для трёх видов яблок — каждый должен звучать «правильно» (красное хрустит, золотое звенит, зелёное хлопает).</div>
+  </div>
+</section>
+
+<!-- O. Extended homework step-by-step -->
+<section class="slide"
+  data-notes="Расширенное пошаговое ДЗ — дополнение к слайду 16. Ученик идёт дома по этому плану и добавляет звук самостоятельно. Дай как печатный чеклист.">
+  <div class="slide__inner">
+    <h2>Домашнее задание — <span class="accent">пошагово</span></h2>
+    <p class="lead">Добавь звук в игру самостоятельно — 7 конкретных шагов</p>
+    <ol class="steps" style="margin-top:14px">
+      <li><div><b>Найди 3 эффекта</b> на freesound.org (CC0): поимка объекта, потеря жизни, клик меню</div></li>
+      <li><div><b>Найди 1 фоновый трек</b> на opengameart.org (CC0/CC-BY, тег «loop», формат <code>.ogg</code>)</div></li>
+      <li><div><b>Создай папки</b> <code>sounds/</code> и <code>music/</code> рядом с <code>game.py</code>, переложи файлы</div></li>
+      <li><div><b>Подключи эффекты:</b> <code>sounds.catch.play()</code>, <code>sounds.lose.play()</code>, <code>sounds.click.play()</code></div></li>
+      <li><div><b>Запусти музыку</b> в начале: <code>music.play('bg')</code>, <code>music.set_volume(0.3)</code></div></li>
+      <li><div><b>Добавь паузу музыки</b> в состоянии 'paused': <code>music.pause()</code> / <code>music.unpause()</code></div></li>
+      <li><div><b>★ Бонус:</b> джингл при новом рекорде — <code>music.play_once('record')</code></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 17. Final cover (green) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрывающий слайд урока. Ученик уходит с полноценной игрой со звуком. Это важный момент — первый большой проект завершён. Поздравь! Расскажи, что в следующем уроке — клавиатура и анимация.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Игра теперь живая!<br>
+        <span style="font-size:0.7em;font-weight:600">Урок 42 → Клавиатура и анимация</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+</body>
+</html>

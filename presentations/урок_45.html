@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 45 — Финальный проект, часть 1: Идея и архитектура | EdusonGames</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:14px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  .timeline{display:flex;flex-direction:column;gap:10px}
+  .timeline__row{display:grid;grid-template-columns:130px 1fr;gap:16px;align-items:flex-start;padding:12px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--amber);}
+  .timeline__body h3{font-size:16px;margin-bottom:3px}
+  .timeline__body p{font-size:13px;color:var(--muted)}
+
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li,
+  .slide.active .timeline__row{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1),.slide.active .timeline__row:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .timeline__row:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .timeline__row:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4),.slide.active .timeline__row:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5),.slide.active .timeline__row:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .timeline__row:nth-child(6){animation-delay:360ms}
+  .slide.active .card:nth-child(7),.slide.active ul.clean li:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .timeline__row:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">32</span></div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 1: Cover (purple) -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 45 — старт финального проекта! Это переломный момент курса: теперь ребёнок придумывает свою игру сам. Начни с вдохновения — покажи примеры простых, но уникальных игр, сделанных детьми.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №45</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Финальный проект,<br>часть 1: Идея и архитектура
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Разбор ДЗ — что было задано -->
+<section class="slide"
+  data-notes="Начни с проверки домашнего задания с урока 44. Спроси: что получилось, что не получилось? Дай ребёнку рассказать своими словами, не торопись. Это формирует навык рефлексии.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span></h2>
+    <p class="lead">Вспомним, что было задано на прошлом уроке</p>
+    <div class="card card--glow" style="margin-top:4px">
+      <h3>Домашнее задание урока 44 включало:</h3>
+      <ol class="steps" style="margin-top:14px">
+        <li><div>Завершить функцию <code>save_score(name, score)</code>, которая записывает результат в файл <code>scores.txt</code></div></li>
+        <li><div>Написать функцию <code>load_top5()</code>, возвращающую список из 5 лучших результатов</div></li>
+        <li><div>Вывести таблицу лидеров в консоль в виде нумерованного списка</div></li>
+        <li><div>Добавить проверку: если файл не существует — создать его автоматически</div></li>
+      </ol>
+    </div>
+    <div class="quote-block">
+      Покажи своё решение. Объясни, что было сложнее всего.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: Разбор ДЗ — проверяем код -->
+<section class="slide"
+  data-notes="Запустите эталонное решение вместе. Пусть ребёнок сам нажимает кнопку и читает вывод. Сравните с его решением: одинаковый результат? Значит ДЗ выполнено, даже если код выглядит по-другому.">
+  <div class="slide__inner">
+    <h2>Эталон <span class="accent">решения</span></h2>
+    <p class="lead">Запускаем и сравниваем с твоим кодом</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">scores = [
+    ("Миша", 1500),
+    ("Аня", 2300),
+    ("Петя", 800),
+    ("Катя", 3100),
+    ("Коля", 1200),
+    ("Лена", 2800),
+]
+
+def load_top5(data):
+    sorted_scores = sorted(data, key=lambda x: x[1], reverse=True)
+    return sorted_scores[:5]
+
+top5 = load_top5(scores)
+
+print("=== Таблица лидеров ===")
+for i, (name, score) in enumerate(top5, 1):
+    bar = "█" * (score // 300)
+    print(f"{i}. {name:8} {score:5} pts  {bar}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Проверьте себя -->
+<section class="slide"
+  data-notes="Быстрая проверка знаний из предыдущих уроков. Задай каждый вопрос устно, дай 20 секунд подумать. Не критикуй неправильные ответы — исправляй мягко через объяснение.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <p class="lead">Быстрый блиц по теме уроков 43–44</p>
+    <ol class="steps">
+      <li><div>Какой режим открытия файла нужен, чтобы <span style="color:var(--cyan)">дописать</span> строку в конец, не удаляя содержимое? (<code>'a'</code>, <code>'w'</code> или <code>'r'</code>?)</div></li>
+      <li><div>Что вернёт <code>sorted([3,1,2], reverse=True)</code>? Назови список без запуска кода.</div></li>
+      <li><div>Зачем нужна конструкция <span style="color:var(--cyan)">try / except</span> при работе с файлами?</div></li>
+      <li><div>Как называется функция Python, которая превращает строку <code>"42"</code> в число <code>42</code>?</div></li>
+      <li><div>Что значит <code>lambda x: x[1]</code>? Объясни своими словами.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 5: Цели урока -->
+<section class="slide"
+  data-notes="Объяви три цели урока. Подчеркни: сегодня не просто пишем код — мы планируем и проектируем. Это работа, которую делают настоящие геймдизайнеры в студиях.">
+  <div class="slide__inner">
+    <h2>Цели <span class="accent">урока 45</span></h2>
+    <p class="lead">Сегодня — три большие задачи</p>
+    <ol class="steps" style="margin-top:8px">
+      <li><div><span style="color:var(--amber);font-weight:700;">Выбрать идею</span> финального проекта — одну конкретную игру, которую реально сделать за 3 урока</div></li>
+      <li><div><span style="color:var(--amber);font-weight:700;">Спроектировать архитектуру</span> — декомпозиция на задачи, структура папки, README.md</div></li>
+      <li><div><span style="color:var(--amber);font-weight:700;">Запустить скелет</span> — окно открылось, главный объект виден, базовый ввод работает</div></li>
+    </ol>
+    <div class="quote-block" style="margin-top:4px">
+      К концу урока у тебя будет живой проект — пусть маленький, но твой.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: Вопрос аудитории (cover-green) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пришло время задавать вопросы! Спроси: 'Если бы ты мог сделать любую игру — о чём она была бы?' Дай ребёнку 1 минуту подумать и ответить. Запиши идею — она может стать основой проекта.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;">
+        Если бы ты мог сделать любую игру — о чём она была бы?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Мозговой штурм -->
+<section class="slide"
+  data-notes="Мозговой штурм — 10 минут. Нет плохих идей. Цель — выбрать ОДНУ реалистичную для 3 уроков. Можно использовать YandexGPT прямо на уроке: 'дай 10 идей игр на Python PyGame Zero для ребёнка 12 лет'.">
+  <div class="slide__inner">
+    <h2>Мозговой <span class="accent">штурм</span></h2>
+    <p class="lead">10 минут генерируем идеи. Нет плохих идей. Потом выберем одну — реалистичную.</p>
+    <div class="grid grid--3" style="margin-top:4px">
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:32px">🐱</div>
+        <h3 style="font-size:15px;margin-top:8px">Котик на уроке</h3>
+        <p>Уворачивается от тетрадок</p>
+      </div>
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:32px">🚀</div>
+        <h3 style="font-size:15px;margin-top:8px">Космический спасатель</h3>
+        <p>Собираем астронавтов</p>
+      </div>
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:32px">🐾</div>
+        <h3 style="font-size:15px;margin-top:8px">Питомец-тамагочи</h3>
+        <p>Кормим, поим, играем</p>
+      </div>
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:32px">🧮</div>
+        <h3 style="font-size:15px;margin-top:8px">Квиз с таблицей лидеров</h3>
+        <p>Вопросы на разные темы</p>
+      </div>
+      <div class="card card--glow" style="text-align:center;padding:16px">
+        <div style="font-size:32px">💭</div>
+        <h3 style="font-size:15px;margin-top:8px;color:var(--amber)">Твоя идея!</h3>
+        <p>Что тебе интересно?</p>
+      </div>
+      <div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:32px">🌱</div>
+        <h3 style="font-size:15px;margin-top:8px">Симулятор растения</h3>
+        <p>Поливай, расти, собирай</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: YandexGPT для идей -->
+<section class="slide"
+  data-notes="Покажи, как правильно задавать запросы YandexGPT для генерации идей. Хороший промпт — конкретный: возраст, язык, библиотека, ограничения. Запусти симулятор ниже — это не настоящий ИИ, но показывает структуру хорошего ответа.">
+  <div class="slide__inner">
+    <h2>YandexGPT как <span class="accent">генератор идей</span></h2>
+    <p class="lead">Правильный запрос даёт полезный ответ</p>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card">
+        <h3>❌ Плохой запрос:</h3>
+        <div class="terminal" style="margin-top:10px">
+          <div class="terminal__body">придумай игру на питоне</div>
+        </div>
+        <p style="margin-top:10px;color:#fca5a5">Слишком общий — получишь что попало</p>
+        <h3 style="margin-top:16px">✅ Хороший запрос:</h3>
+        <div class="terminal" style="margin-top:10px">
+          <div class="terminal__body">Я — ученик 6 класса, знаю Python и PyGame Zero. Нужна идея для игры, которую реально написать за 3 урока по 1 часу. Хочу что-то про космос или животных. Дай 5 конкретных идей с описанием механики в 1 предложении.</div>
+        </div>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">ideas = [
+    ("Котик-астронавт", "уворачивается от метеоритов", 1),
+    ("Космический сборщик", "собираем звёзды, избегаем врагов", 1),
+    ("Планета-тамагочи", "кормим планету, она растёт", 2),
+    ("Гравитационный раннер", "прыгаем между планетами", 2),
+    ("Звёздный квиз", "отвечаем на вопросы про космос", 1),
+]
+
+print("Идеи для твоего проекта:\n")
+for i, (name, desc, stars) in enumerate(ideas, 1):
+    difficulty = "⭐" * stars
+    print(f"{i}. {name} {difficulty}")
+    print(f"   → {desc}")
+    print()</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: План на 60 минут -->
+<section class="slide"
+  data-notes="60 минут: 10 мин на идею, 10 мин на декомпозицию, 10 мин на README, 30 мин на скелет кода. Держи этот план как ориентир — ребёнок должен уйти с работающим окном игры.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <p class="lead">От идеи до первого запущенного окна — за один урок</p>
+    <div class="timeline" style="margin-top:8px">
+      <div class="timeline__row">
+        <div class="timeline__time">0 – 10 мин</div>
+        <div class="timeline__body"><h3>Мозговой штурм</h3><p>Генерируем идеи с YandexGPT, выбираем ОДНУ тему</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">10 – 20 мин</div>
+        <div class="timeline__body"><h3>Декомпозиция на бумаге</h3><p>5–7 задач списком, оцениваем что реально за 3 урока</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">20 – 30 мин</div>
+        <div class="timeline__body"><h3>Пишем README.md</h3><p>Название, идея, как играть, план задач, роль ИИ</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">30 – 55 мин</div>
+        <div class="timeline__body"><h3>Скелет кода</h3><p>Окно открывается, главный объект виден, базовый ввод</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55 – 60 мин</div>
+        <div class="timeline__body"><h3>Цель на урок 46</h3><p>«К следующему разу игра должна играться 30 секунд»</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: MVP концепция -->
+<section class="slide"
+  data-notes="MVP — ключевая концепция. Лучше простая доделанная игра, чем сложная недоделанная. Это правило используют все профессиональные команды. Объясни на примере: что лучше — простой кот или сложный Minecraft, который не закончен?">
+  <div class="slide__inner">
+    <h2>Что такое <span class="accent">MVP</span>?</h2>
+    <p class="lead">Minimum Viable Product — минимально работающая версия</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Плохой план</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Игра с 5 уровнями</li>
+          <li>Босс в конце каждого</li>
+          <li>Система прокачки</li>
+          <li>Магазин предметов</li>
+          <li>Мультиплеер</li>
+          <li>Кастомизация персонажа</li>
+        </ul>
+        <p style="margin-top:10px;font-size:14px;color:#fca5a5">→ Не успеешь за 3 урока. Ничего не будет готово.</p>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:var(--green)">✅ MVP план</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Одна сцена, один герой</li>
+          <li>Одна базовая механика</li>
+          <li>Счёт или прогресс</li>
+          <li>Конец игры + рестарт</li>
+          <li>Пара спрайтов</li>
+          <li>Один звук</li>
+        </ul>
+        <p style="margin-top:10px;font-size:14px;color:var(--green)">→ Готово через 3 урока. Можно показывать!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: Почему MVP — реальные примеры -->
+<section class="slide"
+  data-notes="Реальные примеры того, почему MVP работает лучше. Minecraft начинался как простой генератор блоков. Flappy Bird сделан за 3 дня. Подчеркни: закончить — главное. Покажи ребёнку, что профессионалы думают так же.">
+  <div class="slide__inner">
+    <h2>MVP в <span class="accent">реальных играх</span></h2>
+    <p class="lead">Знаменитые игры тоже начинались с MVP</p>
+    <ol class="steps" style="margin-top:8px">
+      <li><div><span style="color:var(--amber);font-weight:700;">Flappy Bird</span> — сделан за 3 дня. Один персонаж, одна механика, счёт. Скачали 50 миллионов раз.</div></li>
+      <li><div><span style="color:var(--amber);font-weight:700;">Minecraft alpha</span> — просто генерация блоков и разрушение. Ни мобов, ни крафта. Люди всё равно играли часами.</div></li>
+      <li><div><span style="color:var(--amber);font-weight:700;">Among Us</span> — 2 года был почти без игроков. Один режим, базовая механика. Потом стал хитом.</div></li>
+      <li><div><span style="color:var(--amber);font-weight:700;">Твой проект</span> — один уровень, одна механика, работает 30 секунд без крашей. Этого достаточно для демо-дня!</div></li>
+    </ol>
+    <div class="quote-block" style="margin-top:4px">
+      Правило разработчика: «Ship it, then iterate» — сначала выпусти, потом улучшай.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12: Жанры и сложность -->
+<section class="slide"
+  data-notes="Жанры на выбор. Для 8–10 лет рекомендуй более простые (ловилка, раннер). Для 11–14 можно сложнее (квиз, платформер с уровнями). Помоги ребёнку выбрать реалистичный жанр.">
+  <div class="slide__inner">
+    <h2>Жанры и <span class="accent">сложность</span></h2>
+    <p class="lead">Выбери жанр под свой уровень — и за 3 урока будет полная игра</p>
+    <div class="grid grid--4" style="margin-top:8px">
+      <div class="card">
+        <div style="font-size:24px;text-align:center">⭐</div>
+        <h3 style="font-size:15px;margin-top:8px;text-align:center">Простые</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Ловилка (как яблоки)</li>
+          <li>Раннер с препятствиями</li>
+          <li>Кликер-игра</li>
+        </ul>
+        <p style="margin-top:6px;font-size:13px;color:var(--green)">8–10 лет, ~60 строк</p>
+      </div>
+      <div class="card">
+        <div style="font-size:24px;text-align:center">⭐⭐</div>
+        <h3 style="font-size:15px;margin-top:8px;text-align:center">Средние</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Платформер (1 уровень)</li>
+          <li>Квиз с очками</li>
+          <li>Тамагочи-симулятор</li>
+        </ul>
+        <p style="margin-top:6px;font-size:13px;color:var(--amber)">10–12 лет, ~120 строк</p>
+      </div>
+      <div class="card">
+        <div style="font-size:24px;text-align:center">⭐⭐⭐</div>
+        <h3 style="font-size:15px;margin-top:8px;text-align:center">Сложные</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Платформер 2–3 уровня</li>
+          <li>Tower defense (мини)</li>
+          <li>RPG с инвентарём</li>
+        </ul>
+        <p style="margin-top:6px;font-size:13px;color:#fca5a5">12–14 лет, ~200 строк</p>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:24px;text-align:center">🤖</div>
+        <h3 style="font-size:15px;margin-top:8px;text-align:center">С ИИ</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Квиз с ИИ-генерацией</li>
+          <li>Рассказ-приключение</li>
+          <li>Генератор уровней</li>
+        </ul>
+        <p style="margin-top:6px;font-size:13px;color:var(--cyan)">14+ лет, продвинутый</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: Выбираем жанр — 5 вопросов -->
+<section class="slide"
+  data-notes="Задай ребёнку эти 5 вопросов устно. По ответам станет ясно, какой жанр подходит. Если он хочет платформер, но никогда не делал коллизии — лучше начать с ловилки и добавить платформерные элементы позже.">
+  <div class="slide__inner">
+    <h2>Выбираем жанр: <span class="accent">5 вопросов</span></h2>
+    <p class="lead">Ответь честно — и жанр выберется сам</p>
+    <ol class="steps">
+      <li><div><span style="color:var(--cyan)">Что тебе интереснее:</span> экшен с движением или загадки и вопросы?</div></li>
+      <li><div><span style="color:var(--cyan)">Ты уже делал коллизии</span> (когда объекты сталкиваются)? Если нет — выбирай ловилку, не платформер.</div></li>
+      <li><div><span style="color:var(--cyan)">Сколько спрайтов</span> тебе нужно нарисовать? Меньше 5 — быстрее запустить.</div></li>
+      <li><div><span style="color:var(--cyan)">Есть ли чёткий конец</span> у твоей игры? Game over или победа — обязательно.</div></li>
+      <li><div><span style="color:var(--cyan)">Объяснишь механику</span> в одном предложении? Если нет — идея слишком сложная.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 14: Декомпозиция на бумаге -->
+<section class="slide"
+  data-notes="Шаблон декомпозиции. Ребёнок заполняет прямо на уроке — на бумаге или в блокноте. Главное: не больше 7 пунктов, каждый — конкретный и проверяемый. Используй пример с котиком.">
+  <div class="slide__inner">
+    <h2>Декомпозиция <span class="accent">на бумаге</span></h2>
+    <p class="lead">Сначала думаем руками — потом руками пишем код</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div>
+        <p style="color:var(--amber);font-weight:600;margin-bottom:10px">Шаблон для твоей игры:</p>
+        <ol class="steps">
+          <li><div><b>Окно и фон</b> — задаём размер, рисуем фон</div></li>
+          <li><div><b>Главный герой</b> — спрайт, начальная позиция</div></li>
+          <li><div><b>Ввод</b> — как управляем (мышь/клавиши)</div></li>
+          <li><div><b>Игровая механика</b> — что происходит в игре</div></li>
+          <li><div><b>Цель и конец</b> — когда выиграли/проиграли</div></li>
+          <li><div><b>Счёт/прогресс</b> — как отслеживаем успех</div></li>
+          <li><div><b>Звук и графика</b> — финальная полировка</div></li>
+        </ol>
+      </div>
+      <div class="card card--glow">
+        <h3>Пример: «Котик на уроке»</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Классный кабинет 800×600, парты фоном</li>
+          <li>Котик Actor, начинает у доски</li>
+          <li>Управление: ← → стрелками</li>
+          <li>Тетрадки летят слева → надо уворачиваться</li>
+          <li>Попала тетрадка → -1 жизнь, 0 жизней → конец</li>
+          <li>Счёт = сколько секунд продержался</li>
+          <li>Звук попадания + мяу при запуске</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: Практика декомпозиции (compiler) -->
+<section class="slide"
+  data-notes="Теперь ребёнок делает декомпозицию своей игры в коде. Пусть заменит задачи в списке на свои. Запустите — программа скажет, реалистично ли. Это геймифицированная версия планирования.">
+  <div class="slide__inner">
+    <h2>Декомпозиция <span class="accent">в коде</span></h2>
+    <p class="lead">Замени задачи на свои и запусти — проверим реалистичность</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">my_game = "Котик на уроке"
+lessons = 3
+
+tasks = [
+    ("Окно и фон",           0.10),
+    ("Главный герой",        0.20),
+    ("Управление стрелками", 0.15),
+    ("Тетрадки летят",       0.40),
+    ("Коллизии",             0.35),
+    ("Счёт и жизни",         0.25),
+    ("Game Over + рестарт",  0.20),
+    ("Звук",                 0.15),
+]
+
+time_per_lesson = 0.75
+total_available = lessons * time_per_lesson
+total_needed = sum(t for _, t in tasks)
+
+print(f"Игра: {my_game}")
+print(f"Уроков: {lessons} × {time_per_lesson}ч = {total_available}ч доступно")
+print(f"По оценкам нужно: {total_needed:.2f}ч\n")
+
+for name, hours in tasks:
+    bar = "▓" * int(hours * 20)
+    print(f"  {name:25} {hours:.2f}ч  {bar}")
+
+print()
+ratio = total_needed / total_available
+if ratio < 0.9:
+    print("✅ Отлично! Есть запас времени.")
+elif ratio < 1.2:
+    print("⚠  Плотно, но реалистично. Фокусируйся!")
+else:
+    print(f"❌ Не успеем. Убери {int((total_needed-total_available)*4)} задачи.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16: Шаблон README.md -->
+<section class="slide"
+  data-notes="README — это договор с самим собой. На защите это будет визиткой проекта. Занимает 10 минут написать, экономит часы потом. Дай ребёнку заполнить его прямо на уроке.">
+  <div class="slide__inner">
+    <h2>Шаблон <span class="accent">README.md</span></h2>
+    <p class="lead">Документируем сразу — это будет артефактом защиты</p>
+    <pre><code class="language-python"># Котик на уроке 🐱
+&gt; Python + PyGame Zero | Автор: Миша | Eduson Kids 2025
+
+## Идея (2 предложения)
+Котик сидит на уроке и уворачивается от тетрадок,
+которые кидает учитель. Продержись как можно дольше!
+
+## Как играть
+- Стрелки ← → — двигаем котика
+- Цель: набрать максимальный счёт
+
+## Список задач
+- [x] Окно и фон-класс
+- [x] Котик-спрайт
+- [ ] Тетрадки летят и удаляются
+- [ ] Коллизия котик+тетрадка → жизнь
+- [ ] Счёт и 3 жизни на экране
+- [ ] Game Over и рестарт
+- [ ] Звук + музыка
+
+## Роль ИИ
+- Kandinsky: спрайты котика, тетрадки, фон
+- YandexGPT: помощь с декомпозицией
+- Код: писал сам
+
+## Прогресс
+- Урок 45: скелет — окно открылось, котик виден ✓</code></pre>
+  </div>
+</section>
+
+<!-- SLIDE 17: Game Loop — как работает игровой цикл -->
+<section class="slide"
+  data-notes="Game loop — основа любой игры. В PyGame Zero это скрыто, но важно понять принцип: draw() рисует каждый кадр, update() обновляет состояние. 60 раз в секунду. Используй аналогию с мультфильмом.">
+  <div class="slide__inner">
+    <h2>Игровой цикл — <span class="accent">Game Loop</span></h2>
+    <p class="lead">Основа любой игры — цикл, который крутится 60 раз в секунду</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div>
+        <div class="quote-block">
+          Как мультфильм: 24 кадра в секунду = плавное движение. Игра = 60 кадров в секунду.
+        </div>
+        <ul class="clean" style="margin-top:16px">
+          <li><code>draw()</code> — рисует текущий кадр (очищает экран и рисует всё заново)</li>
+          <li><code>update()</code> — двигает объекты, проверяет коллизии, меняет состояние</li>
+          <li><code>on_key_down(key)</code> — реагирует на нажатия клавиш</li>
+          <li><code>on_mouse_move(pos)</code> — реагирует на мышь</li>
+        </ul>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+
+frame = 0
+fps = 60
+duration = 0.2  # симулируем 0.2 сек
+
+print("Симуляция Game Loop:\n")
+
+start = time.time()
+while time.time() - start < duration:
+    frame += 1
+
+print(f"Кадров за {duration}с: ~{frame}")
+print(f"Расчётный FPS: ~{int(frame/duration)}")
+print()
+print("В реальной игре:")
+print("  draw()   → рисуем экран")
+print("  update() → двигаем объекты")
+print("  Всё это 60 раз в секунду!")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 18: Машина состояний -->
+<section class="slide"
+  data-notes="State machine — очень важная концепция. Без неё игра не работает: непонятно, что делать на паузе, в меню, в game over. Покажи схему: меню → игра → пауза/game over → меню. Пусть ребёнок нарисует свою схему состояний.">
+  <div class="slide__inner">
+    <h2>Машина <span class="accent">состояний</span></h2>
+    <p class="lead">Игра всегда находится в одном из состояний — и знает, что делать в каждом</p>
+    <div class="grid grid--2" style="margin-top:4px;align-items:start">
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <h3>Состояния типичной игры:</h3>
+          <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2">
+            <span style="color:var(--green)">'menu'</span> → нажал ПРОБЕЛ →
+            <span style="color:var(--cyan)">'playing'</span><br>
+            <span style="color:var(--cyan)">'playing'</span> → 0 жизней →
+            <span style="color:#fca5a5">'gameover'</span><br>
+            <span style="color:var(--cyan)">'playing'</span> → нажал P →
+            <span style="color:var(--amber)">'paused'</span><br>
+            <span style="color:#fca5a5">'gameover'</span> → нажал R →
+            <span style="color:var(--green)">'menu'</span>
+          </div>
+        </div>
+        <div class="quote-block">
+          <code>game_state = 'menu'</code><br>
+          Одна переменная управляет всей игрой.
+        </div>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">game_state = 'menu'
+score = 0
+lives = 3
+
+def handle_action(action):
+    global game_state, score, lives
+    if game_state == 'menu' and action == 'space':
+        game_state = 'playing'
+        print("Игра началась!")
+    elif game_state == 'playing' and action == 'hit':
+        lives -= 1
+        print(f"Попадание! Жизней: {lives}")
+        if lives == 0:
+            game_state = 'gameover'
+            print("Game Over!")
+    elif game_state == 'gameover' and action == 'restart':
+        game_state = 'menu'
+        lives = 3
+        score = 0
+        print("Возврат в меню.")
+
+actions = ['space', 'hit', 'hit', 'hit', 'restart', 'space']
+for a in actions:
+    print(f"\nДействие: {a} | Состояние: {game_state}")
+    handle_action(a)</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 19: Проверка реалистичности (compiler) -->
+<section class="slide"
+  data-notes="Практическое упражнение — запустите код вместе. Ребёнок заполняет свои данные и видит, реалистичен ли план. Если 'слишком много' — вместе режем задачи.">
+  <div class="slide__inner">
+    <h2>Проверка <span class="accent">реалистичности</span></h2>
+    <p class="lead">3 вопроса, которые помогают выбрать правильный масштаб</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">game_idea = "Котик уворачивается от тетрадок"
+tasks_count = 7
+lessons_left = 3
+hours_per_lesson = 0.75
+
+task_estimates = [
+    ("Окно и фон", 0.1),
+    ("Главный герой", 0.2),
+    ("Управление", 0.2),
+    ("Игровая механика", 0.5),
+    ("Коллизии", 0.4),
+    ("Счёт и состояния", 0.3),
+    ("Звук и полировка", 0.3),
+]
+
+total_estimated = sum(h for _, h in task_estimates)
+total_available = lessons_left * hours_per_lesson
+
+print(f"Проект: {game_idea}")
+print(f"Времени нужно:  {total_estimated:.1f} ч")
+print(f"Времени есть:   {total_available:.1f} ч")
+print()
+
+if total_estimated <= total_available * 1.2:
+    print("✅ РЕАЛИСТИЧНО! Успеем за 3 урока.")
+elif total_estimated <= total_available * 1.8:
+    print("⚠ Плотно, но можно. Нужно фокусироваться.")
+else:
+    print("❌ Слишком много. Режем план!")
+    print(f"Убери {int(tasks_count*0.3)} наименее важных задачи.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 20: Скелет проекта -->
+<section class="slide"
+  data-notes="Скелет кода — первые 30–50 строк. Главное: что-то работает! Не думаем о графике и звуке — только структура. Пусть ребёнок набирает сам, не копирует.">
+  <div class="slide__inner">
+    <h2>Скелет <span class="accent">проекта</span></h2>
+    <p class="lead">30–50 строк — работающая основа без украшений</p>
+    <pre><code class="language-python"># main.py — финальный проект «Котик на уроке»
+WIDTH = 800
+HEIGHT = 500
+GROUND = 420
+
+game_state = 'menu'  # menu / playing / paused / gameover
+score = 0
+lives = 3
+
+cat = Actor('cat_idle')
+cat.pos = (200, GROUND)
+
+def draw():
+    screen.fill((240, 200, 160))
+    if game_state == 'menu':
+        screen.draw.text(
+            "КОТИК НА УРОКЕ\n\nПРОБЕЛ — начать",
+            center=(WIDTH//2, HEIGHT//2),
+            color='black', fontsize=36
+        )
+    elif game_state == 'playing':
+        cat.draw()
+        screen.draw.text(f"Счёт: {score}", (10, 10),
+                         color='black', fontsize=28)
+
+def update():
+    if game_state != 'playing': return
+
+def on_key_down(key):
+    global game_state
+    if key == keys.SPACE and game_state == 'menu':
+        game_state = 'playing'</code></pre>
+  </div>
+</section>
+
+<!-- SLIDE 21: Разбираем скелет строка за строкой -->
+<section class="slide"
+  data-notes="Разбираем каждую часть скелета по смыслу. Это важно: ребёнок должен понимать, зачем каждая строка, а не просто копировать. Задай вопрос после каждого пункта: 'Что произойдёт, если убрать эту строку?'">
+  <div class="slide__inner">
+    <h2>Разбираем <span class="accent">скелет</span></h2>
+    <p class="lead">Каждая часть скелета — зачем она нужна?</p>
+    <ol class="steps">
+      <li><div><code>WIDTH = 800, HEIGHT = 500</code> — размер окна. Меняй под свою игру. Стандарт: 800×600.</div></li>
+      <li><div><code>game_state = 'menu'</code> — машина состояний. Начинаем с меню, не с игры. Без этого игра сразу начнётся без подготовки.</div></li>
+      <li><div><code>cat = Actor('cat_idle')</code> — создаём персонажа. Файл <code>cat_idle.png</code> должен лежать в папке <code>images/</code>.</div></li>
+      <li><div><code>def draw()</code> — вызывается 60 раз в секунду. Рисует текущий кадр. <span style="color:#fca5a5">Не считай здесь логику!</span></div></li>
+      <li><div><code>def update()</code> — вся логика движения и коллизий. Пока пустая — добавим на уроке 46.</div></li>
+      <li><div><code>def on_key_down(key)</code> — реагирует на нажатия. <code>keys.SPACE</code>, <code>keys.LEFT</code>, <code>keys.RIGHT</code> — стандартные константы PyGame Zero.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 22: Типичные ошибки при старте проекта -->
+<section class="slide"
+  data-notes="Эти ошибки совершают почти все начинающие. Разбери каждую: что происходит, и как правильно. Особенно важна ошибка с логикой в draw() — она вызывает баги, которые очень сложно найти.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> при старте</h2>
+    <p class="lead">Знай врага в лицо — и не повторяй чужих ошибок</p>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:14px;margin-bottom:8px">❌ Логика в draw()</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn run" type="button">▶</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">score = 0
+def draw_bad():
+    global score
+    score += 1  # ОШИБКА! 60 раз/сек!
+    print(f"Счёт: {score}")
+
+for _ in range(5):
+    draw_bad()
+print("За 1 секунду счёт вырастет до 60!")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(34,197,94,0.3)">
+        <p style="color:#86efac;font-size:14px;margin-bottom:8px">✓ Логика в update()</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn run" type="button">▶</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">score = 0
+timer = 0
+
+def update(dt=1/60):
+    global score, timer
+    timer += dt
+    if timer >= 1.0:  # раз в секунду
+        score += 1
+        timer = 0
+
+for _ in range(120):  # 2 секунды
+    update()
+
+print(f"За 2 секунды счёт: {score}")
+print("Правильно — счёт растёт по 1 в секунду")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 23: Папка проекта -->
+<section class="slide"
+  data-notes="Структура папки — делаем сразу правильно. notes.md — это дневник проекта, туда пишем вопросы, ошибки, идеи. Это важно: потом на защите ребёнок сможет рассказать о трудностях.">
+  <div class="slide__inner">
+    <h2>Папка <span class="accent">проекта</span></h2>
+    <p class="lead">Правильная структура с первого дня — профессиональный подход</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="terminal">
+        <div class="terminal__body">
+<span style="color:var(--green)">final_project_misha/</span><br>
+├── main.py              ← главный файл<br>
+├── README.md            ← идея + план<br>
+├── notes.md             ← дневник ошибок<br>
+├── images/<br>
+│   ├── cat_idle.png     ← из Kandinsky<br>
+│   ├── cat_run1.png<br>
+│   └── notebook.png<br>
+└── sounds/<br>
+    └── meow.wav
+        </div>
+      </div>
+      <div class="card card--glow">
+        <h3>notes.md — твой дневник</h3>
+        <p style="margin-top:6px">Пиши туда всё:</p>
+        <pre style="margin-top:10px;font-size:12px"><code class="language-python"># notes.md — Дневник проекта
+
+## Урок 45 — вопросы:
+- Как сделать тетрадки из края экрана?
+- Как анимировать усы котика?
+
+## Ошибки и решения:
+- Actor не двигается
+  → забыл вызвать в update()
+
+## Идеи на потом:
+- Добавить разных учителей
+- Ночная версия уровня</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 24: Спрайты в Kandinsky -->
+<section class="slide"
+  data-notes="Показывает, как правильно генерировать спрайты под PyGame Zero. Ключевое: прозрачный фон (PNG), квадратный размер, простой стиль. Kandinsky плохо справляется со сложными запросами — короткие и конкретные лучше.">
+  <div class="slide__inner">
+    <h2>Спрайты в <span class="accent">Kandinsky</span></h2>
+    <p class="lead">Как создавать спрайты для игры за 5 минут</p>
+    <ol class="steps" style="margin-top:8px">
+      <li><div>Открой <span style="color:var(--cyan)">fusion.mts.ru/kandinsky</span> или Яндекс Шедеврум</div></li>
+      <li><div>Промпт: <span style="color:var(--amber)">"мультяшный котик астронавт, белый фон, простой стиль, квадрат"</span> — чем проще, тем лучше</div></li>
+      <li><div>Скачай PNG → открой в <span style="color:var(--cyan)">remove.bg</span> или Paint.NET — убери белый фон</div></li>
+      <li><div>Переименуй в <code>cat_idle.png</code> → положи в папку <code>images/</code></div></li>
+      <li><div>В коде: <code>cat = Actor('cat_idle')</code> — PyGame Zero ищет файл автоматически</div></li>
+    </ol>
+    <div class="card card--glow" style="margin-top:4px">
+      <h3>Хорошие промпты для спрайтов:</h3>
+      <ul class="clean" style="margin-top:8px">
+        <li>«котик-астронавт, мультяшный, белый фон, 256×256»</li>
+        <li>«пиксельная ракета, вид сбоку, без фона»</li>
+        <li>«простая звезда 5-конечная, жёлтая, мультяшный стиль»</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 25: Роль ИИ в проекте -->
+<section class="slide"
+  data-notes="Роль ИИ в проекте — честно и по-взрослому. ИИ помогает, но не делает за ребёнка. На защите нужно честно рассказать, что создал сам, а что — с помощью ИИ.">
+  <div class="slide__inner">
+    <h2>Роль <span class="accent">ИИ</span> в проекте</h2>
+    <p class="lead">Честное использование — это тоже профессиональный навык</p>
+    <div class="grid grid--3" style="margin-top:8px">
+      <div class="card card--glow">
+        <div style="font-size:28px;margin-bottom:10px">🎨</div>
+        <h3>Kandinsky</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Все спрайты персонажей</li>
+          <li>Фоны и текстуры</li>
+          <li>Кнопки и иконки UI</li>
+          <li>Обложка для демо-дня</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:28px;margin-bottom:10px">💬</div>
+        <h3>YandexGPT</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Идеи для игры и механик</li>
+          <li>Объяснение ошибок</li>
+          <li>Помощь с декомпозицией</li>
+          <li>Текст для защиты</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:10px">⌨️</div>
+        <h3>Ты сам</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Вся логика игры</li>
+          <li>Структура и состояния</li>
+          <li>Отладка и тестирование</li>
+          <li>Финальные решения</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:4px">
+      На защите скажи честно: «Спрайты сделал в Kandinsky. Код писал сам. ИИ помог объяснить 2 ошибки — вот какие.» Это показывает настоящего разработчика.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 26: Перерыв (cover-green) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Перерыв 5 минут. За это время ребёнок может набросать от руки схему своей игры: персонаж, что движется, что падает, как игра заканчивается. Это полезнее любого отдыха.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(28px,3.5vw,48px);font-weight:800;">
+        Перерыв!<br><span style="font-size:0.6em;font-weight:600">5 минут</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 27: Самостоятельная работа -->
+<section class="slide"
+  data-notes="Самостоятельная работа — 25 минут. Ребёнок начинает писать скелет своей игры. Помогай только по запросу. Если застрял — предложи начать с самого простого: просто открыть окно нужного размера. Это уже прогресс!">
+  <div class="slide__inner">
+    <h2>Самостоятельная <span class="accent">работа</span></h2>
+    <p class="lead">Начинаем писать скелет — по шагам</p>
+    <ol class="steps">
+      <li><div>Создай папку <code>final_project_твоё_имя/</code> с подпапками <code>images/</code> и <code>sounds/</code></div></li>
+      <li><div>Создай файл <code>README.md</code> — заполни название, идею, список задач (можно 3–4 пункта)</div></li>
+      <li><div>Создай <code>main.py</code> — напиши WIDTH, HEIGHT, game_state, счёт и жизни</div></li>
+      <li><div>Добавь функцию <code>draw()</code> — меню с текстом «нажми ПРОБЕЛ» или любым другим текстом</div></li>
+      <li><div>Добавь <code>on_key_down(key)</code> — нажатие пробела меняет game_state на 'playing'</div></li>
+      <li><div>Запусти в PyGame Zero командой <code>pgzrun main.py</code> — должно открыться окно с меню</div></li>
+    </ol>
+    <div class="quote-block" style="margin-top:4px">
+      Цель: окно открылось и реагирует на ПРОБЕЛ. Больше ничего не нужно для этого урока.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 28: Проверяем готовность -->
+<section class="slide"
+  data-notes="Чеклист готовности перед концом урока. Пройди каждый пункт вместе с ребёнком — это занимает 3 минуты, но очень важно для понимания, что сделано, а что нет. Хвали за каждый выполненный пункт.">
+  <div class="slide__inner">
+    <h2>Проверяем <span class="accent">готовность</span></h2>
+    <p class="lead">Чеклист конца урока — что должно быть сделано</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <ol class="steps">
+        <li><div>Идея игры выбрана и сформулирована в 1–2 предложениях</div></li>
+        <li><div>Список задач написан (минимум 5 пунктов)</div></li>
+        <li><div>README.md создан и заполнен</div></li>
+        <li><div>Папка проекта с правильной структурой создана</div></li>
+      </ol>
+      <ol class="steps">
+        <li><div>Файл <code>main.py</code> создан с WIDTH, HEIGHT, game_state</div></li>
+        <li><div>Функции <code>draw()</code> и <code>on_key_down()</code> написаны</div></li>
+        <li><div>Окно открывается без ошибок через <code>pgzrun main.py</code></div></li>
+        <li><div>В <code>notes.md</code> записаны вопросы на следующий урок</div></li>
+      </ol>
+    </div>
+    <div class="quote-block" style="margin-top:4px">
+      Если 6 из 8 выполнено — отлично. Остальное — ДЗ.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 29: Цель к уроку 46 -->
+<section class="slide"
+  data-notes="Цель на следующий урок — очень конкретно. Игра должна играться 30 секунд. Не идеально, не красиво — просто работает. Пусть ребёнок скажет это вслух.">
+  <div class="slide__inner">
+    <h2>Цель к <span class="accent">уроку 46</span></h2>
+    <p class="lead">Конкретно и измеримо — не «улучшить», а «за 30 секунд без крашей»</p>
+    <div class="card card--glow" style="margin-top:8px">
+      <h3>К следующему занятию:</h3>
+      <ul class="clean" style="margin-top:14px">
+        <li>Игра запускается и работает минимум 30 секунд</li>
+        <li>Основная механика работает (пусть некрасиво)</li>
+        <li>Есть хотя бы 1 спрайт из Kandinsky вместо заглушки</li>
+        <li>В <code>notes.md</code> — минимум 3 вопроса для урока 46</li>
+        <li>README обновлён: отмечены выполненные пункты</li>
+      </ul>
+    </div>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card" style="text-align:center">
+        <div style="font-size:28px">🎨</div>
+        <p style="margin-top:6px;font-size:14px">Сгенерировать 3–4 спрайта в Kandinsky</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:28px">📝</div>
+        <p style="margin-top:6px;font-size:14px">Подключить хотя бы один вместо заглушки</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:28px">📋</div>
+        <p style="margin-top:6px;font-size:14px">Записать вопросы в notes.md</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 30: Домашнее задание -->
+<section class="slide"
+  data-notes="Домашнее задание расширенное — ребёнок выбирает, сколько успевает. Обязательные пункты 1–5, остальные — по желанию для опережающих. Скажи: 'Если сделаешь 5 — отлично. 8 — ты молодец. Все 10 — ты профи!'">
+  <div class="slide__inner">
+    <h2>Домашнее <span class="accent">задание</span></h2>
+    <p class="lead">Обязательное: пункты 1–5. Дополнительное: 6–10</p>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div>
+        <p style="color:var(--amber);font-weight:600;margin-bottom:8px">Обязательно:</p>
+        <ol class="steps">
+          <li><div>Запусти скелет — убедись, что окно открывается</div></li>
+          <li><div>Добавь персонажа: <code>Actor</code> с позицией на экране</div></li>
+          <li><div>Сделай управление: стрелки или мышь двигают героя</div></li>
+          <li><div>Сгенерируй 2 спрайта в Kandinsky, подключи хотя бы один</div></li>
+          <li><div>Обнови README: отметь выполненные задачи и добавь вопросы</div></li>
+        </ol>
+      </div>
+      <div>
+        <p style="color:var(--cyan);font-weight:600;margin-bottom:8px">Дополнительно:</p>
+        <ol class="steps">
+          <li><div>Добавь объект-препятствие или цель (без коллизии)</div></li>
+          <li><div>Нарисуй фон в Kandinsky и подключи через <code>screen.blit()</code></div></li>
+          <li><div>Добавь счёт на экран через <code>screen.draw.text()</code></div></li>
+          <li><div>Сделай конец игры: нажатие Q выводит «Game Over»</div></li>
+          <li><div>Запиши в notes.md: что хочешь добавить на уроке 46</div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 31: Финальный слайд урока -->
+<section class="slide"
+  data-notes="Закрывающий слайд. Это особенный момент — ребёнок начал СВОЁ. Поздравь с этим лично. Скажи: 'Сегодня ты сделал больше, чем большинство людей делает со своими идеями'.">
+  <div class="slide__inner" style="text-align:center;align-items:center">
+    <div style="font-size:64px">🌱</div>
+    <h1 class="accent" style="margin-top:14px">Семя посеяно</h1>
+    <p class="lead" style="max-width:720px;margin:0 auto">Сегодня ты выбрал идею, разложил на задачи, написал документ и запустил первые строки. Это уже больше, чем делает большинство людей со своими идеями.</p>
+    <div class="quote-block" style="margin-top:20px;max-width:780px;text-align:left">
+      «Лучше простая доделанная игра, чем сложная недоделанная. Через 3 урока — демо-день.»
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px">
+      <span style="display:inline-block;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:var(--green);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;">🌱 Идея выбрана</span>
+      <span style="display:inline-block;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.4);color:var(--cyan);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;">📋 README написан</span>
+      <span style="display:inline-block;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;">Урок 46 → Механики!</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 32: Финальная обложка (green) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Самостоятельная работа — ребёнок начинает набрасывать скелет своей игры. Помогай только по запросу, не подсказывай сразу. Пусть попробует сам запустить первое окно.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(24px,3.2vw,42px);font-weight:800;line-height:1.15;">
+        Время писать<br>свой проект!
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

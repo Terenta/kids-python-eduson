@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 27 — Словари | EdusonGames Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">31</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="День 27 стажировки. Словари — самая мощная структура данных Python. Ключ → значение, как настоящий словарь, телефонная книга или карточка героя в игре. Сегодня ребёнок поймёт, почему все настоящие игры хранят героев в словарях.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №27</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Словари — карточка<br>персонажа
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Разбор ДЗ — множества
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор ДЗ по множествам (урок 26). Попроси 2-3 учеников показать свой код. Похвали за аккуратный вывод. Если кто-то не сделал — быстро разберите вместе. Главный вопрос: что такое множество и чем оно отличается от списка?">
+  <div class="slide__inner">
+    <h2>Разбор ДЗ: <span class="accent">общие увлечения</span></h2>
+    <p style="margin-bottom:12px;color:var(--muted)">Урок 26 — множества. Проверим, что получилось:</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Эталонное решение ДЗ по множествам
+hobbies_me = {"Python", "игры", "музыка", "рисование"}
+hobbies_friend = {"игры", "спорт", "музыка", "кино"}
+
+# Общие увлечения
+common = hobbies_me & hobbies_friend
+print("Общее:", common)
+
+# Только мои
+only_mine = hobbies_me - hobbies_friend
+print("Только мои:", only_mine)
+
+# Все вместе
+all_hobbies = hobbies_me | hobbies_friend
+print("Все увлечения:", all_hobbies)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Проверьте себя — множества
+     ============================ -->
+<section class="slide"
+  data-notes="Быстрая проверка знаний. Задай вопросы вслух, пусть ребёнок отвечает. Не нужно писать код — просто беседа. Если ошибается — вернись к примеру из ДЗ. Цель: убедиться, что множества усвоены, прежде чем двигаться к словарям.">
+  <div class="slide__inner">
+    <h2>Проверьте себя: <span class="accent">множества</span></h2>
+    <ol class="steps">
+      <li><div>Чем множество отличается от списка? (нет дублей, нет порядка)</div></li>
+      <li><div>Что вернёт <code>{1,2,3} & {2,3,4}</code>? (<span style="color:#86efac">{2, 3}</span>)</div></li>
+      <li><div>Как добавить элемент в множество? (<code>.add()</code>, не <code>.append()</code>)</div></li>
+      <li><div>Когда удобнее использовать множество, а не список?</div></li>
+      <li><div>Можно ли хранить список внутри множества? (нет — списки изменяемые)</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Нарратив
+     ============================ -->
+<section class="slide"
+  data-notes="Нарратив. В EdisonGames база данных персонажей хранится в словарях. Покажи ребёнку: до словарей — несколько разрозненных переменных. Со словарём — одна карточка на всё. Спроси: как думаешь, что удобнее хранить — десять переменных или один словарь?">
+  <div class="slide__inner">
+    <h2>Задание: <span class="accent">карточка персонажа</span></h2>
+    <div class="quote-block">
+      «Стажёр, нам нужна база данных персонажей. У каждого героя — имя, HP, урон, уровень. Раньше мы хранили это в отдельных переменных, но это хаос. Используй словари — одна карточка для всего.»
+      <br><span style="font-size:14px;color:var(--muted);font-weight:400;display:block;margin-top:8px">— Антон, Lead Dev, EdisonGames</span>
+    </div>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:#fca5a5;">До (хаос):</h3>
+        <code style="font-size:13px;display:block;margin-top:8px;line-height:1.7;white-space:pre;color:#fca5a5;">name = "Маг"
+hp = 100
+mp = 80
+dmg = 25
+lvl = 5</code>
+      </div>
+      <div class="card">
+        <h3 style="color:#86efac;">После (порядок):</h3>
+        <code style="font-size:13px;display:block;margin-top:8px;line-height:1.7;white-space:pre;color:#86efac;">hero = {
+    "name": "Маг",
+    "hp": 100,
+    "mp": 80,
+}</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: План урока
+     ============================ -->
+<section class="slide"
+  data-notes="Озвучь план урока. Пять блоков за 60 минут: разбор ДЗ по множествам, теория словаря, методы get/keys/values/items, самостоятельная работа, вложенные словари и ДЗ. Покажи структуру урока, чтобы ребёнок понимал, что его ждёт.">
+  <div class="slide__inner">
+    <h2>Что <span class="accent">сделаем</span> сегодня — 60 минут</h2>
+    <ol class="steps">
+      <li><div><span class="amber">0–5 мин</span> — Разбор ДЗ по множествам: общие увлечения — смотрим, хвалим</div></li>
+      <li><div><span class="amber">5–20 мин</span> — Теория: словарь = ключ → значение. Метафора телефонной книги, создание, чтение</div></li>
+      <li><div><span class="amber">20–35 мин</span> — Методы: <code>.get()</code>, <code>.keys()</code>, <code>.values()</code>, <code>.items()</code>. Почему <code>.get()</code> безопаснее <code>[]</code>; цикл <code>for</code> по словарю</div></li>
+      <li><div><span class="amber">35–50 мин</span> — Самостоятельная: «Мои друзья» — добавить, найти, удалить, показать всех</div></li>
+      <li><div><span class="amber">50–60 мин</span> — Вложенные словари + ДЗ: словарь словарей — база героев, YandexGPT</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Словарь vs список vs множество
+     ============================ -->
+<section class="slide"
+  data-notes="Три главные структуры данных — сравни их. Список: порядок важен, дубли разрешены. Множество: нет дублей, нет порядка. Словарь: ключ→значение, ключи уникальны. Спроси: что хранили бы в каждой структуре? Инвентарь, рекорды, настройки?">
+  <div class="slide__inner">
+    <h2>Список, множество, <span class="accent">словарь</span> — когда что?</h2>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3 style="color:var(--cyan);">Список <code>[]</code></h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Порядок сохраняется</li>
+          <li>Дубли разрешены</li>
+          <li>Доступ по индексу</li>
+          <li style="color:var(--muted)">Инвентарь, история ходов</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:#c4b5fd;">Множество <code>{}</code></h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Нет дублей</li>
+          <li>Нет порядка</li>
+          <li>Быстрая проверка</li>
+          <li style="color:var(--muted)">Угаданные буквы, теги</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber);">Словарь <code>{k:v}</code></h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Ключ → значение</li>
+          <li>Ключи уникальны</li>
+          <li>Быстрый поиск</li>
+          <li style="color:var(--muted)">Карточка героя, настройки</li>
+        </ul>
+      </div>
+    </div>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">inventory = ["меч", "щит", "зелье", "меч"]  # список — дубли OK
+visited = {"лес", "замок", "лес"}           # множество — без дублей
+hero = {"name": "Маг", "hp": 100}           # словарь — ключ→значение
+print(inventory)
+print(visited)
+print(hero)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Два способа создать словарь
+     ============================ -->
+<section class="slide"
+  data-notes="Два способа создать словарь: фигурные скобки и функция dict(). На практике чаще используют {}, но dict() удобен когда ключи — простые слова без пробелов. Также покажи пустой словарь. Попроси ребёнка попробовать оба способа.">
+  <div class="slide__inner">
+    <h2>Два способа <span class="accent">создать словарь</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Способ 1: фигурные скобки (чаще всего)
+hero1 = {"name": "Маг", "hp": 100, "level": 5}
+
+# Способ 2: dict() — ключи как аргументы
+hero2 = dict(name="Воин", hp=150, level=7)
+
+# Пустой словарь — заполним потом
+settings = {}
+settings["volume"] = 80
+settings["fullscreen"] = True
+
+print(hero1)
+print(hero2)
+print(settings)
+print("Тип:", type(hero1))   # <class 'dict'></div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Метафора — телефонная книга
+     ============================ -->
+<section class="slide"
+  data-notes="Метафора. Бумажный словарь: слово (ключ) → объяснение (значение). Телефонная книга: имя → номер. В игре: имя персонажа → характеристики. Главное: ключи уникальны! Попроси ребёнка привести свой пример — что бы он хранил в словаре?">
+  <div class="slide__inner">
+    <h2>Словарь — <span class="accent">телефонная книга</span></h2>
+    <p>В настоящем словаре каждое <strong>слово</strong> (ключ) имеет своё <strong>объяснение</strong> (значение). В Python — то же самое: каждый <strong>ключ</strong> указывает на своё <strong>значение</strong>.</p>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3 style="color:var(--cyan);">Телефонная книга</h3>
+        <p style="margin-top:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;">
+          "Мама" → "+7-900-1234"<br>
+          "Антон" → "+7-900-5678"<br>
+          "Катя" → "+7-900-9999"
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="color:#c4b5fd;">Карточка персонажа</h3>
+        <p style="margin-top:6px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;">
+          "name" → "Маг"<br>
+          "hp" → 100<br>
+          "damage" → 25
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber);">Правила словаря</h3>
+        <ul class="clean" style="margin-top:6px">
+          <li>Ключи — уникальны</li>
+          <li>Значения — любые</li>
+          <li>Порядок сохраняется</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Синтаксис — создание и чтение
+     ============================ -->
+<section class="slide"
+  data-notes="Базовый синтаксис. Пары через двоеточие: ключ: значение. Запятые между парами. Фигурные скобки. Чтение: d[key]. Если ключа нет — KeyError. Запусти код и покажи вывод. Попроси ребёнка добавить своё поле — например, любимое оружие.">
+  <div class="slide__inner">
+    <h2>Создание и <span class="accent">чтение словаря</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Карточка персонажа — словарь
+hero = {
+    "name": "Маг",
+    "hp": 100,
+    "mp": 80,
+    "damage": 25,
+    "level": 5
+}
+
+# Читаем по ключу
+print(hero["name"])     # Маг
+print(hero["hp"])       # 100
+
+# Изменяем
+hero["hp"] = 90         # получил урон
+hero["level"] += 1      # повысился уровень
+print(hero["hp"], hero["level"])
+
+# Добавляем новое поле
+hero["weapon"] = "посох молний"
+print(hero["weapon"])</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Что будет если... — мысленный эксперимент
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивный разбор. Покажи каждую строку и спроси: что напечатает Python? Пусть ребёнок отвечает ДО запуска. Потом запусти и проверьте вместе. Цель: убедиться, что базовый синтаксис словаря усвоен.">
+  <div class="slide__inner">
+    <h2>Что напечатает Python? <span class="accent">Угадай!</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">d = {"a": 1, "b": 2, "c": 3}
+
+# Вопрос 1: что напечатает?
+print(d["b"])
+
+# Вопрос 2:
+d["a"] = 99
+print(d["a"])
+
+# Вопрос 3:
+d["d"] = d["a"] + d["b"]
+print(d["d"])
+
+# Вопрос 4:
+print(len(d))
+
+# Вопрос 5:
+print("z" in d)</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div>
+        <p style="margin-bottom:12px">Ответы угадай ДО запуска:</p>
+        <ol class="steps">
+          <li><div><code>print(d["b"])</code> → <span style="color:#86efac">2</span></div></li>
+          <li><div>После <code>d["a"]=99</code> → <span style="color:#86efac">99</span></div></li>
+          <li><div><code>d["d"] = 99+2</code> → <span style="color:#86efac">101</span></div></li>
+          <li><div><code>len(d)</code> → <span style="color:#86efac">4</span> (добавили "d")</div></li>
+          <li><div><code>"z" in d</code> → <span style="color:#86efac">False</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: .get() vs []
+     ============================ -->
+<section class="slide"
+  data-notes="Ключевое различие: d['key'] — падает с KeyError если ключа нет. d.get('key') — возвращает None. d.get('key', 'default') — возвращает значение по умолчанию. В играх всегда безопаснее использовать .get(). Покажи разницу в выводе.">
+  <div class="slide__inner">
+    <h2><code>.get()</code> — <span class="accent">безопаснее</span> чем <code>[ ]</code></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">hero = {"name": "Маг", "hp": 100}
+
+# [] — падает если ключа нет!
+# print(hero["shield"])   # KeyError!
+
+# .get() — возвращает None
+print(hero.get("shield"))       # None
+
+# .get() со значением по умолчанию
+print(hero.get("shield", 0))    # 0
+print(hero.get("name", "???"))  # Маг
+print(hero.get("hp", 0))        # 100</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <h3 style="color:#fca5a5;"><code>hero["shield"]</code></h3>
+          <p>Если ключа нет — <span style="color:#fca5a5;font-weight:700;">KeyError</span>! Программа падает.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:#86efac;"><code>hero.get("shield", 0)</code></h3>
+          <p>Если ключа нет — возвращает <span style="color:#86efac;font-weight:700;">0</span>. Программа продолжает работать.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Методы keys, values, items
+     ============================ -->
+<section class="slide"
+  data-notes="Методы словаря. .keys() — все ключи. .values() — все значения. .items() — пары. Цикл for key, value in d.items() — самый важный, ребёнок будет писать его миллион раз. Запусти код и разбери вывод построчно.">
+  <div class="slide__inner">
+    <h2><code>keys()</code>, <code>values()</code>, <span class="accent"><code>items()</code></span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">hero = {"name": "Маг", "hp": 100, "mp": 80, "level": 5}
+
+# Все ключи
+print("Ключи:", list(hero.keys()))
+
+# Все значения
+print("Значения:", list(hero.values()))
+
+# Пары ключ-значение
+print("Пары:", list(hero.items()))
+
+print("---")
+# Цикл по словарю — ЗАПОМНИ!
+for key, value in hero.items():
+    print(f"  {key}: {value}")
+
+print("---")
+# Удаление
+del hero["mp"]
+print("После удаления:", hero)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Дополнительные методы словаря
+     ============================ -->
+<section class="slide"
+  data-notes="Полезные методы: .setdefault() — установить значение только если ключа нет (идеально для счётчиков). .copy() — поверхностная копия (изменение копии не затрагивает оригинал). .clear() — очистить всё. len() — количество пар. Запусти код и обсуди каждый метод.">
+  <div class="slide__inner">
+    <h2>Ещё полезные <span class="accent">методы</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">scores = {"Маг": 100, "Воин": 150}
+
+# setdefault — если ключа нет, добавляет
+scores.setdefault("Лучник", 0)   # добавит 0
+scores.setdefault("Маг", 999)    # НЕ изменит — Маг уже есть
+print("После setdefault:", scores)
+
+# len — количество пар
+print("Всего героев:", len(scores))
+
+# copy — создаёт копию
+backup = scores.copy()
+backup["Маг"] = 9999     # меняем копию
+print("Оригинал:", scores["Маг"])   # 100 — не изменился!
+print("Копия:", backup["Маг"])       # 9999
+
+# popitem — удалить последнюю пару
+last = scores.popitem()
+print("Удалена пара:", last)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Добавляем, меняем, удаляем
+     ============================ -->
+<section class="slide"
+  data-notes="Добавление и изменение через присваивание. .update() — добавить/обновить несколько пар сразу. del — удалить пару. .pop() — удалить и вернуть значение. Оператор in — проверить наличие ключа. Запусти и обсуди каждую операцию.">
+  <div class="slide__inner">
+    <h2>Добавляем, меняем, <span class="accent">удаляем</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">hero = {"name": "Маг", "hp": 100}
+
+# Добавить одно поле
+hero["weapon"] = "посох"
+print(hero)
+
+# Обновить несколько сразу
+hero.update({"hp": 80, "mp": 90, "level": 6})
+print(hero)
+
+# Удалить поле
+del hero["weapon"]
+print(hero)
+
+# Удалить и получить значение
+old_hp = hero.pop("hp")
+print(f"Удалили hp = {old_hp}")
+print(hero)
+
+# Проверить наличие ключа
+print("name" in hero)    # True
+print("hp" in hero)      # False</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Типичные ошибки со словарями
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор ошибок. Три ошибки которые делают все новички: KeyError, дублирование ключей (второй перезаписывает первый), попытка хранить список как ключ. Покажи каждую ошибку и объясни как её избежать. Попроси исправить код.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> со словарями</h2>
+    <div class="grid grid--2" style="align-items:start;gap:16px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:14px;margin-bottom:8px;font-weight:700;">❌ Ошибка 1: KeyError</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻</button><button class="compiler-btn run" type="button">▶</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">hero = {"name": "Маг", "hp": 100}
+# ПЛОХО: упадёт если ключа нет
+# print(hero["mana"])  # KeyError!
+
+# ХОРОШО: безопасно
+print(hero.get("mana", 0))  # 0</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:14px;margin-bottom:8px;font-weight:700;">❌ Ошибка 2: дублирование ключей</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻</button><button class="compiler-btn run" type="button">▶</button></div></div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false"># Второй ключ перезаписывает первый!
+d = {"hp": 100, "hp": 200}
+print(d["hp"])    # 200, не 100!
+
+# Проверяй перед записью:
+if "hp" not in d:
+    d["hp"] = 100</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Проверь себя — словари
+     ============================ -->
+<section class="slide"
+  data-notes="Проверка по теории словарей. Задай вопросы вслух. Правильные ответы не показывай сразу — пусть ребёнок подумает. Если ошибается — вернись к нужному слайду и повтори вместе.">
+  <div class="slide__inner">
+    <h2>Проверь себя: <span class="accent">словари</span></h2>
+    <ol class="steps">
+      <li><div>Как создать пустой словарь? (<code>{}</code> или <code>dict()</code>)</div></li>
+      <li><div>Что вернёт <code>{"a":1}.get("b", 99)</code>? (<span style="color:#86efac">99</span>)</div></li>
+      <li><div>Как обойти все пары ключ-значение? (<code>for k, v in d.items()</code>)</div></li>
+      <li><div>Что такое <code>.setdefault()</code>? (добавляет значение только если ключа ещё нет)</div></li>
+      <li><div>Можно ли использовать список как ключ словаря? (<span style="color:#fca5a5">Нет — TypeError</span>)</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Вопрос — обсуждение (green)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Разминочный вопрос перед самостоятельной. Дай 1–2 минуты, пусть ученик выскажется. Принимай любой ответ. Цель — убедиться, что ребёнок понял разницу между ключом и значением, и знает зачем нужен .get().">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Чем <code style="color:#7C3AED;">.get()</code> лучше<br><code style="color:#7C3AED;">[]</code> для словарей?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Самостоятельная — «Мои друзья»
+     ============================ -->
+<section class="slide"
+  data-notes="Самостоятельная задача «Мои друзья». Словарь: ключ — имя, значение — возраст. Операции: добавить, найти, удалить, показать всех. Ребёнок работает 15 минут самостоятельно. Подсказывай только если застрял больше 3 минут.">
+  <div class="slide__inner">
+    <h2>Самостоятельная: <span class="accent">«Мои друзья»</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p style="margin-bottom:12px">Создай словарь и выполни все операции:</p>
+        <ol class="steps">
+          <li><div>Создать словарь: имя → возраст</div></li>
+          <li><div>Добавить нового друга</div></li>
+          <li><div>Найти возраст по имени (через <code>.get()</code>)</div></li>
+          <li><div>Удалить друга из словаря</div></li>
+          <li><div>Показать всех через цикл</div></li>
+        </ol>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">friends = {
+    "Саша": 12,
+    "Катя": 11,
+    "Петя": 13
+}
+
+# Добавить
+friends["Лена"] = 12
+
+# Найти
+name = "Катя"
+age = friends.get(name, "Нет такого")
+print(f"{name}: {age} лет")
+
+# Показать всех
+print("\nМои друзья:")
+for name, age in friends.items():
+    print(f"  {name} — {age} лет")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Вложенные словари
+     ============================ -->
+<section class="slide"
+  data-notes="Вложенные словари — словарь словарей. Это реальный формат хранения данных в играх. heroes['Маг']['hp'] — два уровня. Аналог JSON. Покажи как читать вложенные данные и как запустить цикл по базе героев.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">словарей</span> — база данных</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># База данных героев EdisonGames
+heroes = {
+    "Маг":    {"hp": 100, "mp": 80,  "damage": 25},
+    "Воин":   {"hp": 150, "mp": 20,  "damage": 35},
+    "Лучник": {"hp": 80,  "mp": 50,  "damage": 40},
+}
+
+# Читаем вложенно
+print(heroes["Маг"]["hp"])       # 100
+print(heroes["Воин"]["damage"])  # 35
+
+# Меняем HP Мага
+heroes["Маг"]["hp"] -= 30
+print("HP Мага:", heroes["Маг"]["hp"])
+
+# Цикл по базе
+print("\n=== Таблица героев ===")
+for name, stats in heroes.items():
+    print(f"{name:10} HP={stats['hp']:3} MP={stats['mp']:3} DMG={stats['damage']}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Мини-проект — Записная книжка
+     ============================ -->
+<section class="slide"
+  data-notes="Мини-проект: «Записная книжка». Меню из 4 пунктов через while: добавить контакт, найти телефон, удалить, показать всех. Запусти код вместе с ребёнком, пробуйте разные пункты меню. YandexGPT можно попросить сгенерировать словарь столиц для демо.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span class="accent">Записная книжка</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">contacts = {"Мама": "+7-900-1234", "Антон": "+7-900-5678"}
+
+while True:
+    print("\n1-доб  2-найти  3-удалить  4-все  0-выход")
+    cmd = input("Выбери: ").strip()
+
+    if cmd == "1":
+        n = input("Имя: ").strip()
+        p = input("Телефон: ").strip()
+        contacts[n] = p
+        print("Добавлено!")
+    elif cmd == "2":
+        n = input("Чьё? ").strip()
+        print(contacts.get(n, "Нет такого контакта"))
+    elif cmd == "3":
+        n = input("Удалить: ").strip()
+        if n in contacts:
+            del contacts[n]; print("Удалено")
+        else:
+            print("Не найден")
+    elif cmd == "4":
+        for name, phone in contacts.items():
+            print(f"  {name}: {phone}")
+    elif cmd == "0":
+        break</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE: Пауза — вопрос преподавателя (green)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Перерыв для вопросов. Пусть ребёнок задаст свои вопросы по словарям. Типичные вопросы: зачем .get() если можно проверить 'in'? Можно ли список сделать ключом? Что быстрее — словарь или список? Отвечай честно, используй примеры из кода.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Пришло время<br>задавать вопросы!
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Dictionary comprehension
+     ============================ -->
+<section class="slide"
+  data-notes="Dictionary comprehension — краткий способ создать словарь из другой коллекции. Синтаксис похож на list comprehension: {k: v for item in iterable}. Показывай только если ребёнок хорошо усвоил базу — это бонусный материал.">
+  <div class="slide__inner">
+    <h2>Dictionary <span class="accent">comprehension</span> — кратко</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Обычный способ
+squares_long = {}
+for n in range(1, 6):
+    squares_long[n] = n ** 2
+print("Долго:", squares_long)
+
+# Dictionary comprehension — одна строка!
+squares = {n: n**2 for n in range(1, 6)}
+print("Кратко:", squares)
+
+# С условием: только чётные квадраты
+even_sq = {n: n**2 for n in range(1, 11) if n % 2 == 0}
+print("Чётные:", even_sq)
+
+# Из списка слов — длины
+words = ["python", "dict", "список"]
+word_len = {w: len(w) for w in words}
+print("Длины:", word_len)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Решение самостоятельной с разбором
+     ============================ -->
+<section class="slide"
+  data-notes="Разберите решение вместе. Покажи полный вариант, объясни каждую строку. Обрати внимание на print(f-строки) для красивого вывода. Если ученик сделал иначе — это тоже правильно, похвали.">
+  <div class="slide__inner">
+    <h2>Решение: <span class="accent">«Мои друзья» — полный вариант</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">friends = {"Саша": 12, "Катя": 11, "Петя": 13}
+
+# Добавить нового друга
+friends["Лена"] = 12
+print("Добавили Лену:", friends)
+
+# Найти возраст безопасно
+name = "Катя"
+age = friends.get(name, "Нет такого")
+print(f"{name}: {age} лет")
+
+# Найти несуществующего
+print(friends.get("Вася", "Такого нет"))
+
+# Удалить друга
+del friends["Петя"]
+print("После удаления Пети:", friends)
+
+# Показать всех красиво
+print("\n== Все друзья ==")
+for name, age in friends.items():
+    print(f"  {name} — {age} лет")
+print(f"Всего друзей: {len(friends)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: YandexGPT генерирует данные
+     ============================ -->
+<section class="slide"
+  data-notes="YandexGPT генерирует словарь. Промпт: «Дай мне Python-словарь: 10 стран мира и их столицы, формат {'Россия': 'Москва', ...}, только код без комментариев». Ребёнок вставляет результат и работает с ним. Обсудите: ИИ может генерировать данные, которые мы потом используем в коде.">
+  <div class="slide__inner">
+    <h2>YandexGPT <span class="accent">генерирует данные</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div class="card">
+        <h3>Промпт для YandexGPT</h3>
+        <div class="quote-block" style="margin-top:12px;font-size:14px;font-weight:400;font-family:'JetBrains Mono',monospace;line-height:1.7;">
+          «Дай мне Python-словарь: 10 стран мира и их столицы. Формат: {"Россия": "Москва", ...}. Только код, без комментариев.»
+        </div>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># YandexGPT сгенерировал этот словарь
+capitals = {
+    "Россия": "Москва",
+    "Франция": "Париж",
+    "Германия": "Берлин",
+    "Япония": "Токио",
+    "США": "Вашингтон",
+}
+
+# Используем
+country = input("Введи страну: ")
+capital = capitals.get(country, "Не знаю такой страны")
+print(f"Столица {country}: {capital}")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Вложенные словари — изменение
+     ============================ -->
+<section class="slide"
+  data-notes="Операции с вложенными словарями: добавить нового героя, изменить характеристику, удалить героя. Это настоящая работа с базой данных. Покажи как читается heroes['Маг']['hp'] — два шага. Запусти код вместе.">
+  <div class="slide__inner">
+    <h2>Работаем с базой <span class="accent">героев</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">heroes = {
+    "Маг":  {"hp": 100, "mp": 80, "damage": 25, "alive": True},
+    "Воин": {"hp": 150, "mp": 20, "damage": 35, "alive": True},
+}
+
+# Добавить нового героя
+heroes["Лучник"] = {"hp": 80, "mp": 50, "damage": 40, "alive": True}
+
+# Нанести урон Магу
+heroes["Маг"]["hp"] -= 40
+if heroes["Маг"]["hp"] <= 0:
+    heroes["Маг"]["alive"] = False
+
+print(f"Маг: HP={heroes['Маг']['hp']}, жив={heroes['Маг']['alive']}")
+
+# Симуляция боя
+print("\n=== Статус отряда ===")
+for name, stats in heroes.items():
+    status = "жив" if stats["alive"] else "мёртв"
+    print(f"  {name}: HP={stats['hp']:3} | {status}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Счётчик частоты
+     ============================ -->
+<section class="slide"
+  data-notes="Словарь-счётчик — один из самых частых паттернов. Считаем сколько раз встречается каждый элемент. Паттерн: d[key] = d.get(key, 0) + 1. Используется везде: статистика кликов, частота слов, подсчёт голосов. Запусти и разбери шаг за шагом.">
+  <div class="slide__inner">
+    <h2>Словарь-<span class="accent">счётчик</span> — мощный паттерн</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Подсчёт голосов
+votes = ["Маг", "Воин", "Маг", "Лучник", "Маг", "Воин", "Маг"]
+
+counter = {}
+for vote in votes:
+    counter[vote] = counter.get(vote, 0) + 1
+
+print("Результаты голосования:", counter)
+
+# Найти победителя
+winner = max(counter, key=counter.get)
+print(f"Победитель: {winner} ({counter[winner]} голосов)")
+
+# Подсчёт букв в слове
+word = "python"
+letters = {}
+for ch in word:
+    letters[ch] = letters.get(ch, 0) + 1
+print("Буквы в 'python':", letters)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Итог — 3 факта о словарях
+     ============================ -->
+<section class="slide"
+  data-notes="Итог урока. Три ключевых факта. Ребёнок должен объяснить словарь маме через метафору телефонной книги. Попроси повторить три главных вещи: создание через фигурные скобки, безопасное чтение через .get(), цикл через .items().">
+  <div class="slide__inner">
+    <h2>3 факта о <span class="accent">словарях</span></h2>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3 style="color:#c4b5fd;">Ключ → Значение</h3>
+        <p>Создаём через <code>{ }</code> с двоеточием. Ключи уникальны! Значения — любые: число, строка, список, даже словарь.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan);"><code>.get()</code> безопаснее</h3>
+        <p><code>d["x"]</code> падает с KeyError. <code>d.get("x", 0)</code> возвращает 0. Всегда используй <code>.get()</code>!</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber);"><code>for key, val in .items()</code></h3>
+        <p>Цикл по словарю. Самый важный метод — запомни навсегда!</p>
+      </div>
+    </div>
+    <div class="quote-block">
+      «Все настоящие игры хранят героев в словарях или объектах — мы почти там!»
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Глоссарий — словари от A до Я
+     ============================ -->
+<section class="slide"
+  data-notes="Глоссарий. Повторите все термины урока. Попроси ребёнка объяснить каждый термин своими словами. Это хорошая подготовка к ДЗ и закрепление материала перед следующим уроком.">
+  <div class="slide__inner">
+    <h2>Глоссарий: <span class="accent">словари от А до Я</span></h2>
+    <div class="kv">
+      <div class="kv__item"><span class="kv__key">dict</span><span class="kv__val">Словарь — структура данных ключ:значение в фигурных скобках</span></div>
+      <div class="kv__item"><span class="kv__key">ключ</span><span class="kv__val">Уникальный идентификатор элемента (строка, число, кортеж)</span></div>
+      <div class="kv__item"><span class="kv__key">значение</span><span class="kv__val">Данные по ключу — любого типа: число, строка, список, словарь</span></div>
+      <div class="kv__item"><span class="kv__key">.get(k, d)</span><span class="kv__val">Безопасное чтение — возвращает d если ключ k не найден</span></div>
+      <div class="kv__item"><span class="kv__key">.items()</span><span class="kv__val">Пары (ключ, значение) — используй в цикле for k, v in d.items()</span></div>
+      <div class="kv__item"><span class="kv__key">.update()</span><span class="kv__val">Добавить/обновить несколько пар за раз</span></div>
+      <div class="kv__item"><span class="kv__key">.setdefault()</span><span class="kv__val">Установить значение ТОЛЬКО если ключа нет</span></div>
+      <div class="kv__item"><span class="kv__key">KeyError</span><span class="kv__val">Ошибка при обращении к несуществующему ключу через []</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="ДЗ «Моя коллекция». Словарь из 5 любимых игр: название → оценка. Вывести красиво. Бонус: словарь жанров через YandexGPT. Разбери код примера вместе, объясни как работает max() с ключом. Напомни: скриншот готовой программы на платформу.">
+  <div class="slide__inner">
+    <h2>ДЗ: <span class="accent">«Моя коллекция»</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p style="margin-bottom:12px">Выполни все шаги самостоятельно:</p>
+        <ol class="steps">
+          <li><div>Словарь из 5 любимых игр: название → оценка (1–10)</div></li>
+          <li><div>Вывести красиво через цикл <code>for</code></div></li>
+          <li><div>Найти игру с <strong style="color:var(--amber);">максимальной</strong> оценкой</div></li>
+          <li><div>Добавить новую игру через <code>input()</code></div></li>
+        </ol>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">games = {
+    "Minecraft": 10,
+    "Roblox": 8,
+    "Fortnite": 7,
+    "Among Us": 9,
+    "Terraria": 10,
+}
+
+print("Моя коллекция:")
+for game, rating in games.items():
+    stars = "★" * rating
+    print(f"  {game}: {stars} ({rating}/10)")
+
+best = max(games, key=games.get)
+print(f"\nЛучшая игра: {best} ({games[best]}/10)")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Бонусное ДЗ — продвинутый уровень
+     ============================ -->
+<section class="slide"
+  data-notes="Бонус для тех кто справился быстро. Задача на счётчик и поиск максимума. Если ребёнок застрял — подскажи паттерн d[k] = d.get(k,0)+1. Напомни что max(d, key=d.get) находит ключ с максимальным значением.">
+  <div class="slide__inner">
+    <h2>Бонус: <span class="accent">Какое слово самое длинное?</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Задача: посчитать длины слов и найти самое длинное
+words = ["python", "словарь", "переменная", "цикл", "функция", "список"]
+
+# Шаг 1: словарь слово -> длина
+lengths = {}
+for word in words:
+    lengths[word] = len(word)
+
+print("Длины слов:", lengths)
+
+# Шаг 2: самое длинное
+longest = max(lengths, key=lengths.get)
+print(f"Самое длинное: '{longest}' ({lengths[longest]} букв)")
+
+# Шаг 3: слова длиннее 6 букв
+long_words = {w: l for w, l in lengths.items() if l > 6}
+print("Длинные слова:", long_words)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Тизер — Виселица + финал
+     ============================ -->
+<section class="slide"
+  data-notes="Завершение урока и тизер. Словарь — последняя структура данных перед большим проектом. Следующий урок — Виселица, где кортежи + множества + словари работают вместе. Похвали ребёнка за урок, напомни про ДЗ.">
+  <div class="slide__inner">
+    <h2>Следующий урок: <span class="accent">Виселица — всё вместе!</span></h2>
+    <p style="margin-bottom:6px">Капстоун отдела. Соберём все структуры данных в одну игру:</p>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3 style="color:#c4b5fd;">Кортеж (урок 25)</h3>
+        <p><code>WORDS = ("python", "кортеж", "словарь")</code> — список слов, который нельзя изменить</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan);">Множество (урок 26)</h3>
+        <p><code>guessed = set()</code> — угаданные буквы без дубликатов</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber);">Словарь (урок 27)</h3>
+        <p><code>stats = {"победы": 0, "поражения": 0}</code> — счётчик побед и поражений</p>
+      </div>
+    </div>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — предварительный взгляд</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+# Кортеж слов
+WORDS = ("python", "кортеж", "словарь")
+secret = random.choice(WORDS)
+guessed = set()           # множество
+stats = {"победы": 0, "поражения": 0}  # словарь
+
+shown = " ".join("_" for _ in secret)
+print(f"Слово: {shown}")
+print(f"Всё готово! Слово: {secret}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 43 — Как оптимизировать UX-игры | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 43</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как оптимизировать UX-игры</h2>
+  <div class="meta"><span>Отдел:</span> <span>Разработки</span> <span>Неделя:</span> <span>22</span> <span>Возраст:</span> <span>8-14</span> </div>
+  <p><strong>Отдел:</strong> Разработки  <strong>Неделя:</strong> 22  <strong>Возраст:</strong> 8-14</p>
+<h2>🎯 Цель</h2>
+<p>Научить делать так, чтобы в игру было ПРИЯТНО играть. Экран меню, кнопки, подсказки на экране, понятное состояние. Не про код — про заботу о игроке.</p>
+<h2>📚 Результаты</h2>
+<p>Ученик знает, что такое UX (user experience). Понимает принципы «игрок не должен гадать», «подсказка первые 3 секунды», «кнопка — это видимая зона с текстом и реакцией на наведение». Умеет нарисовать кнопку через <code>Actor</code>, проверить, попал ли клик в неё через <code>actor.collidepoint(pos)</code>, сделать ховер (смена картинки при наведении мыши).</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, PyGame Zero, Kandinsky для кнопок и иконок, YandexGPT для текстов подсказок.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Открываем игру «Поймай яблоко» с урока 40-41. Добавляем в <code>images/</code>: <code>btn_play.png</code>, <code>btn_play_hover.png</code>, <code>btn_settings.png</code>, <code>icon_sound_on.png</code>, <code>icon_sound_off.png</code>.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p>0-5: разбор ДЗ (разворот и моргание).</p>
+<p>5-15: теория. UX на примерах: показываю две игры — одну с меню и подсказками, другую без. Обсуждаем, в какую хочется играть и почему. Три правила: 1) всегда понятно, что делать; 2) каждое действие даёт фидбек; 3) можно выйти.</p>
+<p>15-30: совместный кодинг. Превращаем текстовое меню «Нажми ПРОБЕЛ» в нарисованную кнопку. <code>play_btn = Actor('btn_play', (400, 300))</code>. В <code>draw()</code> для состояния <code>menu</code> — <code>play_btn.draw()</code>. В <code>on_mouse_down(pos)</code>: <code>if game_state == 'menu' and play_btn.collidepoint(pos): game_state = 'playing'</code>.</p>
+<p>30-45: самостоятельно. Ребёнок добавляет ховер: в <code>on_mouse_move(pos)</code> проверяем <code>if play_btn.collidepoint(pos): play_btn.image = 'btn_play_hover'</code> иначе обычная. Плюс подсказка первые 3 секунды игры: «Двигай мышкой, лови яблоки!» — исчезает через <code>clock.schedule(hide_hint, 3.0)</code>.</p>
+<p>45-55: кнопка «звук вкл/выкл» в углу. Переменная <code>sound_on = True</code>, клик по иконке — инвертирует, меняет картинку, выключает музыку через <code>music.stop()</code> / <code>music.play('bg')</code>.</p>
+<p>55-60: итог + ДЗ. Показываю разницу: до урока игра была сырая, сейчас — полированная.</p>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<p>«UX — это забота об игроке. Игрок не умеет читать код». «Если игроку непонятно, что делать в первые 5 секунд — игра проиграна, он закроет». «Кнопка — это картинка, реагирующая на курсор». «Ховер — это маленький фидбек, говорящий „меня можно нажать“». «Подсказка — только вначале, потом мешает». «Звук вкл/выкл — обязательная кнопка в любой игре, иначе меня забанят родители». «UX-принцип: после каждого действия игрока — видимая реакция за 100 мс».</p>
+<h2>🎨 Мини-проект / этап сквозного проекта</h2>
+<p>Дополнение к проекту «Поймай яблоко»: красивое меню с кнопкой, ховер, подсказка, переключатель звука. Готовимся к полировке в финальном проекте.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Добавить в меню вторую кнопку «Как играть?» — при клике показывает экран с 3 строчками правил. 2. Сделать хотя бы одну анимацию на hover — кнопка чуть увеличивается (через смену картинки). 3. Попросить родителя/друга поиграть 3 минуты и записать, что было непонятно.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>В игре есть минимум 2 кнопки, обе реагируют на ховер, есть подсказка для новичка, есть переключатель звука. Ребёнок на простом языке объясняет, почему UX важен.</p>
+<h2>⚠️ Сложности и решения</h2>
+<p>«Клик не попадает в кнопку» — проверяем <code>collidepoint</code>, координаты. «Ховер мигает» — забыли ветку <code>else</code> (когда курсор ушёл). «Подсказка не исчезает» — <code>clock.schedule</code> вызвали в <code>draw()</code>, где он срабатывает каждый кадр. Переносим в момент перехода в <code>playing</code>.</p>
+<h2>🎁 Бонус</h2>
+<p>«Звёздная задача»: плавное появление меню (fade-in) — через переменную <code>alpha</code> от 0 до 255, применяется через полупрозрачный прямоугольник в <code>draw()</code>.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — генерация текстов подсказок и правил. Промпт: «напиши 3 короткие строчки правил для игры „поймай яблоко“ для детей 7-10 лет». Kandinsky — кнопки в едином стиле с игрой.</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 39 — Ввод с клавиатуры и движение в PyGame Zero | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">19</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 39 — клавиатура и движение. Это «моторный» урок: дети пишут много кода и сразу видят результат движения. Ключевая концепция: keyboard.left — это булево значение True/False, не событие. Мы проверяем его каждый кадр в update().">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №39</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Клавиатура и движение<br>в PyGame Zero
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Разбор ДЗ
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор домашнего задания из урока 38 (спрайты). Спросите: кто добавил анимацию? Кто сделал несколько спрайтов? Покажите эталонный вариант — объясните, почему images[] с индексом это правильный подход.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span> — урок 38</h2>
+    <div class="grid grid--2">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <h3>Задание было</h3>
+          <ol class="steps" style="margin-top:10px">
+            <li>Нарисовать или скачать спрайт персонажа</li>
+            <li>Добавить Actor и отрисовать на экране</li>
+            <li>Сделать анимацию: images[] + animation_frame</li>
+            <li>Показать счёт, жизни, время на экране</li>
+          </ol>
+        </div>
+        <div class="quote-block">
+          Кто сделал больше одного спрайта — молодец!<br>
+          Кто добавил анимацию — отлично!
+        </div>
+      </div>
+      <div class="card">
+        <h3>Типичные ошибки в ДЗ</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li><span style="color:#fca5a5">actor.image вместо images[frame]</span> — не даёт смены кадров</li>
+          <li><span style="color:#fca5a5">Нет ANIMATE_SPEED</span> — анимация слишком быстрая</li>
+          <li><span style="color:#fca5a5">frame без % len(images)</span> — IndexError при выходе за список</li>
+          <li><span style="color:#86efac">global animation_frame</span> — обязательно если меняешь в update()</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Эталонное решение ДЗ
+     ============================ -->
+<section class="slide"
+  data-notes="Покажите эталонное решение. Обратите внимание на: 1) images[] — список, а не одна строка, 2) ANIMATE_SPEED делит скорость анимации, 3) % len(images) — безопасный сброс индекса. Разберите каждую строку.">
+  <div class="slide__inner">
+    <h2>Эталонное решение — <span class="accent">спрайт с анимацией</span></h2>
+    <div class="grid grid--2">
+      <pre><code class="language-python">WIDTH = 800; HEIGHT = 600
+
+# Список кадров анимации
+images = ['hero1', 'hero2', 'hero3', 'hero2']
+ANIMATE_SPEED = 8   # кадров до смены
+
+hero = Actor(images[0])
+hero.pos = (400, 300)
+animation_frame = 0
+tick = 0
+
+def draw():
+    screen.fill('darkblue')
+    hero.draw()
+    screen.draw.text(
+        f'Кадр: {animation_frame}',
+        (10, 10), color='white', fontsize=24
+    )
+
+def update():
+    global animation_frame, tick
+    tick += 1
+    if tick % ANIMATE_SPEED == 0:
+        animation_frame = (animation_frame + 1) % len(images)
+        hero.image = images[animation_frame]
+
+import pgzrun; pgzrun.go()</code></pre>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card card--glow">
+          <h3>Ключевые паттерны</h3>
+          <ul class="clean" style="margin-top:10px">
+            <li><code>tick % ANIMATE_SPEED == 0</code> — замедляет анимацию</li>
+            <li><code>% len(images)</code> — циклически возвращает к началу</li>
+            <li><code>hero.image = images[frame]</code> — меняет спрайт</li>
+          </ul>
+        </div>
+        <div class="terminal">
+          <div class="terminal__body">
+            tick=0  frame=0  hero1<br>
+            tick=8  frame=1  hero2<br>
+            tick=16 frame=2  hero3<br>
+            tick=24 frame=3  hero2<br>
+            tick=32 frame=0  hero1 ← цикл!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Проверьте себя
+     ============================ -->
+<section class="slide"
+  data-notes="Вопросы на повторение урока 38. Дайте 2 минуты — пусть отвечают по одному. Это активация знаний перед новым материалом. Не исправляйте сразу — дайте другим добавить или поправить.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <ol class="steps">
+      <li><div><strong>Чем Actor отличается от обычной картинки?</strong><br><span style="color:var(--muted);font-size:14px">Actor — объект с позицией, методами draw(), colliderect(), свойствами left/right/top/bottom</span></div></li>
+      <li><div><strong>Как переключить кадр анимации?</strong><br><span style="color:var(--muted);font-size:14px">hero.image = images[animation_frame] — присвоить новую строку с именем файла</span></div></li>
+      <li><div><strong>Зачем % len(images)?</strong><br><span style="color:var(--muted);font-size:14px">Чтобы индекс возвращался к нулю — без этого IndexError когда кадры закончатся</span></div></li>
+      <li><div><strong>Что такое blit?</strong><br><span style="color:var(--muted);font-size:14px">Копирование пикселей одной поверхности на другую — это делает actor.draw() внутри</span></div></li>
+      <li><div><strong>Как задать начальную позицию Actor?</strong><br><span style="color:var(--muted);font-size:14px">actor.pos = (x, y) или actor.x = ...; actor.y = ... — оба варианта работают</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: План урока
+     ============================ -->
+<section class="slide"
+  data-notes="Покажите план. Сегодня изучаем три вещи: keyboard объект, движение по осям X и Y, защита от выхода за экран (boundary checking). К концу урока игра будет управляться и мышью, и клавиатурой.">
+  <div class="slide__inner">
+    <h2>Что изучим <span class="accent">сегодня</span></h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li>
+          <div>
+            <strong>Объект keyboard</strong><br>
+            <span style="color:var(--muted);font-size:14px">keyboard.left, keyboard.right, keyboard.up, keyboard.down, keyboard.space</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Движение в 4 направлениях</strong><br>
+            <span style="color:var(--muted);font-size:14px">actor.x ± speed, actor.y ± speed — в update() каждый кадр</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Граничные условия</strong><br>
+            <span style="color:var(--muted);font-size:14px">Персонаж не выходит за края экрана — if и clamp</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>on_key_down — одиночные нажатия</strong><br>
+            <span style="color:var(--muted);font-size:14px">Прыжок, выстрел, пауза по нажатию кнопки</span>
+          </div>
+        </li>
+      </ol>
+      <div class="card card--glow">
+        <h3>Результат урока</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Корзинка двигается стрелками ←→</li>
+          <li>Скорость меняется зажатием кнопки</li>
+          <li>Пробел — «поймать» вручную</li>
+          <li>Space для паузы игры</li>
+        </ul>
+        <p style="margin-top:14px;font-size:13px;color:var(--green)">45 минут</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Разминка — один раз или пока держишь?
+     ============================ -->
+<section class="slide"
+  data-notes="Крючок: как узнать, что кнопка нажата? Объясните разницу между событием (on_key_down — срабатывает один раз) и состоянием (keyboard.left — True пока держишь). Для плавного движения нужно состояние, для прыжка/выстрела — событие.">
+  <div class="slide__inner">
+    <h2>Один раз или <span class="accent">пока держишь</span>?</h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3>Одно нажатие</h3>
+        <p style="margin-top:6px">Прыжок, выстрел, открыть дверь — действие случается <strong style="color:var(--text)">один раз</strong></p>
+        <pre style="margin-top:12px"><code class="language-python">def on_key_down(key):
+    if key == keys.SPACE:
+        shoot()  # один раз</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3>Зажатая кнопка</h3>
+        <p style="margin-top:6px">Движение влево-вправо — <strong style="color:var(--text)">каждый кадр</strong> пока кнопка нажата</p>
+        <pre style="margin-top:12px"><code class="language-python">def update():
+    if keyboard.left:
+        actor.x -= 5  # каждый кадр</code></pre>
+      </div>
+    </div>
+    <div class="quote-block">
+      Плавное движение → <strong>keyboard</strong> в update(). Прыжок → <strong>on_key_down</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Объект keyboard — доступные клавиши
+     ============================ -->
+<section class="slide"
+  data-notes="Таблица клавиш keyboard. Обратите внимание: keyboard — это объект, не словарь. Обращение — через точку, не через []. keyboard.left, НЕ keyboard['left']. Значение True если нажата прямо сейчас, False если не нажата.">
+  <div class="slide__inner">
+    <h2>Объект <span class="accent">keyboard</span></h2>
+    <div class="grid grid--2">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px 20px">
+          <h3 style="font-size:15px;margin-bottom:10px">Стрелки</h3>
+          <ul class="clean">
+            <li><code>keyboard.left</code> — влево</li>
+            <li><code>keyboard.right</code> — вправо</li>
+            <li><code>keyboard.up</code> — вверх</li>
+            <li><code>keyboard.down</code> — вниз</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <h3 style="font-size:15px;margin-bottom:10px">Специальные</h3>
+          <ul class="clean">
+            <li><code>keyboard.space</code> — пробел</li>
+            <li><code>keyboard.lshift</code> — левый Shift</li>
+            <li><code>keyboard.escape</code> — Escape</li>
+            <li><code>keyboard.a</code> / <code>keyboard.d</code> — буквы</li>
+          </ul>
+        </div>
+      </div>
+      <pre><code class="language-python"># keyboard в update() — плавное движение
+def update():
+    # Движение влево
+    if keyboard.left:
+        basket.x -= 5
+
+    # Движение вправо
+    if keyboard.right:
+        basket.x += 5
+
+    # Ускорение с Shift
+    speed = 10 if keyboard.lshift else 5
+    if keyboard.left:
+        basket.x -= speed
+    if keyboard.right:
+        basket.x += speed
+
+# WASD — альтернатива стрелкам
+def update():
+    if keyboard.a: player.x -= 5
+    if keyboard.d: player.x += 5
+    if keyboard.w: player.y -= 5
+    if keyboard.s: player.y += 5</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Координатная система
+     ============================ -->
+<section class="slide"
+  data-notes="Повторение координатной системы из урока 37. Ключевое: Y растёт вниз. Поэтому 'вверх' — это минус Y, а 'вниз' — плюс Y. Многие дети путают это. Нарисуйте на доске: 0,0 в углу, X вправо, Y вниз.">
+  <div class="slide__inner">
+    <h2>Система <span class="accent">координат</span> в PyGame Zero</h2>
+    <div class="grid grid--2">
+      <div>
+        <svg width="100%" height="300" viewBox="0 0 340 300">
+          <rect x="40" y="40" width="260" height="220" rx="8" fill="#111827" stroke="#374151" stroke-width="1.5"/>
+          <line x1="40" y1="40" x2="300" y2="40" stroke="#22c55e" stroke-width="2"/>
+          <text x="305" y="44" fill="#22c55e" font-family="monospace" font-size="12">X +</text>
+          <line x1="40" y1="40" x2="40" y2="260" stroke="#06B6D4" stroke-width="2"/>
+          <text x="20" y="268" fill="#06B6D4" font-family="monospace" font-size="12">Y +</text>
+          <circle cx="40" cy="40" r="4" fill="#F59E0B"/>
+          <text x="44" y="36" fill="#F59E0B" font-family="monospace" font-size="10">(0,0)</text>
+          <circle cx="160" cy="150" r="6" fill="#22c55e"/>
+          <text x="165" y="148" fill="#22c55e" font-family="monospace" font-size="10">(120, 110)</text>
+          <line x1="40" y1="150" x2="160" y2="150" stroke="#22c55e" stroke-width="1" stroke-dasharray="4" opacity="0.5"/>
+          <line x1="160" y1="40" x2="160" y2="150" stroke="#06B6D4" stroke-width="1" stroke-dasharray="4" opacity="0.5"/>
+          <text x="170" y="180" fill="#F87171" font-family="monospace" font-size="11">y += вниз ↓</text>
+          <text x="44" y="90" fill="#C084FC" font-family="monospace" font-size="11">y -= вверх ↑</text>
+          <text x="200" y="60" fill="#F59E0B" font-family="monospace" font-size="11">x += →</text>
+          <text x="44" y="60" fill="#F59E0B" font-family="monospace" font-size="11">← x -=</text>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card card--glow">
+          <h3>Правила движения</h3>
+          <pre style="margin-top:10px"><code class="language-python"># ← влево: X уменьшается
+player.x -= 5
+
+# → вправо: X увеличивается
+player.x += 5
+
+# ↑ вверх: Y уменьшается!
+player.y -= 5
+
+# ↓ вниз: Y увеличивается
+player.y += 5</code></pre>
+        </div>
+        <div class="quote-block">
+          Запомни: в играх Y растёт вниз. Это отличается от математики!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Граничные условия
+     ============================ -->
+<section class="slide"
+  data-notes="Граничные условия — очень важная тема. Без них персонаж улетает за экран и теряется. Покажите два подхода: 1) if-проверки и клампинг, 2) специальные свойства left/right. Второй способ надёжнее — использует полуширину спрайта автоматически.">
+  <div class="slide__inner">
+    <h2>Персонаж не вылетает — <span class="accent">boundary checking</span></h2>
+    <div class="grid grid--2">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <p style="font-size:12px;font-weight:700;text-transform:uppercase;color:#F87171;margin-bottom:8px">Без проверки — улетает!</p>
+          <pre><code class="language-python">def update():
+    if keyboard.right:
+        basket.x += 5
+    # basket.x = 9999!</code></pre>
+        </div>
+        <div class="card card--glow">
+          <p style="font-size:12px;font-weight:700;text-transform:uppercase;color:#34D399;margin-bottom:8px">С проверкой — остаётся на экране</p>
+          <pre><code class="language-python">def update():
+    if keyboard.right:
+        basket.x += 5
+    # ограничиваем края
+    if basket.right > WIDTH:
+        basket.right = WIDTH
+    if basket.left < 0:
+        basket.left = 0</code></pre>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <pre><code class="language-python"># Способ 2: clamp (короче)
+def update():
+    speed = 5
+    if keyboard.left:
+        basket.x -= speed
+    if keyboard.right:
+        basket.x += speed
+
+    # Один clamp для обоих краёв
+    half = basket.width // 2
+    basket.x = max(half,
+                   min(WIDTH - half,
+                       basket.x))
+
+# Способ 3: .left/.right напрямую
+if basket.left < 0:   basket.left = 0
+if basket.right > WIDTH: basket.right = WIDTH</code></pre>
+        <div class="quote-block">
+          basket.left и basket.right — встроенные свойства Actor. Они учитывают размер спрайта!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Функция on_key_down
+     ============================ -->
+<section class="slide"
+  data-notes="on_key_down vs keyboard — ключевое различие. keyboard проверяем каждый кадр (плавное движение), on_key_down срабатывает один раз при нажатии (прыжок, выстрел). keys.SPACE — константа с заглавными буквами, в отличие от keyboard.space (строчные).">
+  <div class="slide__inner">
+    <h2>Функция <span class="accent">on_key_down</span></h2>
+    <div class="grid grid--2">
+      <pre><code class="language-python"># Одиночное нажатие — один раз
+def on_key_down(key):
+
+    # Пауза по Escape
+    if key == keys.ESCAPE:
+        toggle_pause()
+
+    # Прыжок по Пробелу
+    if key == keys.SPACE:
+        jump()
+
+    # Цифры — выбор оружия
+    if key == keys.K_1:
+        equip('sword')
+    if key == keys.K_2:
+        equip('bow')
+
+# Таблица констант keys.*
+# keys.LEFT, keys.RIGHT, keys.UP, keys.DOWN
+# keys.SPACE, keys.RETURN, keys.ESCAPE
+# keys.K_a ... keys.K_z (буквы)
+# keys.K_1 ... keys.K_9 (цифры)</code></pre>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card card--glow">
+          <h3>keyboard vs on_key_down</h3>
+          <ul class="clean" style="margin-top:12px">
+            <li><strong>keyboard.left</strong> — True пока зажата. Используй в update() для движения.</li>
+            <li><strong>on_key_down(key)</strong> — срабатывает один раз. Используй для прыжка, выстрела, паузы.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px">Проверь себя</h3>
+          <p style="margin-top:6px">Для чего использовать keyboard, а для чего on_key_down?</p>
+          <ol class="steps" style="margin-top:10px;counter-reset:step">
+            <li>Движение влево непрерывно</li>
+            <li>Нажать Enter → начать игру</li>
+            <li>Удерживать W → лететь вверх</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Угадай вывод
+     ============================ -->
+<section class="slide"
+  data-notes="Мыслительный эксперимент. Спросите: что напечатает программа при удерживании стрелки 3 секунды? Пусть ученики подумают 30 секунд, потом объясните. keyboard — 60 раз в секунду, on_key_down — один раз. Это ключевое различие для дизайна игровой механики.">
+  <div class="slide__inner">
+    <h2>Угадай <span class="accent">вывод</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="quote-block" style="margin-bottom:12px">Удерживаем → 3 секунды. Что напечатается?</div>
+        <pre><code class="language-python">def update():
+    if keyboard.right:
+        print("RIGHT")
+
+def on_key_down(key):
+    if key == keys.RIGHT:
+        print("PRESSED")</code></pre>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card" style="border-color:rgba(6,182,212,0.3)">
+          <h3 style="color:var(--cyan);font-size:15px">keyboard.right</h3>
+          <p style="font-size:13px;margin-top:6px">Проверяется <strong>каждый кадр</strong> (~60 FPS). За 3 секунды ≈ 180 строк "RIGHT"</p>
+          <div class="terminal" style="margin-top:8px;font-size:11px">RIGHT<br>RIGHT<br>RIGHT<br>... (180 раз)</div>
+        </div>
+        <div class="card" style="border-color:rgba(245,158,11,0.3)">
+          <h3 style="color:var(--amber);font-size:15px">on_key_down</h3>
+          <p style="font-size:13px;margin-top:6px">Срабатывает <strong>один раз</strong> при нажатии. За 3 секунды = 1 строка "PRESSED"</p>
+          <div class="terminal" style="margin-top:8px;font-size:11px">PRESSED</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Тренируем клавиатуру
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивное упражнение. Ученики экспериментируют с симуляцией: меняют скорость, добавляют boundary check. Дайте 4 минуты. Задание: измени speed на 20 и убери ограничение — что происходит? Потом верни. Так запоминается зачем нужен clamping.">
+  <div class="slide__inner">
+    <h2>Симуляция <span class="accent">клавиатуры</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — симуляция движения</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 400    # позиция (0 = левый край, 800 = правый)
+speed = 5  # пикселей за кадр
+
+# Симулируем серию нажатий клавиш
+keys_pressed = ["right", "right", "right", "left", "left",
+                "right", "right", "right", "left", "right"]
+
+for i, key in enumerate(keys_pressed):
+    if key == "right":
+        x += speed
+    elif key == "left":
+        x -= speed
+
+    # Boundary check — попробуй убрать и посмотри что будет!
+    x = max(0, min(800, x))
+    print(f"Кадр {i+1:2d}: {key:5s} → x = {x}")
+
+print(f"\nИтоговая позиция: {x}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ul class="clean" style="margin-top:10px">
+      <li>Измени <code>speed = 5</code> → <code>speed = 200</code> — что защищает от выхода за экран?</li>
+      <li>Добавь клавишу "up" и переменную <code>y = 300</code>, двигай вверх/вниз</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Скорость и ускорение
+     ============================ -->
+<section class="slide"
+  data-notes="Скорость и ускорение делают игру живой. Постоянная скорость — скучно. Нарастающая — сложнее и интереснее. Покажите: скорость как переменная, ограничение максимальной скорости. Shift для ускорения — классический паттерн шутеров.">
+  <div class="slide__inner">
+    <h2>Делаем движение <span class="accent">живым</span></h2>
+    <div class="grid grid--2">
+      <pre><code class="language-python">WIDTH = 800; HEIGHT = 600
+
+basket = Actor('basket')
+basket.pos = (400, 540)
+speed = 0         # начальная скорость
+MAX_SPEED = 12    # ограничение
+
+def update():
+    global speed
+
+    # Ускорение при нажатии
+    if keyboard.right:
+        speed += 1
+    elif keyboard.left:
+        speed -= 1
+    else:
+        # Торможение (трение)
+        speed *= 0.85
+
+    # Ограничиваем скорость
+    speed = max(-MAX_SPEED,
+                min(MAX_SPEED, speed))
+
+    basket.x += speed
+
+    # Границы
+    basket.x = max(50, min(750, basket.x))</code></pre>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <svg width="100%" height="200" viewBox="0 0 340 200">
+          <rect x="20" y="10" width="300" height="160" rx="8" fill="#111827" stroke="#374151" stroke-width="1"/>
+          <line x1="20" y1="90" x2="320" y2="90" stroke="#374151" stroke-width="1" stroke-dasharray="4"/>
+          <text x="24" y="88" fill="#94A3B8" font-family="monospace" font-size="8">speed=0</text>
+          <path d="M 30 90 Q 80 60 140 35 Q 180 20 220 18 Q 260 18 300 20" fill="none" stroke="#22c55e" stroke-width="2.5"/>
+          <path d="M 30 90 Q 80 120 140 135 Q 180 140 220 140 Q 260 140 300 138" fill="none" stroke="#F87171" stroke-width="2" stroke-dasharray="6"/>
+          <text x="150" y="30" fill="#34D399" font-family="monospace" font-size="9">max speed</text>
+          <text x="150" y="155" fill="#F87171" font-family="monospace" font-size="9">min speed</text>
+          <text x="24" y="185" fill="#F59E0B" font-family="monospace" font-size="9">Нажата →</text>
+          <text x="200" y="185" fill="#94A3B8" font-family="monospace" font-size="9">торможение</text>
+          <text x="24" y="170" fill="#6B7280" font-family="monospace" font-size="9">speed *= 0.85 (трение)</text>
+        </svg>
+        <div class="quote-block">
+          speed *= 0.85 — умножение на 0.85 каждый кадр создаёт плавное торможение
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Обнаружение столкновений
+     ============================ -->
+<section class="slide"
+  data-notes="colliderect — ключевой метод для игровой механики. Он проверяет пересечение двух прямоугольников (bounding box). Для пиксельно-точного столкновения нужно pixel collision, но для детских игр colliderect вполне достаточно. Наглядная демонстрация: два прямоугольника и их 'рамки'.">
+  <div class="slide__inner">
+    <h2>Обнаружение столкновений — <span class="accent">colliderect</span></h2>
+    <div class="grid grid--2">
+      <pre><code class="language-python"># Проверка: корзинка поймала яблоко?
+def update():
+    global score
+
+    # Столкновение — яблоко в корзинке?
+    if apple.colliderect(basket):
+        score += 1
+        apple.x = random.randint(50, 750)
+        apple.y = 0
+
+    # Несколько объектов — цикл
+    for coin in coins:
+        if player.colliderect(coin):
+            score += 10
+            coins.remove(coin)
+
+    # Расстояние между центрами
+    dx = player.x - enemy.x
+    dy = player.y - enemy.y
+    dist = (dx**2 + dy**2) ** 0.5
+    if dist < 40:
+        print("Столкновение кругом!")</code></pre>
+      <div>
+        <svg width="100%" height="260" viewBox="0 0 340 260">
+          <rect x="20" y="20" width="300" height="200" rx="8" fill="#111827" stroke="#374151" stroke-width="1"/>
+          <text x="24" y="38" fill="#94A3B8" font-family="monospace" font-size="9">Нет столкновения</text>
+          <rect x="40" y="45" width="80" height="30" rx="4" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4"/>
+          <rect x="40" y="49" width="80" height="22" rx="3" fill="rgba(34,197,94,0.3)"/>
+          <text x="62" y="63" fill="#34D399" font-family="monospace" font-size="9">basket</text>
+          <circle cx="240" cy="60" r="14" fill="rgba(239,68,68,0.4)" stroke="#EF4444" stroke-width="1.5"/>
+          <rect x="226" y="46" width="28" height="28" rx="2" fill="none" stroke="#F87171" stroke-width="1" stroke-dasharray="3"/>
+          <text x="230" y="64" fill="#F87171" font-family="monospace" font-size="8">apple</text>
+          <text x="24" y="118" fill="#34D399" font-family="monospace" font-size="9">Столкновение!</text>
+          <rect x="120" y="130" width="80" height="30" rx="4" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="4"/>
+          <rect x="120" y="134" width="80" height="22" rx="3" fill="rgba(34,197,94,0.3)"/>
+          <circle cx="160" cy="140" r="14" fill="rgba(239,68,68,0.5)" stroke="#EF4444" stroke-width="1.5"/>
+          <rect x="146" y="126" width="28" height="28" rx="2" fill="none" stroke="#F87171" stroke-width="1" stroke-dasharray="3"/>
+          <rect x="146" y="130" width="28" height="30" rx="2" fill="rgba(255,255,0,0.2)" stroke="rgba(255,255,0,0.6)" stroke-width="1.5"/>
+          <text x="155" y="175" fill="#FDE047" font-family="monospace" font-size="9" text-anchor="middle">colliderect = True</text>
+          <text x="24" y="218" fill="#79C0FF" font-family="monospace" font-size="10">apple.colliderect(basket)</text>
+        </svg>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px">colliderect проверяет пересечение прямоугольных рамок</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Полный код игры
+     ============================ -->
+<section class="slide"
+  data-notes="Полный код с клавиатурой. Важные детали: 1) speed = 0 начально, ускоряется при нажатии, 2) ограничение max/min, 3) clamp для позиции, 4) colliderect для поимки, 5) on_key_down для паузы. Пусть наберут целиком!">
+  <div class="slide__inner">
+    <h2>«Поймай яблоко!» — <span class="accent">версия 3</span></h2>
+    <pre><code class="language-python">import random
+
+WIDTH = 800; HEIGHT = 600; TITLE = "Поймай яблоко!"
+
+basket = Actor('basket'); basket.pos = (400, 550)
+apple = Actor('apple'); apple.pos = (random.randint(50, 750), 0)
+score = 0; basket_speed = 0; fall_speed = 3; paused = False
+
+def draw():
+    screen.fill((135, 206, 235))
+    screen.draw.filled_rect(Rect(0,530,800,70), (34,139,34))
+    basket.draw(); apple.draw()
+    screen.draw.text(f'Счёт: {score}', (10,10), color='white', fontsize=36)
+    if paused:
+        screen.draw.text('ПАУЗА', center=(400,300), color='yellow', fontsize=72)
+
+def update():
+    global score, basket_speed, fall_speed
+    if paused: return
+
+    # Клавиатурное управление
+    if keyboard.right: basket_speed = min(12, basket_speed + 1.5)
+    elif keyboard.left: basket_speed = max(-12, basket_speed - 1.5)
+    else: basket_speed *= 0.8
+
+    basket.x += basket_speed
+    basket.x = max(50, min(750, basket.x))
+
+    apple.y += fall_speed
+    if apple.colliderect(basket):
+        score += 1; fall_speed = 3 + score * 0.4
+        apple.pos = (random.randint(50,750), 0)
+    if apple.y > HEIGHT:
+        apple.pos = (random.randint(50,750), 0)
+
+def on_key_down(key):
+    global paused
+    if key == keys.ESCAPE or key == keys.SPACE:
+        paused = not paused
+
+def on_mouse_move(pos):  # бонус: мышь тоже работает!
+    basket.x = max(50, min(750, pos[0]))
+
+import pgzrun; pgzrun.go()</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Попробуй сам — cover
+     ============================ -->
+<section class="slide slide--cover" style="background:#7C3AED;"
+  data-notes="Пауза-вызов. Ученики 5 минут пишут свою версию движения с нуля — только то, что помнят. Потом сравниваем. Не подсказывайте сразу — пусть попробуют, ошибки помогают запомнить лучше.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">▶</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">5'</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">!</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="22" font-weight="800" fill="white" font-family="Inter">⌨</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Твоя очередь!<br>Пиши код сам
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Модифицируй движение
+     ============================ -->
+<section class="slide"
+  data-notes="Ученики модифицируют готовую игровую логику. Три задачи нарастающей сложности. Дайте 5 минут. Потом 2-3 ученика показывают решение — сравниваем разные подходы. Главный инсайт: инерция = нарастающий speed + умножение на коэффициент <1 при остановке.">
+  <div class="slide__inner">
+    <h2>Модифицируй <span class="accent">движение</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — добавь инерцию!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 400
+speed = 0     # начинаем с нуля — инерция!
+MAX_SPEED = 12
+
+# Симуляция: 6 кадров жмём вправо, 6 кадров отпускаем
+for frame in range(12):
+    key_right = frame < 6  # нажата первые 6 кадров
+
+    if key_right:
+        speed += 1          # ЗАДАЧА 1: нарастание
+    else:
+        speed *= 0.75       # ЗАДАЧА 2: торможение (попробуй 0.5, 0.9)
+
+    # ЗАДАЧА 3: ограничение скорости
+    speed = max(-MAX_SPEED, min(MAX_SPEED, speed))
+
+    x += speed
+    x = max(0, min(800, x))
+
+    status = "→ НАЖАТО" if key_right else "  отпущено"
+    print(f"Кадр {frame+1:2d} {status}: speed={speed:5.1f}, x={x:.0f}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ul class="clean" style="margin-top:10px">
+      <li>Измени коэффициент торможения с 0.75 на 0.5 — быстрее тормозит. На 0.95 — почти скользит</li>
+      <li>Сделай MAX_SPEED = 5 — ощущается совсем иначе</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Пауза — разминка
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Разминочная пауза. Дайте 2 минуты: пусть ученики вспомнят, в чём разница между keyboard.left и on_key_down. Можно спросить: когда использовать каждый вариант?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Пауза! Обсудим<br>что узнали
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Три стиля управления
+     ============================ -->
+<section class="slide"
+  data-notes="Разные варианты скорости. Постоянная vs нарастающая vs с торможением. Поиграйте с детьми: какой вариант им нравится больше? Нарастающая скорость с трением — самый «игровой» ощущается. Можно показать разницу, изменив один числовой коэффициент.">
+  <div class="slide__inner">
+    <h2>Три стиля <span class="accent">управления</span></h2>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3>Постоянная скорость</h3>
+        <pre style="margin-top:10px"><code class="language-python">def update():
+    if keyboard.left:
+        basket.x -= 5
+    if keyboard.right:
+        basket.x += 5</code></pre>
+        <p style="margin-top:8px">Простой и предсказуемый. Хорош для пазлов.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>С инерцией</h3>
+        <pre style="margin-top:10px"><code class="language-python">def update():
+    if keyboard.right:
+        speed += 1
+    else:
+        speed *= 0.85
+    basket.x += speed</code></pre>
+        <p style="margin-top:8px">Реалистично, «скользит». Хорош для гонок.</p>
+      </div>
+      <div class="card">
+        <h3>С ускорением</h3>
+        <pre style="margin-top:10px"><code class="language-python">speed = 5
+BOOST = 10
+
+def update():
+    s = BOOST if keyboard.lshift else speed
+    if keyboard.right:
+        basket.x += s</code></pre>
+        <p style="margin-top:8px">Shift — ускоритель. Хорош для экшн-игр.</p>
+      </div>
+    </div>
+    <div class="quote-block">
+      Поменяй 0.85 на 0.95 → меньше трение → скользит дольше. На 0.5 → тормозит резко.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Движение в 4 направлениях
+     ============================ -->
+<section class="slide"
+  data-notes="Движение в 4 направлениях — для игр-лабиринтов. Покажите, как одновременное нажатие двух клавиш даёт диагональное движение. Нормализация скорости при диагонали — продвинутая тема, можно упомянуть как бонус.">
+  <div class="slide__inner">
+    <h2>Движение во всех <span class="accent">направлениях</span></h2>
+    <div class="grid grid--2">
+      <pre><code class="language-python">WIDTH = 800; HEIGHT = 600
+player = Actor('player')
+player.pos = (400, 300)
+SPEED = 5
+
+def draw():
+    screen.fill('darkgreen')
+    player.draw()
+
+def update():
+    # Стрелки или WASD
+    if keyboard.left  or keyboard.a:
+        player.x -= SPEED
+    if keyboard.right or keyboard.d:
+        player.x += SPEED
+    if keyboard.up    or keyboard.w:
+        player.y -= SPEED  # Y вверх!
+    if keyboard.down  or keyboard.s:
+        player.y += SPEED
+
+    # Границы по всем краям
+    player.left   = max(0, player.left)
+    player.right  = min(WIDTH, player.right)
+    player.top    = max(0, player.top)
+    player.bottom = min(HEIGHT, player.bottom)</code></pre>
+      <div>
+        <svg width="100%" height="280" viewBox="0 0 300 280">
+          <rect x="20" y="20" width="260" height="200" rx="8" fill="#14532d" stroke="#166534" stroke-width="1.5"/>
+          <rect x="20" y="20" width="260" height="8" fill="rgba(239,68,68,0.4)"/>
+          <rect x="20" y="212" width="260" height="8" fill="rgba(239,68,68,0.4)"/>
+          <rect x="20" y="20" width="8" height="200" fill="rgba(239,68,68,0.4)"/>
+          <rect x="272" y="20" width="8" height="200" fill="rgba(239,68,68,0.4)"/>
+          <rect x="130" y="100" width="40" height="40" rx="6" fill="#22c55e"/>
+          <text x="140" y="118" fill="white" font-family="monospace" font-size="10" text-anchor="middle">W</text>
+          <text x="140" y="135" fill="white" font-family="monospace" font-size="9" text-anchor="middle">player</text>
+          <line x1="150" y1="100" x2="150" y2="75" stroke="#F59E0B" stroke-width="2"/>
+          <line x1="150" y1="140" x2="150" y2="165" stroke="#F59E0B" stroke-width="2"/>
+          <line x1="130" y1="120" x2="105" y2="120" stroke="#F59E0B" stroke-width="2"/>
+          <line x1="170" y1="120" x2="195" y2="120" stroke="#F59E0B" stroke-width="2"/>
+          <text x="150" y="70" fill="#F59E0B" font-family="monospace" font-size="9" text-anchor="middle">y -= speed</text>
+          <text x="150" y="180" fill="#F59E0B" font-family="monospace" font-size="9" text-anchor="middle">y += speed</text>
+          <text x="30" y="118" fill="#F59E0B" font-family="monospace" font-size="8">x -= speed</text>
+          <text x="200" y="118" fill="#F59E0B" font-family="monospace" font-size="8">x +=</text>
+          <text x="24" y="235" fill="#F87171" font-family="monospace" font-size="8">границы экрана</text>
+        </svg>
+        <div class="quote-block" style="margin-top:10px">
+          Используй независимые if (не elif!) — тогда диагональное движение работает.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Типичные ошибки
+     ============================ -->
+<section class="slide"
+  data-notes="Типичные ошибки. Первая очень распространена: дети ставят if/elif вместо if/if — тогда одновременно два направления не работают. Объясните: для движения нужны НЕЗАВИСИМЫЕ if, не elif. elif — только если нужно исключающее поведение.">
+  <div class="slide__inner">
+    <h2>Чего <span class="accent">не делать</span></h2>
+    <div class="grid grid--3">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="font-size:15px;color:#F87171">elif для движения</h3>
+        <pre style="margin-top:8px"><code class="language-python"># Нельзя двигаться
+# по диагонали!
+if keyboard.left:
+    x -= 5
+elif keyboard.right:
+    x += 5
+elif keyboard.up:
+    y -= 5</code></pre>
+        <p style="color:#F87171;margin-top:8px">elif блокирует остальные направления</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="font-size:15px;color:#F87171">Забыть global</h3>
+        <pre style="margin-top:8px"><code class="language-python"># Ошибка!
+speed = 0
+def update():
+    speed += 1  # UnboundLocalError
+
+# Правильно
+def update():
+    global speed
+    speed += 1</code></pre>
+        <p style="color:#F87171;margin-top:8px">Изменяешь переменную вне функции — нужен global</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="font-size:15px;color:#F87171">Нет boundary check</h3>
+        <pre style="margin-top:8px"><code class="language-python"># Улетит за экран
+if keyboard.right:
+    basket.x += 5
+# basket.x = 9999!
+
+# Правильно
+basket.x = max(50,
+    min(750, basket.x))</code></pre>
+        <p style="color:#F87171;margin-top:8px">Всегда ограничивай позицию после изменения</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Найди ошибку
+     ============================ -->
+<section class="slide"
+  data-notes="Отладочный вызов. Три бага — ученики читают код и находят проблему. 3 минуты самостоятельно, потом разбираем вместе. Баг 1: elif вместо if. Баг 2: нет global. Баг 3: нет boundary check. Умение читать чужой код — важнейший навык программиста.">
+  <div class="slide__inner">
+    <h2>Найди <span class="accent">ошибку</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — три бага, найди каждый!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># БАГ 1: почему нельзя двигаться по диагонали?
+def симуляция_v1():
+    x, y = 400, 300
+    keys = ["left", "up"]  # обе нажаты одновременно
+    for key in keys:
+        if key == "left":
+            x -= 5
+        elif key == "right":  # <-- ЗДЕСЬ ПРОБЛЕМА
+            x += 5
+        elif key == "up":     # elif не даёт сработать!
+            y -= 5
+    print(f"v1: x={x}, y={y}")  # ожидали x=395, y=295
+
+# БАГ 2: почему UnboundLocalError?
+score = 0
+def симуляция_v2():
+    score += 1      # <-- ЗДЕСЬ ПРОБЛЕМА
+    print(f"v2: score={score}")
+
+# БАГ 3: почему корзинка выходит за экран?
+def симуляция_v3():
+    x = 795
+    x += 20         # нажата стрелка вправо
+    # <-- ЧТО ЗАБЫЛИ НАПИСАТЬ ЗДЕСЬ?
+    print(f"v3: x={x}")   # x=815 — это за экраном!
+
+симуляция_v1()
+# симуляция_v2()  # раскомментируй после исправления
+симуляция_v3()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Интерактивный Python — попробуй сам
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивный блок. Дайте ученикам 5 минут поиграть с кодом прямо в браузере. Предложите изменить скорость, добавить print с сообщением, или написать свой вариант движения (в консольном виде без PyGame).">
+  <div class="slide__inner">
+    <h2>Попробуй <span class="accent">прямо сейчас</span></h2>
+    <p>Вот упрощённая версия логики движения — без PyGame, только Python. Измени скорость или добавь свой вывод:</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — попробуй прямо здесь!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция движения корзинки
+x = 400  # начальная позиция
+speed = 5
+WIDTH = 800
+
+# Нажата клавиша вправо
+pressed_right = True
+pressed_left = False
+
+if pressed_right:
+    x += speed
+if pressed_left:
+    x -= speed
+
+# Граничные условия
+x = max(50, min(WIDTH - 50, x))
+
+print(f"Позиция корзинки: x = {x}")
+print(f"Скорость: {speed} пикселей/кадр")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Прокачай код
+     ============================ -->
+<section class="slide"
+  data-notes="Продвинутый вызов для тех, кто быстро справился с базовыми. Полная игровая симуляция с несколькими яблоками. Сильные ученики работают самостоятельно, остальные в паре. Ключевой момент: список словарей для множества объектов — важный паттерн.">
+  <div class="slide__inner">
+    <h2>Прокачай <span class="accent">код</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — полная игровая симуляция</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+WIDTH, HEIGHT = 800, 600
+basket_x = 400
+BASKET_W = 80
+speed = 0
+
+# Три яблока — список словарей
+apples = [{"x": random.randint(50, 750), "y": 0,
+           "spd": random.randint(4, 9)} for _ in range(3)]
+
+score, missed = 0, 0
+
+print("=== Симуляция 30 кадров ===")
+for frame in range(30):
+    # Движение корзинки (нажата → симуляция)
+    if frame < 15:
+        speed += 1   # разгон вправо
+    else:
+        speed *= 0.8  # торможение
+    speed = max(-10, min(10, speed))
+    basket_x += speed
+    basket_x = max(40, min(760, basket_x))
+
+    # Движение яблок
+    for apple in apples:
+        apple["y"] += apple["spd"]
+
+        # Пойманo?
+        caught = (abs(apple["x"] - basket_x) < BASKET_W // 2
+                  and HEIGHT - 40 < apple["y"] < HEIGHT)
+        if caught:
+            score += 1
+            apple["y"] = 0
+            apple["x"] = random.randint(50, 750)
+            print(f"  ★ Поймал! Счёт: {score}")
+
+        # Упало?
+        if apple["y"] > HEIGHT:
+            missed += 1
+            apple["y"] = 0
+            apple["x"] = random.randint(50, 750)
+
+    if frame % 10 == 9:
+        print(f"Кадр {frame+1}: x={basket_x:.0f} | +{score} -{missed}")
+
+print(f"\nИтог: поймано={score}, пропущено={missed}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Задания урока
+     ============================ -->
+<section class="slide"
+  data-notes="Практика — основная часть урока. 25 минут за компьютерами. Задание 1: только клавиатура (базовое). Задание 2: добавить инерцию. Задание 3: счёт + пауза. Задание 4 (звёздочка): режим 4 направлений — ловец яблок становится 2D персонажем.">
+  <div class="slide__inner">
+    <h2>Задания урока — <span class="accent">25 минут</span></h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li>
+          <div>
+            <strong>Клавиатура</strong><br>
+            <span style="color:var(--muted);font-size:14px">Корзинка движется стрелками ←→. Граничные условия: не вылетает за экран.</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Инерция и трение</strong><br>
+            <span style="color:var(--muted);font-size:14px">basket_speed += при нажатии, *= 0.85 иначе. Ограничение max 12.</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Пауза по Space</strong><br>
+            <span style="color:var(--muted);font-size:14px">on_key_down: paused = not paused. В update: if paused: return.</span>
+          </div>
+        </li>
+      </ol>
+      <ol class="steps" style="counter-reset:step 3">
+        <li>
+          <div>
+            <strong>WASD + стрелки</strong><br>
+            <span style="color:var(--muted);font-size:14px">Оба варианта управления одновременно: keyboard.left or keyboard.a</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Shift-ускорение</strong><br>
+            <span style="color:var(--muted);font-size:14px">speed = 10 if keyboard.lshift else 5 — ускоритель при зажатом Shift.</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>4 направления</strong><br>
+            <span style="color:var(--muted);font-size:14px">Корзинка движется во все 4 стороны. Яблоко летит под углом (x и y меняются).</span>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Следующий урок
+     ============================ -->
+<section class="slide"
+  data-notes="Показываем, что будет в следующем уроке. Сегодня мы научились двигать персонажа — это основа любой игры. Следующий шаг: жизни, рекорд, экран Game Over, перезапуск без закрытия — всё это урок 40.">
+  <div class="slide__inner">
+    <h2>Вы управляете персонажем. <span class="accent">Что дальше?</span></h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3>Жизни</h3>
+        <p>Пропустил яблоко → lives -= 1. Три жизни — и игра заканчивается.</p>
+      </div>
+      <div class="card">
+        <h3>Рекорд</h3>
+        <p>best_score = max(score, best_score). Всегда храним лучший результат.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Game Over</h3>
+        <p>Экран поражения с крупным текстом. Останавливаем игровую логику.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Рестарт</h3>
+        <p>R → сброс всех переменных без закрытия программы. on_key_down.</p>
+      </div>
+    </div>
+    <div class="quote-block">
+      Урок 40: <strong>игровая механика</strong> — состояния, жизни, рекорды, Game Over
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Словарь урока
+     ============================ -->
+<section class="slide"
+  data-notes="Закрепляем словарь. Попросите учеников назвать определения по памяти — без подсматривания. Потом сверяемся. Особо акцентируйте разницу keyboard/on_key_down и зачем нужен global. Это самые частые точки непонимания.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока</span></h2>
+    <dl class="kv">
+      <dt>keyboard</dt>
+      <dd>Объект PyGame Zero — состояние клавиш прямо сейчас. <code>keyboard.left</code> = True пока зажата</dd>
+      <dt>update()</dt>
+      <dd>Вызывается ~60 раз/сек. Здесь проверяем keyboard и двигаем объекты каждый кадр</dd>
+      <dt>on_key_down(key)</dt>
+      <dd>Событие — срабатывает <strong>один раз</strong> при нажатии. Для выстрела, паузы, скачка</dd>
+      <dt>clamping</dt>
+      <dd>Ограничение в диапазоне: <code>max(min_val, min(max_val, x))</code> — корзинка не уходит за экран</dd>
+      <dt>инерция</dt>
+      <dd>speed нарастает при нажатии и умножается на 0.85 при отпускании — плавное торможение</dd>
+      <dt>colliderect()</dt>
+      <dd>Метод Actor. Проверяет пересечение двух прямоугольных bounding box-ов</dd>
+      <dt>global</dt>
+      <dd>Ключевое слово: нужно внутри функции, если изменяешь переменную из внешней области видимости</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Контрольные вопросы
+     ============================ -->
+<section class="slide"
+  data-notes="Финальная самопроверка перед домашним заданием. 6 вопросов — ученики отвечают устно. Если кто-то затрудняется — это сигнал для повторения. Ответы: 1)update() 2)on_key_down 3)global 4)независимые if 5)clamping/max-min 6)colliderect.">
+  <div class="slide__inner">
+    <h2>Контрольные <span class="accent">вопросы</span></h2>
+    <ol class="steps">
+      <li>В какой функции нужно проверять <code>keyboard.left</code> — и почему именно там, а не в <code>on_key_down</code>?</li>
+      <li>Хочу, чтобы при нажатии пробела выстрел создавался <strong>один раз</strong>. Какую функцию использую?</li>
+      <li>Пишу <code>score = score + 1</code> внутри <code>update()</code> и получаю <code>UnboundLocalError</code>. В чём причина и как исправить?</li>
+      <li>Почему для движения в 4 стороны нужны отдельные <code>if</code>, а не <code>if / elif / elif / elif</code>?</li>
+      <li>Корзинка улетает за левый край. Как ограничить <code>x</code> минимумом 50?</li>
+      <li>Какой метод Actor проверяет, пересекаются ли два объекта на экране?</li>
+    </ol>
+    <div class="quote-block" style="margin-top:16px">
+      6 из 6 — ты готов к уроку 40: жизни, рекорды и Game Over!
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание. Базовое — клавиатурное управление корзинкой. Основное — полная игра с инерцией и паузой. Продвинутое — попробовать сделать персонажа из другой игры: Space Invaders, лабиринт, Pac-Man.">
+  <div class="slide__inner">
+    <h2>До следующего <span class="accent">урока</span></h2>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3>Базовое</h3>
+        <p style="margin-top:6px">Корзинка двигается стрелками с boundary checking. Яблоко падает, счёт считается.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Основное</h3>
+        <p style="margin-top:6px">Добавь инерцию (speed с трением), паузу по Space, WASD и стрелки.</p>
+        <pre style="margin-top:10px"><code class="language-python">speed *= 0.85
+if paused: return</code></pre>
+      </div>
+      <div class="card">
+        <h3>Продвинутое</h3>
+        <p style="margin-top:6px">Сделай игру «Space Invaders»: корабль движется влево-вправо, выстрел по Space.</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">Подсказка: on_key_down для выстрела, список bullets</p>
+      </div>
+    </div>
+    <div class="quote-block">
+      Следующий урок — <strong>жизни, рекорд и Game Over</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Итог (green)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Финал урока. Пройдитесь по ключевым концепциям: keyboard — состояние (проверяем в update), on_key_down — событие (один раз). Clamping — защита от выхода за экран. colliderect — обнаружение столкновений. Вручите значки!">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(24px,3.2vw,42px);font-weight:800;line-height:1.15;">
+        Молодцы!
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

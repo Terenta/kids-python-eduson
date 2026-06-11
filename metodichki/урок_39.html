@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 39 — Как добавлять взаимодействие с противниками и объектами в PyGame Zero + сквозной проект #1, часть 3 | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 39</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как добавлять взаимодействие с противниками и объектами в PyGame Zero + сквозной проект #1, часть 3</h2>
+  <div class="meta"><span>Отдел:</span> <span>Разработки</span> <span>Неделя:</span> <span>20</span> <span>Возраст:</span> <span>8-14</span> </div>
+  <p><strong>Отдел:</strong> Разработки  <strong>Неделя:</strong> 20  <strong>Возраст:</strong> 8-14</p>
+<h2>🎯 Цель</h2>
+<p>Ввести столкновения (<code>colliderect</code>) и хранение игровых объектов в списке. Превратить «яблоко одно падает» в «много яблок падают, корзинка их ловит».</p>
+<h2>📚 Результаты</h2>
+<p>Ученик знает, что такое прямоугольник столкновения, почему в 2D-играх используется именно <code>colliderect</code>. Понимает, зачем объекты живут в списке, а не каждым в своей переменной. Умеет удалять элементы из списка во время итерации (через копию или индексы с конца), добавлять новые объекты, использовать <code>random</code> для случайного появления.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, PyGame Zero, <code>random</code> (стандартная библиотека, изучена в уроке 21). Kandinsky — 2-3 варианта яблок (красное, зелёное, золотое).</p>
+<h2>⚙️ Техтребования</h2>
+<p>Файл <code>game.py</code> из урока 38. Добавляем в <code>images/</code>: <code>apple_red.png</code>, <code>apple_green.png</code>, <code>apple_gold.png</code>.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p>0-5: разбор ДЗ — у кого работает «подпрыгивание», у кого нет.</p>
+<p>5-15: теория. Показываю на доске два прямоугольника и <code>colliderect</code>. Объясняю, почему хранить 10 яблок в 10 переменных — это тупик, а список решает. Вспоминаем урок 6-7 (списки и методы).</p>
+<p>15-30: совместный кодинг. Заменяем одну переменную <code>apple</code> на <code>apples = []</code>. Пишем функцию <code>spawn_apple()</code>: <code>apples.append(Actor('apple_red', (random.randint(50, WIDTH-50), 0)))</code>. В <code>update()</code> — цикл <code>for apple in apples: apple.y += 3</code>.</p>
+<p>30-45: самостоятельно. Ребёнок добавляет проверку столкновения: <code>if basket.colliderect(apple):</code>. При попадании — <code>apples.remove(apple)</code>. Важно: цикл по копии <code>for apple in apples[:]</code> — объясняю через метафору «нельзя менять таблицу, пока по ней идёшь».</p>
+<p>45-55: усложнение. Добавляем спавн новых яблок через <code>clock.schedule_interval(spawn_apple, 1.0)</code> — каждую секунду. Убираем яблоки, улетевшие ниже экрана: <code>if apple.y > HEIGHT: apples.remove(apple)</code>.</p>
+<p>55-60: итог + ДЗ. Показываю, как сейчас выглядит игра — полноценная «ловилка».</p>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<p>«Представь 100 яблок — 100 переменных писать? Нет. Список». «colliderect — это как посмотреть, пересекаются ли две рамки на столе». «Никогда не удаляй из списка, пока по нему идёшь — всё сломается. Сделай копию <code>apples[:]</code>». «<code>random.randint(a, b)</code> даёт число от a до b включительно — оба конца». «<code>clock.schedule_interval</code> — это таймер, который тикает сам». «Если FPS просел — значит, яблок слишком много, не очищаем улетевшие». «Сейчас у тебя не прототип, а микро-игра — можно показывать друзьям».</p>
+<h2>🎨 Мини-проект / этап сквозного проекта</h2>
+<p>Сквозной #1, часть 3. Несколько яблок падают, корзинка ловит, пойманные исчезают, улетевшие тоже исчезают, раз в секунду появляются новые.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Добавить 3 вида яблок (красное, зелёное, золотое) — спавнить случайное через <code>random.choice(['apple_red', 'apple_green', 'apple_gold'])</code>. 2. Сделать скорость падения случайной (<code>random.randint(2, 5)</code>). 3. Записать гифку или видео.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Игра работает без зависаний 2+ минуты. В списке яблок всегда корректное число (не «копятся» улетевшие). Ребёнок сам пишет <code>colliderect</code> без подсказки. Может объяснить, зачем <code>[:]</code> в цикле.</p>
+<h2>⚠️ Сложности и решения</h2>
+<p>«Яблоки пропадают все сразу» — забыт <code>[:]</code> или используется <code>for i, apple in enumerate(apples): apples.pop(i)</code> (типичный баг). Разбираем через <code>print(len(apples))</code>. «Игра тормозит» — яблоки не удаляются при вылете за экран. «colliderect не срабатывает» — ребёнок пишет <code>basket.colliderect(apples)</code>, а надо — с конкретным яблоком.</p>
+<h2>🎁 Бонус</h2>
+<p>«Звёздная задача»: сделать «яблоко-бомба» (чёрное) — если поймать, ничего не делается плохого (это в уроке 40, там ввожу жизни), но пока — меняется картинка корзинки на «грустную» на 1 секунду.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Если ребёнок застрял на <code>colliderect</code> — пусть покажет свой код YandexGPT с вопросом: «Почему проверка столкновения не срабатывает?». Учимся получать объяснение, а не готовый код. Kandinsky — новые варианты яблок.</p>
+<hr>
+</div>
+</body>
+</html>

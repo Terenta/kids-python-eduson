@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 29 — ООП: классы и объекты | EdisonGames Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">16</span></div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 1: Cover purple -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="День 29 стажировки. Новый отдел — ООП (Объектно-Ориентированное Программирование). Вводи через метафору: класс — чертёж дома, объект — дом по этому чертежу. Спроси учеников: как думаете, зачем нужны объекты?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №29</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        ООП — классы и объекты
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Добро пожаловать в Отдел ООП -->
+<section class="slide"
+  data-notes="Нарративный крючок. Новый отдел — разработка игровых персонажей через ООП. Объясни, почему словарей уже недостаточно: персонаж умеет не только хранить данные, но и ДЕЛАТЬ что-то. Покажи оба примера кода.">
+  <div class="slide__inner">
+    <h2>Добро пожаловать в <span class="accent">Отдел ООП</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p style="margin-bottom:14px">Антон встречает тебя лично:</p>
+        <div class="quote-block" style="margin-bottom:14px;font-size:15px;font-weight:400;">
+          «Стажёр, ты освоил структуры данных — отлично! Теперь уровень выше. В настоящих играх персонаж — не просто словарь. Он умеет атаковать, лечиться, умирать. Это объект. Будем учить ООП.»<br>
+          <span style="color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace;">— Антон, Lead Dev, EdisonGames</span>
+        </div>
+        <p style="margin-bottom:8px;color:var(--muted)">До ООП — словарь персонажа:</p>
+        <div class="terminal" style="margin-bottom:10px">
+          <div class="terminal__body" style="color:#fca5a5">hero = {"name":"Маг","hp":100}<br>hero["hp"] -= 20  # атака через словарь</div>
+        </div>
+        <p style="margin-bottom:8px;color:var(--muted)">После ООП — объект с методами:</p>
+        <div class="terminal">
+          <div class="terminal__body" style="color:#86efac">hero = Hero("Маг", 100)<br>goblin.attack(hero)  # атака через метод!</div>
+        </div>
+      </div>
+      <div class="card" style="display:grid;place-items:center;font-size:90px;min-height:180px">🏗️</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: План урока -->
+<section class="slide"
+  data-notes="Озвучь план урока. 60 минут разделены на 5 блоков. Главный результат — написанный класс Player с атакой. Объясни: сегодня они станут настоящими ООП-разработчиками.">
+  <div class="slide__inner">
+    <h2>Что <span class="accent">сделаем</span> сегодня</h2>
+    <ol class="steps">
+      <li><strong>0–5 мин:</strong> Разбор ДЗ «Виселица 2.0» — смотрим темы слов, хвалим, демо класса Dog</li>
+      <li><strong>5–20 мин:</strong> Теория: класс = чертёж — метафора, анатомия класса, <code>__init__</code>, <code>self</code></li>
+      <li><strong>20–35 мин:</strong> Совместный кодинг — пишем класс Dog, два объекта, метод <code>bark()</code></li>
+      <li><strong>35–50 мин:</strong> Самостоятельная: класс Student — имя, класс, оценки, метод <code>average()</code></li>
+      <li><strong>50–60 мин:</strong> Разбор + YandexGPT + домашнее задание</li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 4: Метафора: чертёж -->
+<section class="slide"
+  data-notes="Метафора — главное на этом слайде. Класс — чертёж дома, объект — конкретный дом. По одному чертежу — много домов разного цвета и размера. Так же из одного класса — много объектов с разными значениями атрибутов.">
+  <div class="slide__inner">
+    <h2>Класс — <span class="accent">чертёж</span>, объект — <span class="accent">дом</span></h2>
+    <svg viewBox="0 0 860 220" style="width:100%;max-width:860px;margin:0 auto;display:block">
+      <rect x="10" y="20" width="240" height="180" rx="14" fill="rgba(124,58,237,.1)" stroke="#7C3AED" stroke-width="2" stroke-dasharray="8,4"/>
+      <text x="130" y="52" fill="#C4B5FD" font-family="JetBrains Mono" font-size="14" font-weight="700" text-anchor="middle">class Dog:</text>
+      <text x="130" y="78" fill="#8B93A7" font-family="JetBrains Mono" font-size="12" text-anchor="middle">  def __init__(self,</text>
+      <text x="130" y="96" fill="#8B93A7" font-family="JetBrains Mono" font-size="12" text-anchor="middle">             name, age):</text>
+      <text x="130" y="114" fill="#67E8F9" font-family="JetBrains Mono" font-size="12" text-anchor="middle">    self.name = name</text>
+      <text x="130" y="132" fill="#67E8F9" font-family="JetBrains Mono" font-size="12" text-anchor="middle">    self.age = age</text>
+      <text x="130" y="158" fill="#86EFAC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">  def bark(self):</text>
+      <text x="130" y="176" fill="#86EFAC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">    print("Гав!")</text>
+      <text x="130" y="205" fill="#7C3AED" font-family="Inter" font-size="14" font-weight="600" text-anchor="middle">КЛАСС — чертёж</text>
+      <text x="265" y="112" fill="#F59E0B" font-family="JetBrains Mono" font-size="22">→</text>
+      <rect x="305" y="20" width="160" height="100" rx="14" fill="rgba(34,197,94,.12)" stroke="#22c55e" stroke-width="2"/>
+      <text x="385" y="46" fill="#86EFAC" font-family="JetBrains Mono" font-size="13" font-weight="700" text-anchor="middle">rex</text>
+      <text x="385" y="66" fill="#A5F3FC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">name = "Рекс"</text>
+      <text x="385" y="84" fill="#A5F3FC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">age = 3</text>
+      <text x="385" y="102" fill="#FDE68A" font-family="JetBrains Mono" font-size="12" text-anchor="middle">bark() → "Гав!"</text>
+      <text x="385" y="130" fill="#22c55e" font-family="Inter" font-size="13" text-anchor="middle">ОБЪЕКТ 1</text>
+      <rect x="305" y="145" width="160" height="75" rx="14" fill="rgba(6,182,212,.12)" stroke="#06B6D4" stroke-width="2"/>
+      <text x="385" y="168" fill="#A5F3FC" font-family="JetBrains Mono" font-size="13" font-weight="700" text-anchor="middle">bim</text>
+      <text x="385" y="186" fill="#A5F3FC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">name = "Бим"</text>
+      <text x="385" y="204" fill="#A5F3FC" font-family="JetBrains Mono" font-size="12" text-anchor="middle">age = 1</text>
+      <text x="500" y="60" fill="#F1F5F9" font-family="Inter" font-size="16" font-weight="600">По одному чертежу —</text>
+      <text x="500" y="82" fill="#C4B5FD" font-family="Inter" font-size="16" font-weight="600">много объектов!</text>
+      <text x="500" y="120" fill="#94A3B8" font-family="Inter" font-size="14">• у каждого своё имя</text>
+      <text x="500" y="142" fill="#94A3B8" font-family="Inter" font-size="14">• свой возраст</text>
+      <text x="500" y="164" fill="#94A3B8" font-family="Inter" font-size="14">• но одни и те же методы</text>
+      <text x="500" y="192" fill="#F59E0B" font-family="JetBrains Mono" font-size="13">Dog("Рекс", 3)</text>
+      <text x="500" y="212" fill="#F59E0B" font-family="JetBrains Mono" font-size="13">Dog("Бим", 1)</text>
+    </svg>
+  </div>
+</section>
+
+<!-- SLIDE 5: Анатомия класса -->
+<section class="slide"
+  data-notes="Анатомия класса. Четыре ключевых элемента: class Имя (с большой буквы!), __init__ (конструктор — момент рождения), self (слово 'я' для объекта), атрибуты (что объект ИМЕЕТ) и методы (что объект УМЕЕТ). Запускайте код вместе.">
+  <div class="slide__inner">
+    <h2>Из чего <span class="accent">состоит класс</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:          # 1. Имя — с Большой буквы!
+    def __init__(self, name, age):  # 2. Конструктор
+        self.name = name  # 3. Атрибуты
+        self.age  = age
+
+    def bark(self):   # 4. Метод
+        print(f"{self.name} говорит: Гав!")
+
+    def birthday(self):
+        self.age += 1
+        print(f"{self.name} стал старше! Теперь {self.age}")
+
+# Создаём объекты
+rex = Dog("Рекс", 3)
+bim = Dog("Бим", 1)
+
+# Вызываем методы
+rex.bark()
+bim.bark()
+rex.birthday()
+print(rex.age)</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card">
+          <h3><code>class Dog:</code></h3>
+          <p>Имя класса — <strong>с большой буквы</strong>. Это соглашение Python (PascalCase).</p>
+        </div>
+        <div class="card">
+          <h3><code>__init__</code></h3>
+          <p>Конструктор — вызывается при создании объекта. «Момент рождения».</p>
+        </div>
+        <div class="card">
+          <h3><code>self</code></h3>
+          <p>Слово «я» для объекта. <code>self.name</code> — «моё имя».</p>
+        </div>
+        <div class="card">
+          <h3>Метод</h3>
+          <p>Функция внутри класса. <span class="amber">Первый параметр всегда self!</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: self — объяснение -->
+<section class="slide"
+  data-notes="self — самое сложное понятие для детей. Объяснение: self — это как местоимение 'я'. Когда Рекс говорит bark(), внутри метода self — это Рекс. Когда Бим — self это Бим. Python сам подставляет нужный объект. Попроси YandexGPT объяснить это по-другому.">
+  <div class="slide__inner">
+    <h2><code>self</code> — слово <span class="accent">«я»</span> для объекта</h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <div class="quote-block" style="margin-bottom:14px;font-size:15px;font-weight:400">
+          «self — это как местоимение "я". Когда Рекс вызывает bark(), внутри метода self — это Рекс. Когда Бим — self это Бим.»
+        </div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name):
+        self.name = name    # self = этот объект
+
+    def bark(self):
+        # self.name — имя ЭТОГО объекта
+        print(f"{self.name}: Гав!")
+
+rex = Dog("Рекс")
+bim = Dog("Бим")
+
+# Python сам передаёт объект в self
+rex.bark()    # self = rex → "Рекс: Гав!"
+bim.bark()    # self = bim → "Бим: Гав!"</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <h3>YandexGPT объяснит!</h3>
+          <p>Промпт: «Объясни ребёнку 11 лет, что такое self в классе Python, через метафору. Коротко, 3 предложения.»</p>
+        </div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <p style="color:#fca5a5;margin-bottom:6px">⚠️ Забыл self — получишь TypeError</p>
+          <div class="terminal">
+            <div class="terminal__body" style="font-size:12px">
+              <span style="color:#fca5a5">def bark():  # ← TypeError!</span><br>
+              <span style="color:#86efac">def bark(self):  # ← правильно</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Атрибуты vs Методы -->
+<section class="slide"
+  data-notes="Чёткое разграничение: атрибут — что объект ИМЕЕТ (существительное), метод — что объект УМЕЕТ делать (глагол). В играх: hp, name, damage — атрибуты. attack(), heal(), move() — методы.">
+  <div class="slide__inner">
+    <h2>Атрибуты и <span class="accent">методы</span> — в чём разница?</h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3>Атрибуты — что объект <span class="amber">ИМЕЕТ</span></h3>
+        <p style="margin-bottom:10px">Это данные, характеристики. Существительные.</p>
+        <div class="terminal">
+          <div class="terminal__body" style="font-size:13px;line-height:1.7">self.name = "Маг"<br>self.hp   = 100<br>self.mp   = 80<br>self.damage = 25</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Методы — что объект <span class="amber">УМЕЕТ</span></h3>
+        <p style="margin-bottom:10px">Это действия, поведение. Глаголы.</p>
+        <div class="terminal">
+          <div class="terminal__body" style="font-size:13px;line-height:1.7">def attack(self): ...<br>def heal(self): ...<br>def level_up(self): ...<br>def is_alive(self): ...</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">«Атрибут — что у объекта ЕСТЬ. Метод — что объект УМЕЕТ делать. Как карточка персонажа и список способностей.»</div>
+  </div>
+</section>
+
+<!-- SLIDE 8: Первый класс: Player -->
+<section class="slide"
+  data-notes="Совместный кодинг 20–35 мин. Создаём класс Player — это уже реальный игровой персонаж! Атрибуты: name, hp, damage. Методы: attack, is_alive, show_stats. Ребёнок должен писать вместе с преподавателем строчку за строчкой.">
+  <div class="slide__inner">
+    <h2>Первый класс: <span class="accent">Player</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">class Player:
+    def __init__(self, name, hp, damage):
+        self.name   = name
+        self.hp     = hp
+        self.damage = damage
+        self.level  = 1
+
+    def attack(self, enemy):
+        """Атакуем врага — уменьшаем его HP"""
+        enemy.hp -= self.damage
+        print(f"{self.name} бьёт {enemy.name} на {self.damage}!")
+
+    def is_alive(self):
+        return self.hp > 0
+
+    def show_stats(self):
+        status = "живой" if self.is_alive() else "мёртв"
+        print(f"{self.name} [{status}] HP={self.hp} DMG={self.damage} LVL={self.level}")
+
+# Создаём персонажей
+mage    = Player("Маг", 100, 25)
+goblin  = Player("Гоблин", 40, 10)
+
+mage.show_stats()
+goblin.show_stats()
+
+# Бой!
+mage.attack(goblin)
+goblin.show_stats()
+
+if not goblin.is_alive():
+    print("Гоблин побеждён!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: Самостоятельная: Student -->
+<section class="slide"
+  data-notes="Самостоятельная задача 35–50 мин. Класс Student. Атрибуты: name, grade, scores (список оценок). Методы: average() — средняя оценка, introduce() — представиться. Преподаватель подсказывает, но не решает.">
+  <div class="slide__inner">
+    <h2>Задача: <span class="accent">класс Student</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <ol class="steps">
+        <li>Класс <code>Student</code> с атрибутами: имя, класс, оценки</li>
+        <li>Метод <code>average()</code> — средняя оценка</li>
+        <li>Метод <code>introduce()</code> — «Меня зовут..., я учусь в...»</li>
+        <li>Создать <strong>3 ученика</strong>, вывести их статистику</li>
+      </ol>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">class Student:
+    def __init__(self, name, grade, scores):
+        self.name   = name
+        self.grade  = grade
+        self.scores = scores
+
+    def average(self):
+        return sum(self.scores) / len(self.scores)
+
+    def introduce(self):
+        avg = self.average()
+        print(f"Я {self.name}, учусь в {self.grade} классе.")
+        print(f"Средний балл: {avg:.1f}")
+
+# Три ученика
+s1 = Student("Саша", "7А", [4, 5, 3, 5, 4])
+s2 = Student("Катя", "7А", [5, 5, 5, 4, 5])
+s3 = Student("Петя", "7Б", [3, 4, 3, 4, 3])
+
+for student in [s1, s2, s3]:
+    student.introduce()
+    print()</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: Частые ошибки ООП -->
+<section class="slide"
+  data-notes="Разбор частых ошибок. self в методе — обязательно. Двойное подчёркивание в __init__ — обязательно. Скобки при вызове метода. Имя класса с большой буквы. Покажи каждую ошибку и исправление.">
+  <div class="slide__inner">
+    <h2>Ловушки <span class="accent">ООП новичка</span></h2>
+    <div class="grid grid--2">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3>Забыл <code>self</code> в методе</h3>
+        <div class="terminal" style="margin-top:8px">
+          <div class="terminal__body" style="font-size:12px">
+            <span style="color:#fca5a5">def bark():  # ← TypeError!</span><br>
+            <span style="color:#86efac">def bark(self):  # ← правильно</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3>Одно подчёркивание в <code>__init__</code></h3>
+        <div class="terminal" style="margin-top:8px">
+          <div class="terminal__body" style="font-size:12px">
+            <span style="color:#fca5a5">def _init_(self):  # ← не работает!</span><br>
+            <span style="color:#86efac">def __init__(self):  # ← два с каждой!</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3>Не вызвал метод — нет скобок</h3>
+        <div class="terminal" style="margin-top:8px">
+          <div class="terminal__body" style="font-size:12px">
+            <span style="color:#fca5a5">rex.bark   # указатель на функцию</span><br>
+            <span style="color:#86efac">rex.bark() # ← вот это вызов!</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3>Имя класса с маленькой буквы</h3>
+        <div class="terminal" style="margin-top:8px">
+          <div class="terminal__body" style="font-size:12px">
+            <span style="color:#fca5a5">class dog:   # ← соглашение нарушено</span><br>
+            <span style="color:#86efac">class Dog:   # ← правильно: PascalCase</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: Класс vs Словарь -->
+<section class="slide"
+  data-notes="Когда класс лучше словаря? Если у данных есть поведение — методы — нужен класс. Словарь хранит данные. Класс хранит данные И умеет с ними работать. Приведи примеры из игр.">
+  <div class="slide__inner">
+    <h2>Класс vs <span class="accent">Словарь</span> — что выбрать?</h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3>Словарь — если только данные</h3>
+        <p style="margin-bottom:8px">Просто хранить пары ключ-значение. Нет методов. Например: настройки игры, конфигурация.</p>
+        <div class="terminal">
+          <div class="terminal__body" style="font-size:12px">config = {"width": 800, "fps": 60}</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Класс — если данные + действия</h3>
+        <p style="margin-bottom:8px">Данные и методы вместе. Несколько экземпляров. Например: персонаж, враг, снаряд.</p>
+        <div class="terminal">
+          <div class="terminal__body" style="font-size:12px">class Bullet:<br>    def __init__(self, x, y, speed): ...<br>    def move(self): ...</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">«Словари — хорошо, но классы — ещё лучше, когда у вещи есть действия. Персонаж умеет атаковать — это класс!»</div>
+  </div>
+</section>
+
+<!-- SLIDE 12: Мини-проект: Герой vs Монстр -->
+<section class="slide"
+  data-notes="Мини-проект — первый бой с использованием классов. Герой и монстр атакуют друг друга по очереди. Это заготовка для RPG в уроке 31. Дай ученикам запустить и поменять значения HP и урона.">
+  <div class="slide__inner">
+    <h2>Первый бой: <span class="accent">Герой vs Монстр</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">class Character:
+    def __init__(self, name, hp, damage):
+        self.name   = name
+        self.hp     = hp
+        self.damage = damage
+
+    def attack(self, other):
+        other.hp -= self.damage
+        print(f"  {self.name} -> {other.name}: -{self.damage} HP")
+
+    def is_alive(self):
+        return self.hp > 0
+
+    def status(self):
+        hearts = "hp" * max(0, self.hp // 10)
+        print(f"{self.name}: {hearts} ({self.hp} HP)")
+
+# Создаём бойцов
+hero    = Character("Маг Арин", 100, 20)
+monster = Character("Огр", 60, 15)
+
+print("=== НАЧАЛО БОЯ ===")
+round_num = 1
+while hero.is_alive() and monster.is_alive():
+    print(f"\n--- Раунд {round_num} ---")
+    hero.attack(monster)
+    if monster.is_alive():
+        monster.attack(hero)
+    hero.status()
+    monster.status()
+    round_num += 1
+
+winner = hero.name if hero.is_alive() else monster.name
+print(f"\nПобедитель: {winner}!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: 3 факта об ООП -->
+<section class="slide"
+  data-notes="Итог. Три ключевых факта. Ребёнок должен уметь объяснить маме: класс — чертёж, объект — вещь по чертежу, self — слово 'я' для объекта. Попроси каждого ученика своими словами объяснить одно из трёх понятий.">
+  <div class="slide__inner">
+    <h2>3 факта об <span class="accent">ООП</span></h2>
+    <div class="grid grid--3">
+      <div class="card">
+        <h3>1. Класс = чертёж</h3>
+        <p>Описывает структуру. По одному классу — много объектов с разными значениями.</p>
+      </div>
+      <div class="card">
+        <h3>2. Объект = конкретная вещь</h3>
+        <p><code>rex = Dog("Рекс", 3)</code> — создаём объект по классу. Это экземпляр.</p>
+      </div>
+      <div class="card">
+        <h3>3. self = «я»</h3>
+        <p>Первый параметр каждого метода. Указывает на конкретный объект.</p>
+      </div>
+    </div>
+    <div class="quote-block">«Ты пишешь класс один раз, а объектов можешь сделать хоть сто. Скоро ты напишешь Тамагочи — реально живого питомца в коде!»</div>
+  </div>
+</section>
+
+<!-- SLIDE 14: Домашнее задание -->
+<section class="slide"
+  data-notes="ДЗ «Книга в библиотеке». Класс Book: название, автор, страницы. Метод info(). Метод is_long(). Создать 3 книги. YandexGPT генерирует 5 классических книг с авторами — это помогает найти данные для объектов.">
+  <div class="slide__inner">
+    <h2>ДЗ: <span class="accent">«Книга в библиотеке»</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <ol class="steps">
+          <li>Создать класс <code>Book</code>: название, автор, страницы</li>
+          <li>Метод <code>info()</code> — красивый вывод</li>
+          <li>Метод <code>is_long()</code> — длинная ли книга (&gt;300 стр.)</li>
+          <li>Создать <strong>3 книги</strong>, вывести их</li>
+        </ol>
+        <div class="card" style="margin-top:12px">
+          <h3>YandexGPT поможет!</h3>
+          <p>Промпт: «Назови 5 классических книг для детей с автором и количеством страниц — только список»</p>
+        </div>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">class Book:
+    def __init__(self, title, author, pages):
+        self.title  = title
+        self.author = author
+        self.pages  = pages
+
+    def info(self):
+        print(f"'{self.title}' — {self.author}, {self.pages} стр.")
+
+    def is_long(self):
+        return self.pages > 300
+
+b1 = Book("Гарри Поттер", "Роулинг", 350)
+b2 = Book("Маленький принц", "Экзюпери", 100)
+
+b1.info()
+print("Длинная?", b1.is_long())
+b2.info()
+print("Длинная?", b2.is_long())</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: Тизер: Наследование -->
+<section class="slide"
+  data-notes="Тизер. Наследование — следующий урок 30. Если класс Enemy похож на Character, зачем писать его с нуля? Можно наследовать! class Boss(Enemy): — Босс — это Враг, но мощнее. Запусти пример и покажи как Cat и Dog наследуют Animal.">
+  <div class="slide__inner">
+    <h2>Дальше: <span class="accent">наследование</span> — семья классов</h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p style="margin-bottom:10px">Что если нужен класс Enemy, похожий на Character?</p>
+        <p style="margin-bottom:12px;color:var(--muted)">Зачем писать с нуля, если можно <strong>унаследовать</strong>?</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">class Animal:
+    def __init__(self, name):
+        self.name = name
+    def eat(self):
+        print(f"{self.name} ест")
+
+class Cat(Animal):   # наследует Animal!
+    def speak(self):
+        print(f"{self.name}: Мяу!")
+
+class Dog(Animal):
+    def speak(self):
+        print(f"{self.name}: Гав!")
+
+for a in [Cat("Барсик"), Dog("Рекс")]:
+    a.eat()      # метод от Animal
+    a.speak()    # свой метод</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Урок 30 — Наследование</h3>
+        <p style="margin-bottom:10px">Три понятия ООП через детские метафоры:</p>
+        <ul class="clean">
+          <li><strong>Наследование</strong> — как родственники</li>
+          <li><strong>Полиморфизм</strong> — одно имя, разное поведение</li>
+          <li><strong>Инкапсуляция</strong> — личный дневник с замочком</li>
+        </ul>
+        <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+          <code>class Cat(Animal)</code>
+          <code>super()</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16: Финальная обложка (green) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Завершение урока. Ребёнок написал свой первый класс, создал объекты, вызвал методы. Это огромный шаг к настоящему программированию. Напомни про ДЗ: класс Book. Впереди — наследование и Тамагочи!">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Первый класс написан!<br>
+        <span style="font-size:0.7em;font-weight:600;">ДЗ: класс Book · Следующий: урок 30 — наследование</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- NEW SLIDES: expansion to 30+ -->
+
+<section class="slide"
+  data-notes="Разбор домашнего задания. Проверь у каждого ученика: есть ли класс, __init__ с self, хотя бы 2 атрибута и 1 метод. Пусть ученик объяснит, что делает каждая строка.">
+  <div class="slide__inner">
+    <h2>Разбор ДЗ: <span style="color:var(--cyan)">класс «Книга в библиотеке»</span></h2>
+    <p class="muted" style="margin-bottom:16px">Посмотрим, что получилось у студентов EdusonGames. Разбираем код вместе:</p>
+    <div class="compiler" data-lang="python"
+      data-notes="Эталонное решение. Проверь: __init__, self.атрибуты, хотя бы один метод, создание объекта и вызов метода.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Book:
+    def __init__(self, title, author, pages):
+        self.title = title
+        self.author = author
+        self.pages = pages
+        self.is_read = False
+
+    def read(self):
+        self.is_read = True
+        print(f"Прочитал: «{self.title}» — {self.pages} стр.")
+
+    def info(self):
+        status = "✅ прочитана" if self.is_read else "📖 не прочитана"
+        print(f"«{self.title}» / {self.author} / {self.pages} стр. / {status}")
+
+# Создаём объекты
+book1 = Book("Гарри Поттер", "Роулинг", 400)
+book2 = Book("Дюна", "Герберт", 600)
+
+book1.read()
+book1.info()
+book2.info()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Метод __str__ — магический метод для красивого вывода объекта. Покажи разницу: без __str__ print(hero) выводит непонятное, с __str__ — красивую строку. Это мотивирует изучение magic methods.">
+  <div class="slide__inner">
+    <h2>Магический метод <span style="color:var(--amber)">__str__</span></h2>
+    <div class="card" style="margin-bottom:20px">
+      <p>Когда пишешь <code style="color:var(--amber)">print(объект)</code>, Python ищет метод <code style="color:var(--amber)">__str__</code>. Если его нет — выводит адрес памяти. Если есть — твою строку!</p>
+    </div>
+    <div class="compiler" data-lang="python"
+      data-notes="Покажи сначала без __str__ — ученики увидят <__main__.Hero object ...>. Затем добавь __str__ — магия!">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    def __init__(self, name, hp, level):
+        self.name = name
+        self.hp = hp
+        self.level = level
+
+    def __str__(self):
+        bar = "❤️" * (self.hp // 20)
+        return f"[Ур.{self.level}] {self.name} | HP: {bar} ({self.hp})"
+
+    def level_up(self):
+        self.level += 1
+        self.hp += 10
+        print(f"⬆️ {self.name} повысил уровень!")
+
+hero = Hero("Артур", 80, 5)
+print(hero)        # вызывает __str__
+hero.level_up()
+print(hero)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Один класс — много объектов. Это ключевая идея ООП: шаблон (класс) создаётся один раз, а объектов из него — сколько угодно. Каждый объект независим.">
+  <div class="slide__inner">
+    <h2>Один класс — <span style="color:var(--green)">много объектов</span></h2>
+    <div class="card" style="margin-bottom:20px">
+      <p>Класс — это <strong style="color:var(--violet)">чертёж</strong>. Объект — это <strong style="color:var(--cyan)">построенное здание</strong>. Из одного чертежа строим сколько угодно зданий!</p>
+    </div>
+    <div class="compiler" data-lang="python"
+      data-notes="Три героя созданы из одного класса. Каждый независим — изменение hp одного не влияет на других.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    def __init__(self, name, role, hp):
+        self.name = name
+        self.role = role
+        self.hp = hp
+
+    def __str__(self):
+        return f"{self.name} ({self.role}) — HP: {self.hp}"
+
+# Три объекта из одного класса
+mage   = Hero("Аза", "Маг", 60)
+warrior = Hero("Брут", "Воин", 120)
+archer  = Hero("Лея", "Лучник", 80)
+
+team = [mage, warrior, archer]
+print("=== Отряд EdusonGames ===")
+for hero in team:
+    print(hero)
+
+# Меняем HP только у Брута
+warrior.hp -= 40
+print(f"\nПосле битвы: {warrior}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Методы с параметрами — герой атакует. Покажи разницу: метод без параметров (heal) и метод с параметром (attack принимает enemy). self — всегда первый параметр!">
+  <div class="slide__inner">
+    <h2>Метод с параметрами: <span style="color:var(--amber)">герой атакует</span></h2>
+    <div class="compiler" data-lang="python"
+      data-notes="attack(self, enemy, damage) — enemy это другой объект. Показываем, что методы могут принимать другие объекты как аргументы.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    def __init__(self, name, hp, attack_power):
+        self.name = name
+        self.hp = hp
+        self.attack_power = attack_power
+
+    def attack(self, enemy, multiplier=1):
+        damage = self.attack_power * multiplier
+        enemy.hp -= damage
+        print(f"⚔️ {self.name} атакует {enemy.name} на {damage} урона!")
+        if enemy.hp <= 0:
+            print(f"💀 {enemy.name} побеждён!")
+        else:
+            print(f"   {enemy.name} остаток HP: {enemy.hp}")
+
+    def heal(self, amount):
+        self.hp += amount
+        print(f"💊 {self.name} восстановил {amount} HP (итого: {self.hp})")
+
+hero  = Hero("Артур", 100, 30)
+enemy = Hero("Дракон", 90, 50)
+
+hero.attack(enemy)
+hero.attack(enemy, multiplier=2)   # критический удар</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Атрибуты класса (общие для всех объектов) vs атрибуты экземпляра (у каждого свои). Это тонкий момент — часто путают. Используй аналогию: атрибут класса = правило студии, атрибут экземпляра = персональный инвентарь.">
+  <div class="slide__inner">
+    <h2>Атрибуты класса vs <span style="color:var(--cyan)">атрибуты экземпляра</span></h2>
+    <div class="grid grid--2" style="margin-bottom:20px;gap:16px">
+      <div class="card" style="border-color:var(--violet)">
+        <h3 style="color:var(--violet);margin-bottom:8px">Атрибут класса</h3>
+        <p style="color:var(--muted);font-size:14px">Один для всех объектов. Задаётся вне <code>__init__</code>. Например, счётчик созданных объектов.</p>
+      </div>
+      <div class="card" style="border-color:var(--cyan)">
+        <h3 style="color:var(--cyan);margin-bottom:8px">Атрибут экземпляра</h3>
+        <p style="color:var(--muted);font-size:14px">У каждого объекта свой. Задаётся через <code>self.x = ...</code> в <code>__init__</code>.</p>
+      </div>
+    </div>
+    <div class="compiler" data-lang="python"
+      data-notes="count — атрибут класса, считает сколько героев создано. Менять count через self.count += 1 внутри __init__ — демонстрируй и объясняй.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    count = 0          # атрибут класса — общий для всех
+
+    def __init__(self, name, hp):
+        self.name = name   # атрибут экземпляра — у каждого свой
+        self.hp = hp
+        Hero.count += 1    # увеличиваем общий счётчик
+
+h1 = Hero("Артур", 100)
+h2 = Hero("Аза", 60)
+h3 = Hero("Брут", 120)
+
+print(f"Создано героев: {Hero.count}")  # 3
+print(f"HP Артура: {h1.hp}")
+print(f"HP Азы: {h2.hp}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Совместный кодинг — ученик пишет класс Enemy. Дай шаблон и пусть заполнят: атрибуты name/hp/damage, метод growl(), метод is_alive(). Проверь: забыл ли self у методов?">
+  <div class="slide__inner">
+    <h2>Практика: <span style="color:var(--amber)">класс Enemy</span> 🐉</h2>
+    <p class="muted" style="margin-bottom:16px">Твоя задача: написать класс для врагов EdusonGames. Шаблон дан — заполни пропуски!</p>
+    <div class="compiler" data-lang="python"
+      data-notes="Пусть ученик сам заполнит метод growl() и is_alive(). Подсказка: is_alive должен вернуть True если hp > 0.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Enemy:
+    def __init__(self, name, hp, damage):
+        self.name = name
+        self.hp = hp
+        self.damage = damage
+
+    def growl(self):
+        # Напиши вывод угрозы: "Дракон рычит и наносит 50 урона!"
+        print(f"{self.name} рычит и готовится нанести {self.damage} урона!")
+
+    def is_alive(self):
+        # Вернуть True если hp > 0, иначе False
+        return self.hp > 0
+
+    def take_damage(self, amount):
+        self.hp -= amount
+        if not self.is_alive():
+            print(f"💀 {self.name} повержен!")
+        else:
+            print(f"😤 {self.name} получил {amount} урона. Осталось: {self.hp} HP")
+
+# Тест
+dragon = Enemy("Дракон", 150, 50)
+dragon.growl()
+dragon.take_damage(60)
+dragon.take_damage(100)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="YandexGPT как инструмент обучения ООП. Покажи, как правильно просить ИИ объяснить концепцию. Обсуди: почему self всегда первый параметр? Python передаёт объект автоматически при вызове метода.">
+  <div class="slide__inner">
+    <h2><span style="color:var(--violet)">YandexGPT</span> объясняет <code>self</code> 🤖</h2>
+    <div class="card" style="border-color:var(--violet);margin-bottom:20px">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">Промпт ученика:</p>
+      <p style="color:var(--text)">"Объясни простыми словами — зачем нужен self в Python? Я пишу класс Hero и не понимаю, почему self всегда первый параметр."</p>
+    </div>
+    <div class="card" style="border-color:var(--cyan)">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">Ответ YandexGPT:</p>
+      <p style="color:var(--text);font-size:14px">Представь, что <strong style="color:var(--cyan)">self</strong> — это ярлык «я сам». Когда ты пишешь <code>hero.attack()</code>, Python за кулисами делает <code>Hero.attack(hero)</code> — то есть передаёт объект первым аргументом. <code>self</code> — это и есть тот самый первый аргумент. Через <code>self</code> метод знает, <em>чей именно</em> HP уменьшать, <em>чьё</em> имя выводить.</p>
+      <p style="color:var(--muted);font-size:13px;margin-top:10px">→ Можно назвать его <code>this</code> или <code>me</code>, но все договорились писать <code>self</code>.</p>
+    </div>
+    <div class="compiler" data-lang="python"
+      data-notes="Демонстрация: вызов hero.heal() — это то же самое, что Hero.heal(hero). Явный вызов удивляет учеников и показывает механику.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    def __init__(self, name, hp):
+        self.name = name
+        self.hp = hp
+
+    def heal(self, amount):
+        self.hp += amount
+        print(f"{self.name}: HP восстановлен до {self.hp}")
+
+hero = Hero("Артур", 50)
+
+# Два способа вызвать один и тот же метод:
+hero.heal(30)            # обычный способ
+Hero.heal(hero, 20)      # явный способ (Python делает это за кулисами)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Связка класс + список — очень мощный паттерн. Список объектов — это 'команда'. Цикл по команде — обход всех героев. Это база для любой игры. Обязательно разыграй сценарий: команда выходит на бой.">
+  <div class="slide__inner">
+    <h2>Список объектов: <span style="color:var(--green)">команда EdusonGames</span></h2>
+    <div class="compiler" data-lang="python"
+      data-notes="Команда — список объектов. Демонстрируй: цикл по команде, фильтрация живых героев, сортировка по HP. Это типичный игровой код.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Hero:
+    def __init__(self, name, role, hp):
+        self.name = name
+        self.role = role
+        self.hp = hp
+
+    def is_alive(self):
+        return self.hp > 0
+
+    def __str__(self):
+        status = "🟢" if self.is_alive() else "💀"
+        return f"{status} {self.name} ({self.role}) — {self.hp} HP"
+
+# Создаём команду
+team = [
+    Hero("Артур", "Воин",   120),
+    Hero("Аза",   "Маг",     60),
+    Hero("Лея",   "Лучник",  80),
+    Hero("Брут",  "Берсерк", 0),   # уже мёртв
+]
+
+print("=== Состав отряда ===")
+for hero in team:
+    print(hero)
+
+alive = [h for h in team if h.is_alive()]
+print(f"\nЖивых: {len(alive)} из {len(team)}")
+
+# Сортировка по HP
+print("\n--- По убыванию HP ---")
+for h in sorted(alive, key=lambda h: h.hp, reverse=True):
+    print(h)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Типичные ошибки ООП — их ОБЯЗАТЕЛЬНО нужно разобрать до того, как ученик наступит на них. Каждая карточка — реальная ошибка с решением. Попроси учеников угадать, что не так.">
+  <div class="slide__inner">
+    <h2>Ловушки ООП: <span style="color:var(--amber)">ТОП-4 ошибки</span> ⚠️</h2>
+    <div class="grid grid--2" style="gap:16px">
+      <div class="card" style="border-color:var(--amber)">
+        <h3 style="color:var(--amber);font-size:14px;margin-bottom:8px">❌ Забыл self у атрибута</h3>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:8px">
+          def __init__(self, hp):<br>&nbsp;&nbsp;hp = hp&nbsp;&nbsp;# ❌ локальная!<br><br>def __init__(self, hp):<br>&nbsp;&nbsp;self.hp = hp&nbsp;&nbsp;# ✅
+        </div>
+        <p style="color:var(--muted);font-size:12px">Без self атрибут исчезает после __init__</p>
+      </div>
+      <div class="card" style="border-color:var(--amber)">
+        <h3 style="color:var(--amber);font-size:14px;margin-bottom:8px">❌ Забыл self в методе</h3>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:8px">
+          def heal(amount):&nbsp;&nbsp;# ❌<br>def heal(self, amount):  # ✅
+        </div>
+        <p style="color:var(--muted);font-size:12px">TypeError: heal() takes 1 argument but 2 were given</p>
+      </div>
+      <div class="card" style="border-color:var(--amber)">
+        <h3 style="color:var(--amber);font-size:14px;margin-bottom:8px">❌ Скобки при создании</h3>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:8px">
+          hero = Hero&nbsp;&nbsp;# ❌ это класс<br>hero = Hero()&nbsp;# ✅ это объект
+        </div>
+        <p style="color:var(--muted);font-size:12px">Без () создаёшь ссылку на класс, а не объект</p>
+      </div>
+      <div class="card" style="border-color:var(--amber)">
+        <h3 style="color:var(--amber);font-size:14px;margin-bottom:8px">❌ Неверный отступ в методе</h3>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:8px">
+          class Hero:<br>def heal():  # ❌ снаружи<br>&nbsp;&nbsp;def heal():  # ✅ внутри
+        </div>
+        <p style="color:var(--muted);font-size:12px">IndentationError или функция вне класса</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Мини-проект: полный бой. Ученик видит итог всего, чему научился. Два объекта, методы, цикл — всё вместе. Можно запустить и показать как 'работающая игра'.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span style="color:var(--cyan)">полный бой героев</span> ⚔️</h2>
+    <div class="compiler" data-lang="python"
+      data-notes="Полная демонстрация: два объекта бьются в цикле до победы одного. Это то, к чему шёл весь урок. Запусти и пусть ученики следят за выводом.">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">import random
+
+class Fighter:
+    def __init__(self, name, hp, atk, defense):
+        self.name = name
+        self.hp = hp
+        self.atk = atk
+        self.defense = defense
+
+    def attack(self, enemy):
+        damage = max(1, self.atk - enemy.defense + random.randint(-5, 10))
+        enemy.hp -= damage
+        crit = " 💥 КРИТ!" if damage > self.atk else ""
+        print(f"  {self.name} → {enemy.name}: {damage} урона{crit} | HP {enemy.name}: {max(0,enemy.hp)}")
+
+    def is_alive(self):
+        return self.hp > 0
+
+hero  = Fighter("Артур",  100, 35, 10)
+enemy = Fighter("Дракон", 120, 40, 5)
+
+print("⚔️ БОЙ НАЧАЛСЯ!")
+print(f"   {hero.name} ({hero.hp} HP) vs {enemy.name} ({enemy.hp} HP)\n")
+
+round_n = 1
+while hero.is_alive() and enemy.is_alive():
+    print(f"--- Раунд {round_n} ---")
+    hero.attack(enemy)
+    if enemy.is_alive():
+        enemy.attack(hero)
+    round_n += 1
+
+winner = hero.name if hero.is_alive() else enemy.name
+print(f"\n🏆 Победил: {winner}!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Блиц-вопрос перед итогом. Дай 2 минуты на каждый вопрос. Принимай любой ответ и объясняй. Цель — проверить понимание, а не наказать за ошибку.">
+  <div class="slide__inner">
+    <h2>Блиц-проверка: <span style="color:var(--amber)">что ты знаешь об ООП?</span> ⚡</h2>
+    <ol class="steps" style="margin-top:20px">
+      <li>Чем <strong style="color:var(--cyan)">класс</strong> отличается от <strong style="color:var(--cyan)">объекта</strong>? (Чертёж vs здание)</li>
+      <li>Зачем <code style="color:var(--amber)">self</code> всегда первый параметр метода? (Python передаёт объект автоматически)</li>
+      <li>Что делает метод <code style="color:var(--amber)">__init__</code>? (Инициализирует атрибуты при создании объекта)</li>
+      <li>Как создать два независимых объекта класса <code style="color:var(--violet)">Hero</code>? (<code>h1 = Hero("Маг"); h2 = Hero("Воин")</code>)</li>
+      <li>Что выведет <code>print(hero)</code> если нет <code>__str__</code>? (Адрес в памяти: &lt;__main__.Hero object...&gt;)</li>
+    </ol>
+    <div class="quote-block" style="margin-top:24px">
+      Если ответил на все 5 — ты готов к наследованию! 🚀
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Итог урока — три карточки. Попроси каждого ученика сказать своими словами, что такое класс, объект, self. Это финальное закрепление перед ДЗ.">
+  <div class="slide__inner">
+    <h2>Итог урока: <span style="color:var(--cyan)">3 главных вывода</span></h2>
+    <div class="grid grid--3" style="margin-top:24px;gap:20px">
+      <div class="card" style="border-color:var(--violet);text-align:center;padding:24px 20px">
+        <div style="font-size:2.4rem;margin-bottom:12px">🏗️</div>
+        <h3 style="color:var(--violet);margin-bottom:10px">Класс — чертёж</h3>
+        <p style="color:var(--muted);font-size:14px">Описывает структуру: атрибуты (данные) и методы (поведение). Создаётся один раз.</p>
+      </div>
+      <div class="card" style="border-color:var(--cyan);text-align:center;padding:24px 20px">
+        <div style="font-size:2.4rem;margin-bottom:12px">🎮</div>
+        <h3 style="color:var(--cyan);margin-bottom:10px">Объект — экземпляр</h3>
+        <p style="color:var(--muted);font-size:14px">Создаётся по чертежу через <code>Hero()</code>. У каждого свои данные, но общие методы.</p>
+      </div>
+      <div class="card" style="border-color:var(--amber);text-align:center;padding:24px 20px">
+        <div style="font-size:2.4rem;margin-bottom:12px">🔑</div>
+        <h3 style="color:var(--amber);margin-bottom:10px">self — «я сам»</h3>
+        <p style="color:var(--muted);font-size:14px">Первый параметр каждого метода. Указывает на конкретный объект, от которого вызван метод.</p>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:28px">
+      <span style="color:var(--amber);font-weight:600">Правило EdusonGames:</span> думай о классе как о профессии в команде: у каждого воина свои HP, но все воины умеют <em>атаковать</em> — это метод класса.
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Бонусное задание для продвинутых. Класс Inventory со списком предметов — мостик к следующей теме. Если ученик справится, поздравь особо.">
+  <div class="slide__inner">
+    <h2>ДЗ бонус: <span style="color:var(--amber)">класс Inventory</span> 🎒</h2>
+    <p class="muted" style="margin-bottom:16px">Добавь герою инвентарь. Класс должен уметь добавлять предметы, удалять и показывать список.</p>
+    <div class="compiler" data-lang="python"
+      data-notes="Бонус для продвинутых. Класс Inventory хранит список items. Метод add() добавляет, remove() удаляет, show() выводит. Hero получает self.inventory = Inventory().">
+      <div class="compiler-code" contenteditable="true" spellcheck="false">class Inventory:
+    def __init__(self):
+        self.items = []
+
+    def add(self, item):
+        self.items.append(item)
+        print(f"➕ Добавлено: {item}")
+
+    def remove(self, item):
+        if item in self.items:
+            self.items.remove(item)
+            print(f"➖ Удалено: {item}")
+        else:
+            print(f"❌ {item} не найден в инвентаре")
+
+    def show(self):
+        if self.items:
+            print("🎒 Инвентарь:", ", ".join(self.items))
+        else:
+            print("🎒 Инвентарь пуст")
+
+class Hero:
+    def __init__(self, name):
+        self.name = name
+        self.inventory = Inventory()
+
+hero = Hero("Артур")
+hero.inventory.add("Меч")
+hero.inventory.add("Щит")
+hero.inventory.add("Зелье лечения")
+hero.inventory.show()
+hero.inventory.remove("Меч")
+hero.inventory.show()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--cover"
+  style="background:#22c55e"
+  data-notes="Финальная зелёная обложка. Поздравь учеников — они написали свой первый класс! Напомни о ДЗ.">
+  <div class="game-icons">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13 0h-3a2 2 0 0 1-2-2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" stroke="#fff" stroke-width="1.5"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" stroke="#fff" stroke-width="1.5"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z" stroke="#fff" stroke-width="1.5"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z" stroke="#fff" stroke-width="1.5"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z" stroke="#fff" stroke-width="1.5"/><path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" stroke="#fff" stroke-width="1.5"/><path d="M10 9.5c0 .83-.67 1.5-1.5 1.5H3.5C2.67 11 2 10.33 2 9.5S2.67 8 3.5 8h5c.83 0 1.5.67 1.5 1.5z" stroke="#fff" stroke-width="1.5"/><path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" stroke="#fff" stroke-width="1.5"/></svg>
+  </div>
+  <div class="cover-bubble cover-bubble--speech" style="background:#ffffff">
+    <h1 style="color:#1a1a2e;font-size:clamp(1.6rem,4vw,2.6rem);line-height:1.2">Класс создан —<br>ООП освоен! 🏗️✅</h1>
+    <p style="color:#1a4731;margin-top:12px;font-size:1.05rem;font-weight:500">Ты написал свои первые классы и объекты. Следующий урок: наследование!</p>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

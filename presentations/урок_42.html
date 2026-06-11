@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 42 — Клавиатура и анимация в PyGame Zero | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  .timeline{display:flex;flex-direction:column;gap:12px}
+  .timeline__row{display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:flex-start;padding:14px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--cyan);}
+  .timeline__body h3{font-size:17px;margin-bottom:4px}
+  .timeline__body p{font-size:14px;color:var(--muted)}
+
+  .kv{display:flex;flex-direction:column;gap:6px}
+  .kv__item{display:grid;grid-template-columns:180px 1fr;gap:12px;padding:10px 16px;background:var(--card);border:1px solid var(--card-border);border-radius:10px;align-items:center;}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#c4b5fd;}
+  .kv__val{font-size:14px;color:var(--text);}
+
+  .diagram{width:100%;max-width:700px;margin:0 auto;display:block}
+
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">31</span></div>
+
+<main class="deck" id="deck">
+
+<!-- 1. COVER purple -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 42 — переходим к новому мини-проекту. Больше не 'Поймай яблоко' — теперь создаём бегающего персонажа-человечка. Это заготовка для будущего платформера. Начни с демонстрации: покажи готового бегающего персонажа с анимацией.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №42</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Клавиатура и анимация<br>в PyGame Zero
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 2. HOMEWORK REVIEW -->
+<section class="slide"
+  data-notes="Разбор ДЗ урока 41: звуки в PyGame Zero. Попроси учеников показать экран с работающим звуком. Ключевой вопрос: что такое sounds.name и почему имя файла важно? Если ДЗ не сделано — покажи эталон и дай 3 минуты попробовать.">
+  <div class="slide__inner">
+    <h2>Разбор ДЗ — <span class="accent">урок 41: звуки</span></h2>
+    <p class="lead">Проверяем: звук монеты, звук удара, фоновая музыка</p>
+    <div class="grid grid--2" style="margin-top:12px;align-items:start">
+      <div>
+        <div class="card card--glow">
+          <h3>Что должно быть</h3>
+          <ul class="clean" style="margin-top:10px">
+            <li>Файлы <code>coin.wav</code>, <code>hit.wav</code> в папке <code>sounds/</code></li>
+            <li><code>sounds.coin.play()</code> при сборе монеты</li>
+            <li><code>sounds.hit.play()</code> при столкновении</li>
+            <li>Фоновая музыка через <code>music.play('bg')</code></li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:12px;border-color:rgba(34,197,94,0.3)">
+          <p style="color:#86efac;font-size:13px;margin-bottom:6px">✓ Типичные решения учеников:</p>
+          <ul class="clean">
+            <li>Имя файла без расширения: <code>sounds.coin</code>, не <code>sounds.coin.wav</code></li>
+            <li>Вызов в нужном месте (в on_key_down или при коллизии)</li>
+          </ul>
+        </div>
+      </div>
+      <pre><code class="language-python"># Эталон ДЗ 41
+import pgzrun
+
+WIDTH = 600
+HEIGHT = 400
+
+coin = Actor('coin', (300, 200))
+score = 0
+
+def draw():
+    screen.fill('darkblue')
+    coin.draw()
+    screen.draw.text(
+        f'Счёт: {score}',
+        topleft=(10,10), fontsize=30
+    )
+
+def update():
+    global score
+    if coin.collidepoint(
+        (mouse.x, mouse.y)
+    ):
+        sounds.coin.play()
+        score += 1
+        coin.pos = (
+            randint(50, 550),
+            randint(50, 350)
+        )
+
+pgzrun.go()</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 3. SELF-CHECK -->
+<section class="slide"
+  data-notes="Проверочные вопросы — дай ученикам 2 минуты подумать самостоятельно, потом обсудите вместе. Вопрос 4 — ловушка: многие говорят 'нет разницы', но разница принципиальная.">
+  <div class="slide__inner">
+    <h2>Проверьте себя — <span class="accent">клавиши и события</span></h2>
+    <p class="lead">Прежде чем перейти дальше — ответь на эти вопросы</p>
+    <ol class="steps" style="margin-top:16px">
+      <li>Чем отличается <code>on_key_down()</code> от <code>keyboard.left</code>? Приведи пример, когда нужно каждое из них.</li>
+      <li>Сколько раз срабатывает <code>on_key_down</code>, если держать клавишу 5 секунд при 60 FPS?</li>
+      <li>Что произойдёт, если написать <code>hero.x -= SPEED</code> в <code>on_key_down</code> вместо <code>update</code>? Как изменится поведение?</li>
+      <li>Зачем нужна <code>hero.vy = 0</code> в момент приземления? Что будет без этой строчки?</li>
+      <li>Объясни формулу <code>(tick // 5) % 3</code> — что делает каждая часть?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 4. PLAN -->
+<section class="slide"
+  data-notes="60 минут плотно: теория 15 мин, базовое движение 15 мин, прыжок с гравитацией 15 мин, анимация 15 мин. Скажи, что сегодня создадут нового персонажа — с нуля до живого человечка.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <p class="lead">Сегодня создаём нового персонажа — с нуля до живого человечка</p>
+    <div class="timeline" style="margin-top:18px">
+      <div class="timeline__row">
+        <div class="timeline__time">0 – 5 мин</div>
+        <div class="timeline__body"><h3>Разбор ДЗ</h3><p>Смотрим видео со звуком из урока 41</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">5 – 15 мин</div>
+        <div class="timeline__body"><h3>Теория: событие vs состояние</h3><p>on_key_down() — однократно vs keyboard.left — постоянно</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">15 – 25 мин</div>
+        <div class="timeline__body"><h3>Движение стрелками</h3><p>Создаём walker/, hero = Actor, движение влево-вправо</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">25 – 40 мин</div>
+        <div class="timeline__body"><h3>Прыжок + гравитация</h3><p>on_key_down(SPACE) → hero.vy = -10, гравитация +0.5/кадр</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">40 – 55 мин</div>
+        <div class="timeline__body"><h3>Покадровая анимация</h3><p>frames[], tick, формула tick // 5 % len(frames)</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55 – 60 мин</div>
+        <div class="timeline__body"><h3>Итог: живой герой</h3><p>Бежит, прыгает, анимирован</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. EVENT vs STATE -->
+<section class="slide"
+  data-notes="Это ключевое концептуальное различие урока. Событие — дверной звонок, срабатывает один раз. Состояние — проверка, открыта ли дверь, каждую секунду. Прыжок = звонок. Бег = состояние зажатой кнопки. Спроси учеников, что, по их мнению, подходит для каждого из сценариев.">
+  <div class="slide__inner">
+    <h2>Два лица <span class="accent">клавиатуры</span></h2>
+    <p class="lead">Событие (один раз) против состояния (пока зажата)</p>
+    <div class="grid grid--2" style="margin-top:20px">
+      <div class="card card--glow">
+        <h3>⚡ on_key_down() — Событие</h3>
+        <ul class="clean" style="margin-top:12px">
+          <li>Срабатывает <strong>один раз</strong> при нажатии</li>
+          <li>Даже если держать кнопку 10 секунд</li>
+          <li>Идеально для: <strong>прыжка</strong>, выстрела, старта</li>
+          <li>Аналогия: дверной звонок</li>
+        </ul>
+        <pre style="margin-top:12px"><code class="language-python">def on_key_down(key):
+    if key == keys.SPACE:
+        hero.vy = -10  # прыжок!</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3>🔄 keyboard.left — Состояние</h3>
+        <ul class="clean" style="margin-top:12px">
+          <li>Проверяется <strong>каждый кадр</strong> (60 раз/сек)</li>
+          <li><span style="color:var(--cyan)">True</span> пока кнопка зажата</li>
+          <li>Идеально для: <strong>бега</strong>, полёта, прицела</li>
+          <li>Аналогия: проверять окно, открыто ли</li>
+        </ul>
+        <pre style="margin-top:12px"><code class="language-python">def update():
+    if keyboard.left:
+        hero.x -= 3  # бежит влево</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. ACTOR PROPERTIES -->
+<section class="slide"
+  data-notes="Actor — главный объект в PyGame Zero. Важно показать, что у него много встроенных свойств: pos, x, y, width, height, image. Спроси: если у Actor нет метода flip(), как перевернуть спрайт? (Ответ: два набора картинок или PIL.)">
+  <div class="slide__inner">
+    <h2>Actor — <span class="accent">всё что умеет</span></h2>
+    <p class="lead">Свойства и методы объекта Actor в PyGame Zero</p>
+    <div class="grid grid--2" style="margin-top:14px;align-items:start">
+      <div class="kv">
+        <div class="kv__item"><span class="kv__key">actor.x / .y</span><span class="kv__val">Координаты центра (число)</span></div>
+        <div class="kv__item"><span class="kv__key">actor.pos</span><span class="kv__val">Кортеж (x, y) центра</span></div>
+        <div class="kv__item"><span class="kv__key">actor.topleft</span><span class="kv__val">Координата левого верхнего угла</span></div>
+        <div class="kv__item"><span class="kv__key">actor.width / .height</span><span class="kv__val">Размер спрайта в пикселях</span></div>
+        <div class="kv__item"><span class="kv__key">actor.image</span><span class="kv__val">Имя файла картинки (без расширения)</span></div>
+        <div class="kv__item"><span class="kv__key">actor.colliderect(b)</span><span class="kv__val">True, если пересекается с b</span></div>
+        <div class="kv__item"><span class="kv__key">actor.draw()</span><span class="kv__val">Нарисовать на экране</span></div>
+      </div>
+      <div>
+        <div class="quote-block">
+          К Actor можно добавлять <strong>свои атрибуты</strong>: <code>hero.vy = 0</code>, <code>hero.hp = 3</code>, <code>hero.jumps_left = 2</code>. Python не запрещает — это обычный объект.
+        </div>
+        <pre style="margin-top:12px"><code class="language-python">hero = Actor('hero_idle')
+hero.pos = (150, 400)
+
+# Наши атрибуты:
+hero.vy = 0          # скорость по Y
+hero.direction = 1   # 1 = вправо, -1 = влево
+hero.hp = 3          # здоровье
+hero.score = 0       # очки
+
+# Использование:
+print(hero.x, hero.y)   # позиция
+print(hero.width)        # ширина спрайта</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. PROJECT SETUP -->
+<section class="slide"
+  data-notes="Новый проект — чистая папка. Объясни, почему новый проект: чтобы не мешать с 'Поймай яблоко'. Персонажа можно нарисовать в Kandinsky или взять из встроенных примеров. Покажи структуру папки на реальном экране.">
+  <div class="slide__inner">
+    <h2>Создаём проект <span class="accent">Walker</span></h2>
+    <p class="lead">Новая папка — бегающий и прыгающий герой</p>
+    <div class="grid grid--2" style="margin-top:16px;align-items:start">
+      <div>
+        <div class="terminal">
+          <div class="terminal__body">
+<span class="terminal__prompt">walker/</span><br>
+├── game.py<br>
+└── images/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── hero_idle.png<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── hero_run1.png<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── hero_run2.png<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── hero_run3.png<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── hero_jump.png
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <p><strong style="color:var(--cyan)">Kandinsky промпт:</strong><br>«пиксельный мальчик-герой, вид сбоку, поднятая нога (бег), прозрачный фон, 128×128, мультяшный»</p>
+        </div>
+      </div>
+      <pre><code class="language-python"># walker/game.py — начало
+WIDTH = 800
+HEIGHT = 500
+GROUND = 400  # уровень земли
+
+# Создаём персонажа
+hero = Actor('hero_idle')
+hero.pos = (150, GROUND)
+hero.vy = 0  # вертикальная скорость
+
+def draw():
+    screen.fill('skyblue')
+    # Рисуем землю
+    screen.draw.filled_rect(
+        Rect(0, GROUND+30, WIDTH, 100),
+        'saddlebrown'
+    )
+    hero.draw()
+
+def update():
+    pass  # пока пусто</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 8. MOVEMENT -->
+<section class="slide"
+  data-notes="Добавляем движение. Главное объяснить: почему max/min (clamp)? Чтобы персонаж не уходил за экран. Это профессиональный паттерн — взрослые разработчики называют это clamp.">
+  <div class="slide__inner">
+    <h2>Движение <span class="accent">стрелками</span></h2>
+    <p class="lead">keyboard.left и keyboard.right проверяем в update()</p>
+    <pre style="margin-top:8px"><code class="language-python">SPEED = 4  # скорость движения
+
+def update():
+    # Движение влево/вправо
+    if keyboard.left:
+        hero.x -= SPEED
+    if keyboard.right:
+        hero.x += SPEED
+
+    # Ограничение — не выходить за края
+    hero.x = max(40, min(WIDTH - 40, hero.x))
+
+    # Гравитация (добавим позже)
+    hero.vy += 0.5        # ускорение вниз
+    hero.y += hero.vy     # применяем скорость
+
+    # Земля — не проваливаться
+    if hero.y >= GROUND:
+        hero.y = GROUND
+        hero.vy = 0       # скорость обнуляем</code></pre>
+    <div class="quote-block" style="margin-top:4px">
+      <strong>max(40, min(WIDTH-40, x))</strong> — это «зажим в коридор». Взрослые разработчики называют это <strong>clamp</strong>. Гарантирует, что значение всегда в нужном диапазоне.
+    </div>
+  </div>
+</section>
+
+<!-- 9. CLAMP SELF-PRACTICE -->
+<section class="slide"
+  data-notes="Попроси учеников запустить код и понять, как работает clamp. Меняй MIN и MAX и наблюдай результат. Это важный паттерн, который встречается в любой игре.">
+  <div class="slide__inner">
+    <h2>Угадай результат — <span class="accent">clamp</span></h2>
+    <p class="lead">Что выведет Python? Запусти и проверь</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def clamp(value, min_val, max_val):
+    return max(min_val, min(max_val, value))
+
+WIDTH = 800
+MIN_X = 40
+MAX_X = WIDTH - 40  # = 760
+
+# Угадай, что выведет каждая строка:
+tests = [0, 40, 400, 760, 800, -50, 1000]
+
+for x in tests:
+    result = clamp(x, MIN_X, MAX_X)
+    status = "OK" if result == x else f"-> {result}"
+    print(f"clamp({x:5d}) = {result:5d}  {status}")
+</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block" style="margin-top:8px">
+      Попробуй: измени <code>MIN_X = 100</code> и <code>MAX_X = 600</code>. Что изменится для персонажа?
+    </div>
+  </div>
+</section>
+
+<!-- 10. JUMP + GRAVITY -->
+<section class="slide"
+  data-notes="Гравитация в играх — самый популярный вопрос. Объясни: в реальной жизни гравитация ускоряет тело вниз. В игре это +0.5 к вертикальной скорости каждый кадр. При прыжке даём отрицательную скорость (вверх), гравитация постепенно замедляет и разворачивает движение.">
+  <div class="slide__inner">
+    <h2>Прыжок и <span class="accent">гравитация</span></h2>
+    <p class="lead">Физика в играх — это просто +0.5 к скорости каждый кадр</p>
+    <svg class="diagram" viewBox="0 0 700 180" style="margin:10px auto">
+      <defs><linearGradient id="arc" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <path d="M 80 140 Q 350 20 620 140" stroke="url(#arc)" stroke-width="3" fill="none" stroke-dasharray="8 4"/>
+      <line x1="40" y1="145" x2="660" y2="145" stroke="#475569" stroke-width="2"/>
+      <text x="350" y="165" text-anchor="middle" fill="#64748b" font-family="Inter" font-size="13">земля</text>
+      <text x="80" y="135" fill="#F1F5F9" font-family="JetBrains Mono" font-size="13">hero</text>
+      <text x="60" y="120" fill="#c4b5fd" font-family="JetBrains Mono" font-size="12">vy=-10</text>
+      <text x="310" y="35" fill="#06B6D4" font-family="Inter" font-size="13">vy=0 (вершина)</text>
+      <text x="570" y="135" fill="#F1F5F9" font-family="JetBrains Mono" font-size="13">hero</text>
+      <text x="570" y="120" fill="#fca5a5" font-family="JetBrains Mono" font-size="12">vy=+10</text>
+      <text x="200" y="80" fill="#F59E0B" font-family="Inter" font-size="12">down +0.5/frame</text>
+    </svg>
+    <pre><code class="language-python">GRAVITY = 0.5   # ускорение вниз каждый кадр
+JUMP_POWER = -10  # начальная скорость прыжка (вверх)
+
+def on_key_down(key):
+    if key == keys.SPACE:
+        # Прыгаем только если стоим на земле
+        if hero.y >= GROUND:
+            hero.vy = JUMP_POWER   # отталкиваемся вверх
+
+def update():
+    hero.vy += GRAVITY  # гравитация тянет вниз
+    hero.y += hero.vy   # применяем скорость
+
+    if hero.y >= GROUND:
+        hero.y = GROUND
+        hero.vy = 0     # приземлились</code></pre>
+  </div>
+</section>
+
+<!-- 11. GRAVITY DEEP DIVE -->
+<section class="slide"
+  data-notes="Глубокий разбор гравитации. Покажи таблицу, как vy меняется кадр за кадром. Попроси учеников ответить: на каком кадре персонаж достигает вершины прыжка? (Когда vy = 0, то есть кадр 20 при JUMP_POWER=-10 и GRAVITY=0.5.)">
+  <div class="slide__inner">
+    <h2>Гравитация в <span class="accent">числах</span></h2>
+    <p class="lead">Разбираем прыжок кадр за кадром</p>
+    <div class="grid grid--2" style="margin-top:12px;align-items:start">
+      <div>
+        <div class="card">
+          <h3>Как меняется vy за прыжок</h3>
+          <div class="terminal" style="margin-top:12px">
+            <div class="terminal__body">
+Кадр | vy    | y (от земли)<br>
+-----|-------|-------------<br>
+  0  | -10.0 | 400 (земля)<br>
+  1  |  -9.5 | 390.5<br>
+  2  |  -9.0 | 381.5<br>
+  ...|  ...  | ...<br>
+ 20  |   0.0 | 300 (вершина)<br>
+  ...|  ...  | ...<br>
+ 40  | +10.0 | 390.5<br>
+ 41  | +10.5 | 400 (земля!)
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="quote-block">
+          <strong>Формула:</strong><br>
+          vy(кадр) = JUMP_POWER + GRAVITY × кадр<br><br>
+          Вершина: кадр = |JUMP_POWER| / GRAVITY<br>
+          = 10 / 0.5 = <strong style="color:var(--cyan)">кадр 20</strong>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Настройка прыжка</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li><strong>Выше прыжок:</strong> уменьши JUMP_POWER (до -15)</li>
+            <li><strong>Дольше в воздухе:</strong> уменьши GRAVITY (до 0.3)</li>
+            <li><strong>Быстрое падение:</strong> увеличь GRAVITY (до 0.8)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. PAUSE green -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза на вопросы. Спроси: 'Что ещё управляет персонажем кроме клавиатуры в реальных играх?' (Геймпад, мышь, сенсор наклона, голос.) 'Как сделать, чтобы персонаж скользил на льду?' (Инерция — изменять скорость постепенно, а не мгновенно.)">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Пришло время<br>задавать вопросы!
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- 13. ANIMATION CONCEPT -->
+<section class="slide"
+  data-notes="Спрайтшит — концепция из профессиональной разработки игр. Мы используем упрощённый вариант: отдельные файлы вместо одного большого изображения. Принцип тот же: несколько кадров, сменяющихся по кругу. Покажи формулу tick // 5 % 3 и спроси, что она даёт.">
+  <div class="slide__inner">
+    <h2>Покадровая <span class="accent">анимация</span></h2>
+    <p class="lead">Флипбук из картинок — как мультфильм в тетради</p>
+    <svg class="diagram" viewBox="0 0 800 200" style="margin:10px auto;max-width:750px">
+      <defs><linearGradient id="anim" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <g>
+        <rect x="20" y="30" width="100" height="100" rx="12" fill="rgba(124,58,237,0.12)" stroke="url(#anim)" stroke-width="2"/>
+        <text x="70" y="90" text-anchor="middle" font-size="44" font-family="Inter">&#x1F9CD;</text>
+        <text x="70" y="145" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono" font-size="12">hero_run1</text>
+        <text x="70" y="165" text-anchor="middle" fill="#64748b" font-family="Inter" font-size="11">tick: 0-4</text>
+      </g>
+      <text x="140" y="85" fill="#06B6D4" font-size="20">→</text>
+      <g>
+        <rect x="160" y="30" width="100" height="100" rx="12" fill="rgba(6,182,212,0.12)" stroke="url(#anim)" stroke-width="2"/>
+        <text x="210" y="90" text-anchor="middle" font-size="44" font-family="Inter">&#x1F3C3;</text>
+        <text x="210" y="145" text-anchor="middle" fill="#06B6D4" font-family="JetBrains Mono" font-size="12">hero_run2</text>
+        <text x="210" y="165" text-anchor="middle" fill="#64748b" font-family="Inter" font-size="11">tick: 5-9</text>
+      </g>
+      <text x="280" y="85" fill="#06B6D4" font-size="20">→</text>
+      <g>
+        <rect x="300" y="30" width="100" height="100" rx="12" fill="rgba(124,58,237,0.12)" stroke="url(#anim)" stroke-width="2"/>
+        <text x="350" y="90" text-anchor="middle" font-size="44" font-family="Inter">&#x1F9CD;</text>
+        <text x="350" y="145" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono" font-size="12">hero_run3</text>
+        <text x="350" y="165" text-anchor="middle" fill="#64748b" font-family="Inter" font-size="11">tick: 10-14</text>
+      </g>
+      <text x="420" y="85" fill="#06B6D4" font-size="20">→</text>
+      <rect x="460" y="40" width="310" height="80" rx="14" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
+      <text x="615" y="75" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono" font-size="20" font-weight="600">tick // 5 % 3</text>
+      <text x="615" y="100" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="13">кадр 0, 1 или 2</text>
+    </svg>
+    <pre style="margin-top:8px"><code class="language-python">RUN_FRAMES = ['hero_run1', 'hero_run2', 'hero_run3']
+tick = 0
+
+def update():
+    global tick
+    tick += 1
+
+    # Выбираем кадр анимации
+    if keyboard.left or keyboard.right:
+        frame_idx = (tick // 5) % len(RUN_FRAMES)
+        hero.image = RUN_FRAMES[frame_idx]
+    else:
+        hero.image = 'hero_idle'  # стоит на месте</code></pre>
+  </div>
+</section>
+
+<!-- 14. FORMULA BREAKDOWN -->
+<section class="slide"
+  data-notes="Разбор формулы tick // 5 % 3 пошагово. Многие ученики не понимают оператор //, покажи на конкретных числах. Главный инсайт: // 5 замедляет смену кадров в 5 раз, % 3 зацикливает на 3 кадрах.">
+  <div class="slide__inner">
+    <h2>Формула <span class="accent">tick // 5 % 3</span> — разбор</h2>
+    <p class="lead">Два оператора, одна строка, вечная анимация</p>
+    <div class="grid grid--2" style="margin-top:14px;align-items:start">
+      <div>
+        <div class="card">
+          <h3>Шаг 1: <code>tick // 5</code></h3>
+          <p style="margin-top:8px">Целочисленное деление. Замедляет счётчик в 5 раз.</p>
+          <div class="terminal" style="margin-top:10px">
+            <div class="terminal__body">
+tick=0  → 0//5 = 0<br>
+tick=1  → 1//5 = 0<br>
+tick=4  → 4//5 = 0  (ещё тот же)<br>
+tick=5  → 5//5 = 1  (переключился!)<br>
+tick=9  → 9//5 = 1<br>
+tick=10 → 10//5 = 2 (следующий)
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Шаг 2: <code>... % 3</code></h3>
+          <p style="margin-top:8px">Остаток от деления. Зацикливает на 3 кадрах.</p>
+          <div class="terminal" style="margin-top:10px">
+            <div class="terminal__body">
+0 % 3 = 0 (кадр 1)<br>
+1 % 3 = 1 (кадр 2)<br>
+2 % 3 = 2 (кадр 3)<br>
+3 % 3 = 0 (снова кадр 1!)<br>
+4 % 3 = 1 (снова кадр 2)
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="quote-block">
+          Итог: кадр меняется каждые <strong>5 тиков</strong> и циклически перебирает <strong>3 кадра</strong>.<br><br>
+          Хочешь 4 кадра? Пиши <code>% 4</code>.<br>
+          Хочешь медленнее? Пиши <code>// 8</code>.
+        </div>
+        <div class="compiler" data-lang="python" style="margin-top:14px">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">FRAME_SPEED = 5
+NUM_FRAMES = 3
+
+print(f"Скорость: каждые {FRAME_SPEED} тиков")
+print(f"Кадров: {NUM_FRAMES}")
+print()
+
+for tick in range(20):
+    idx = (tick // FRAME_SPEED) % NUM_FRAMES
+    bar = ['_'] * NUM_FRAMES
+    bar[idx] = '#'
+    print(f"tick={tick:2d}  кадр={idx}  {''.join(bar)}")
+</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15. FULL CODE -->
+<section class="slide"
+  data-notes="Полный код Walker — демонстрируй построчно. Объясни каждую секцию. Ребёнок должен уметь воспроизвести это самостоятельно. Хорошая задача: закрыть слайд и попробовать написать по памяти.">
+  <div class="slide__inner">
+    <h2>Полный код <span class="accent">Walker</span></h2>
+    <p class="lead">Всё вместе — ~40 строк, живой персонаж</p>
+    <pre><code class="language-python">WIDTH = 800
+HEIGHT = 500
+GROUND = 400
+SPEED = 4
+GRAVITY = 0.5
+JUMP_POWER = -10
+RUN_FRAMES = ['hero_run1', 'hero_run2', 'hero_run3']
+
+hero = Actor('hero_idle')
+hero.pos = (150, GROUND)
+hero.vy = 0
+tick = 0
+
+def draw():
+    screen.fill((135, 206, 235))  # небо
+    screen.draw.filled_rect(
+        Rect(0, GROUND+30, WIDTH, HEIGHT), (101, 67, 33))  # земля
+    hero.draw()
+
+def update():
+    global tick
+    tick += 1
+    moving = False
+
+    if keyboard.left:
+        hero.x -= SPEED
+        moving = True
+    if keyboard.right:
+        hero.x += SPEED
+        moving = True
+
+    hero.x = max(40, min(WIDTH-40, hero.x))
+    hero.vy += GRAVITY
+    hero.y += hero.vy
+
+    if hero.y >= GROUND:
+        hero.y = GROUND
+        hero.vy = 0
+
+    if moving and hero.y >= GROUND:
+        hero.image = RUN_FRAMES[(tick // 5) % 3]
+    elif hero.y < GROUND:
+        hero.image = 'hero_jump'
+    else:
+        hero.image = 'hero_idle'
+
+def on_key_down(key):
+    if key == keys.SPACE and hero.y >= GROUND:
+        hero.vy = JUMP_POWER</code></pre>
+  </div>
+</section>
+
+<!-- 16. CODE WALKTHROUGH -->
+<section class="slide"
+  data-notes="Разбираем полный код по секциям. Попроси учеников назвать: что делает каждая секция? Если ученик затрудняется, покажи на примере: 'Убери эту строку и запусти — что сломается?'">
+  <div class="slide__inner">
+    <h2>Разбираем код <span class="accent">по секциям</span></h2>
+    <p class="lead">Из чего состоит Walker — 6 блоков</p>
+    <ol class="steps" style="margin-top:16px">
+      <li><strong>Константы</strong> — WIDTH, HEIGHT, GROUND, SPEED, GRAVITY, JUMP_POWER. Всё настраивается в одном месте, не надо искать магические числа по коду.</li>
+      <li><strong>Создание персонажа</strong> — <code>Actor('hero_idle')</code>. Добавляем наши атрибуты: <code>hero.vy = 0</code>, <code>tick = 0</code>.</li>
+      <li><strong>draw()</strong> — рисуем небо, землю, персонажа. Выполняется 60 раз/сек, только рисование, никакой логики.</li>
+      <li><strong>update() — движение</strong> — проверяем keyboard, двигаем hero.x, применяем clamp.</li>
+      <li><strong>update() — физика</strong> — vy += GRAVITY, y += vy, проверка приземления.</li>
+      <li><strong>update() — анимация</strong> — выбор кадра в зависимости от состояния (бежит, прыгает, стоит).</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 17. ANIMATION SIMULATION -->
+<section class="slide"
+  data-notes="Симуляция анимации в браузере — показывает, как работает формула tick//5 % 3. Попроси учеников запустить и изменить FRAME_SPEED, чтобы понять, как скорость анимации влияет на результат.">
+  <div class="slide__inner">
+    <h2>Симуляция <span class="accent">анимации</span></h2>
+    <p class="lead">Запусти и посмотри, как меняются кадры по тикам</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция анимации персонажа
+FRAMES = ['hero_run1', 'hero_run2', 'hero_run3']
+FRAME_SPEED = 5  # кадр меняется каждые 5 тиков
+
+print("Тик  | Кадр-индекс | Картинка")
+print("-" * 40)
+
+for tick in range(30):  # 30 тиков = 0.5 секунды
+    frame_idx = (tick // FRAME_SPEED) % len(FRAMES)
+    frame_name = FRAMES[frame_idx]
+
+    # Визуализация
+    bar = ['.', '.', '.']
+    bar[frame_idx] = '#'
+    bar_str = ' '.join(bar)
+
+    print(f"  {tick:2d}  |     [{frame_idx}]       | {frame_name}  {bar_str}")
+
+print()
+print("Попробуй изменить FRAME_SPEED = 2 или = 10!")
+print("Что происходит с анимацией?")
+</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18. JUMP SIMULATION -->
+<section class="slide"
+  data-notes="Симуляция физики прыжка — показывает, как гравитация влияет на вертикальную скорость. Попроси учеников изменить GRAVITY и JUMP_POWER и обсудить, что происходит.">
+  <div class="slide__inner">
+    <h2>Симуляция <span class="accent">прыжка</span></h2>
+    <p class="lead">Посмотри на физику прыжка — гравитация в числах</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Физика прыжка
+GRAVITY = 0.5
+JUMP_POWER = -10
+GROUND = 400
+
+y = GROUND      # начальная позиция
+vy = JUMP_POWER  # скорость вверх
+
+print(f"{'Кадр':>5} {'vy':>7} {'y':>7}  Позиция")
+print("-" * 50)
+
+for frame in range(50):
+    vy += GRAVITY
+    y += vy
+
+    if y >= GROUND:
+        y = GROUND
+        vy = 0
+        if frame > 5:
+            print(f"  {frame:2d}    {vy:>6.1f}   {y:>5.1f}  приземлился!")
+            break
+
+    # Визуализация высоты
+    height = int((GROUND - y) / 10)
+    bar = '^' * min(height, 20)
+    print(f"  {frame:2d}    {vy:>6.1f}   {y:>5.1f}  {bar}")
+
+print()
+print("Попробуй GRAVITY = 0.3 или JUMP_POWER = -15")
+</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 19. COMMON MISTAKES -->
+<section class="slide"
+  data-notes="Типичные ошибки на этом уроке. Бесконечный прыжок — самый частый баг. Забывают проверить, на земле ли герой, перед прыжком. Покажи каждую ошибку и дай ученикам самим найти исправление.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span></h2>
+    <p class="lead">Три бага, которые встречаются у всех — и как их чинить</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card">
+        <h3 style="color:#fca5a5">Прыгает бесконечно</h3>
+        <p style="margin-top:8px;color:var(--muted)">Забыта проверка «на земле ли». Персонаж прыгает в воздухе снова и снова.</p>
+        <pre style="margin-top:8px;font-size:12px"><code class="language-python"># Неправильно:
+if key == keys.SPACE:
+    hero.vy = JUMP_POWER
+
+# Правильно:
+if key == keys.SPACE:
+    if hero.y >= GROUND:
+        hero.vy = JUMP_POWER</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">Анимация мерцает</h3>
+        <p style="margin-top:8px;color:var(--muted)">Формула без деления — кадры меняются слишком быстро.</p>
+        <pre style="margin-top:8px;font-size:12px"><code class="language-python"># Мерцает (60 смен/сек):
+frame = tick % 3
+
+# Плавно (12 смен/сек):
+frame = (tick // 5) % 3</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">Улетает за экран</h3>
+        <p style="margin-top:8px;color:var(--muted)">Забыт clamp — ограничение координаты.</p>
+        <pre style="margin-top:8px;font-size:12px"><code class="language-python"># Правильно — clamp:
+hero.x = max(
+    40,
+    min(WIDTH-40, hero.x)
+)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 20. FIND THE BUG -->
+<section class="slide"
+  data-notes="Задание 'найди баг' — очень эффективное упражнение. Дай 3 минуты самостоятельно найти все ошибки, потом обсудите. Баги: 1) бесконечный прыжок, 2) нет clamp, 3) формула анимации без // (мерцание).">
+  <div class="slide__inner">
+    <h2>Самостоятельная — <span class="accent">найди 3 бага</span></h2>
+    <p class="lead">В коде спрятаны три ошибки. Найди и исправь!</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Найди 3 бага! Запусти, исправь, запусти снова.
+FRAMES = ['run1', 'run2', 'run3']
+GRAVITY = 0.5
+JUMP_POWER = -10
+GROUND = 400
+WIDTH = 800
+tick = 0
+
+hero_x = 150
+hero_y = GROUND
+hero_vy = 0
+
+def simulate_update():
+    global hero_x, hero_y, hero_vy, tick
+    tick += 1
+
+    # БАГ 1: движение вправо без ограничения
+    hero_x += 3
+
+    # Гравитация
+    hero_vy += GRAVITY
+    hero_y += hero_vy
+    if hero_y >= GROUND:
+        hero_y = GROUND
+        hero_vy = 0
+
+    # БАГ 2: анимация мерцает
+    frame_idx = tick % len(FRAMES)
+    return FRAMES[frame_idx]
+
+def jump():
+    global hero_vy
+    # БАГ 3: прыжок без проверки земли
+    hero_vy = JUMP_POWER
+
+# Симуляция
+for i in range(15):
+    frame = simulate_update()
+    if i == 5:
+        jump()
+    print(f"t={i:2d} x={hero_x:4d} y={hero_y:5.1f} frame={frame}")
+</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 21. BONUS: DOUBLE JUMP -->
+<section class="slide"
+  data-notes="Двойной прыжок — звёздная задача. Логика: отслеживаем счётчик jumps_left, обнуляем при приземлении. Это реальная игровая механика из Hollow Knight, Celeste и многих других. Спроси, кто играл в такие игры.">
+  <div class="slide__inner">
+    <h2>Бонус: <span class="accent">двойной прыжок</span></h2>
+    <p class="lead">Звёздная задача — второй прыжок в воздухе как в Hollow Knight</p>
+    <pre style="margin-top:16px"><code class="language-python"># Двойной прыжок
+hero.jumps_left = 2  # сколько прыжков осталось
+
+def on_key_down(key):
+    if key == keys.SPACE:
+        if hero.jumps_left > 0:
+            hero.vy = JUMP_POWER
+            hero.jumps_left -= 1
+
+def update():
+    hero.vy += GRAVITY
+    hero.y += hero.vy
+
+    if hero.y >= GROUND:
+        hero.y = GROUND
+        hero.vy = 0
+        hero.jumps_left = 2  # восстанавливаем на земле</code></pre>
+    <div class="quote-block" style="margin-top:12px">
+      Попробуй изменить на 3 прыжка. Или добавь разный цвет персонажа при первом и втором прыжке. Это называется «воздушный дэш» — фича из многих платформеров.
+    </div>
+  </div>
+</section>
+
+<!-- 22. DASH MECHANIC -->
+<section class="slide"
+  data-notes="Рывок — продвинутая механика. Ключевые понятия: cooldown (перезарядка) и импульс (мгновенная скорость). Покажи симуляцию: запусти код и посмотри, как изменяется x во время рывка.">
+  <div class="slide__inner">
+    <h2>Бонус++: <span class="accent">рывок (dash)</span></h2>
+    <p class="lead">Мгновенный импульс с перезарядкой — механика из Celeste</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция рывка (dash)
+DASH_SPEED = 15    # скорость рывка
+DASH_DURATION = 8  # тиков
+DASH_COOLDOWN = 30 # тиков до следующего
+
+hero_x = 100
+direction = 1   # 1=вправо, -1=влево
+dash_ticks = 0  # сколько осталось рывка
+cooldown = 0    # перезарядка
+
+def activate_dash():
+    global dash_ticks, cooldown
+    if cooldown == 0:
+        dash_ticks = DASH_DURATION
+        cooldown = DASH_COOLDOWN
+        print(f"  >>> РЫВОК! <<<")
+
+def update(t):
+    global hero_x, dash_ticks, cooldown
+    if dash_ticks > 0:
+        hero_x += DASH_SPEED * direction
+        dash_ticks -= 1
+    else:
+        hero_x += 3 * direction  # обычное движение
+    if cooldown > 0:
+        cooldown -= 1
+
+print(f"{'Тик':>4} {'x':>6} {'dash':>5} {'cd':>4}")
+for t in range(40):
+    if t == 5:
+        activate_dash()
+    update(t)
+    print(f"  {t:2d}   {hero_x:5d}  {dash_ticks:4d}  {cooldown:3d}")
+</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 23. GAME FEEL -->
+<section class="slide"
+  data-notes="Game feel — профессиональный термин. Это то, почему один платформер ощущается 'вкусным', а другой — деревянным. Coyote time — реальная техника из множества платформеров. Поспорь с учениками: это 'обман' игрока или нет?">
+  <div class="slide__inner">
+    <h2>Game Feel — <span class="accent">профессиональные техники</span></h2>
+    <p class="lead">Почему Mario ощущается лучше, чем случайный платформер</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card card--glow">
+        <h3>Coyote Time</h3>
+        <p style="margin-top:8px">Разрешить прыжок ещё 5-8 кадров после выхода с платформы. Игрок чувствует себя умным, а не обманутым.</p>
+        <pre style="margin-top:10px;font-size:12px"><code class="language-python">coyote = 6  # кадров
+
+def update():
+    global coyote
+    on_ground = hero.y >= GROUND
+    if on_ground:
+        coyote = 6
+    else:
+        coyote -= 1
+
+def on_key_down(key):
+    if key == keys.SPACE:
+        if coyote > 0:  # не только на земле
+            hero.vy = JUMP_POWER
+            coyote = 0</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3>Jump Buffering</h3>
+        <p style="margin-top:8px">Запомнить нажатие прыжка на несколько кадров вперёд. Если игрок нажал чуть раньше приземления — прыжок всё равно сработает.</p>
+        <pre style="margin-top:10px;font-size:12px"><code class="language-python">jump_buffer = 0  # кадров
+
+def on_key_down(key):
+    global jump_buffer
+    if key == keys.SPACE:
+        jump_buffer = 8  # запомнить на 8 кадров
+
+def update():
+    global jump_buffer
+    if jump_buffer > 0:
+        jump_buffer -= 1
+        if hero.y >= GROUND:
+            hero.vy = JUMP_POWER
+            jump_buffer = 0</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 24. HOMEWORK (expanded) -->
+<section class="slide"
+  data-notes="ДЗ — разворот и моргание. Гифку можно записать через ScreenToGif или встроенную запись Windows. Скажи, что Walker — это заготовка для урока 44, где сделают настоящий платформер.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">Оживляем персонажа ещё больше — 20 минут</p>
+    <div class="grid grid--3" style="margin-top:16px">
+      <div class="card card--glow">
+        <h3>Задание 1 — Разворот</h3>
+        <p style="margin-top:8px">Когда бежит влево — картинка должна смотреть влево. Можно через два набора спрайтов (<code>run1_left</code>) или через переменную <code>direction</code>.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Задание 2 — Моргание</h3>
+        <p style="margin-top:8px">Моргание в покое: каждые 2 секунды (120 тиков) персонаж подменяет <code>hero_idle</code> на <code>hero_blink</code> на 10 кадров.</p>
+      </div>
+      <div class="card card--glow">
+        <h3>Задание 3 — Гифка</h3>
+        <p style="margin-top:8px">Записать гифку бегающего и прыгающего персонажа (ScreenToGif, LICEcap) и отправить в чат.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 25. EXTENDED HOMEWORK -->
+<section class="slide"
+  data-notes="Расширенные задания для тех, кто хочет больше. Задание 4 — coyote time, мы только что разобрали. Задание 5 — особенно интересно: добавить звук шагов, синхронизированный с анимацией.">
+  <div class="slide__inner">
+    <h2>Расширенные задания — <span class="accent">для звёзд</span></h2>
+    <p class="lead">Если базовые задания сделаны — попробуй эти</p>
+    <ol class="steps" style="margin-top:16px">
+      <li><strong>Coyote Time</strong> — реализуй технику из урока. Разреши прыжок в течение 6 кадров после выхода с края платформы. Протестируй: прыгай с края, не нажимая заранее.</li>
+      <li><strong>Звук шагов</strong> — добавь <code>sounds.step.play()</code> синхронно с анимацией. Звук должен играть только при смене кадра (когда <code>tick % 5 == 0</code> и персонаж бежит).</li>
+      <li><strong>Частицы при прыжке</strong> — при отталкивании от земли нарисуй 3-5 маленьких кружков, которые разлетаются вниз и исчезают за 10 кадров.</li>
+      <li><strong>Счётчик прыжков</strong> — покажи в интерфейсе, сколько прыжков осталось (как в Celeste — маленькие кружки над персонажем).</li>
+      <li><strong>Рывок</strong> — реализуй dash из кода на слайде 22. Кнопка <code>LSHIFT</code>. Добавь визуальный эффект: следы-тени за персонажем.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 26. GLOSSARY -->
+<section class="slide"
+  data-notes="Словарь урока — хорошо попросить учеников закрыть ноутбук и объяснить каждый термин своими словами. Это проверка усвоения. 3 минуты в конце урока.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 42</span></h2>
+    <p class="lead">Ключевые термины, которые ты должен знать</p>
+    <div class="kv" style="margin-top:16px">
+      <div class="kv__item"><span class="kv__key">on_key_down()</span><span class="kv__val">Функция-обработчик события нажатия клавиши — вызывается один раз</span></div>
+      <div class="kv__item"><span class="kv__key">keyboard.left</span><span class="kv__val">Состояние клавиши — True пока зажата, проверяется каждый кадр</span></div>
+      <div class="kv__item"><span class="kv__key">vy (velocity Y)</span><span class="kv__val">Вертикальная скорость — отрицательная = вверх, положительная = вниз</span></div>
+      <div class="kv__item"><span class="kv__key">Гравитация</span><span class="kv__val">Постоянное увеличение vy каждый кадр (+0.5): имитирует притяжение</span></div>
+      <div class="kv__item"><span class="kv__key">Clamp</span><span class="kv__val">max(min_val, min(max_val, x)) — ограничение значения в диапазоне</span></div>
+      <div class="kv__item"><span class="kv__key">tick // 5 % 3</span><span class="kv__val">Формула анимации: замедлить в 5 раз, зациклить на 3 кадрах</span></div>
+      <div class="kv__item"><span class="kv__key">Game feel</span><span class="kv__val">Ощущение от управления: coyote time, jump buffer — делают игру «вкусной»</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 27. PROGRESS -->
+<section class="slide"
+  data-notes="Прогресс модуля — визуальный итог. Ученик видит, как далеко продвинулся. Обсуди: что осталось? Уроки 43-44 — UX и полноценный платформер.">
+  <div class="slide__inner">
+    <h2>Прогресс — <span class="accent">Модуль PyGame Zero</span></h2>
+    <p class="lead">Что уже умеем, что впереди</p>
+    <div class="grid grid--3" style="margin-top:20px">
+      <div class="card card--glow">
+        <h3 style="color:#86efac">✓ Пройдено</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Урок 37 — Установка, первый Actor</li>
+          <li>Урок 38 — Спрайты и коллизии</li>
+          <li>Урок 39 — Клавиатура (базовое)</li>
+          <li>Урок 40 — Проект «Поймай яблоко»</li>
+          <li>Урок 41 — Звуки и музыка</li>
+          <li>Урок 42 — Анимация и прыжок ✅</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:var(--amber)">→ Впереди</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Урок 43 — UX и game feel</li>
+          <li>Урок 44 — Полноценный платформер</li>
+          <li>Урок 45 — Враги и ИИ</li>
+          <li>Урок 46 — Уровни и карты</li>
+          <li>Урок 47 — Финальный проект</li>
+          <li>Урок 48 — Презентация и деплой</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:var(--cyan)">Walker умеет</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Ходить влево и вправо</li>
+          <li>Прыгать с гравитацией</li>
+          <li>Анимироваться (3 кадра бега)</li>
+          <li>Не выходить за экран</li>
+          <li>Двойной прыжок (бонус)</li>
+          <li>Рывок-dash (★★)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 28. RECAP SELF-CHECK -->
+<section class="slide"
+  data-notes="Финальная проверка перед выходом из урока. Попроси каждого ответить на один вопрос. Если есть сомнения — вернитесь к слайду с нужной темой.">
+  <div class="slide__inner">
+    <h2>Итоговая <span class="accent">самопроверка</span></h2>
+    <p class="lead">Можешь ответить — значит, урок усвоен</p>
+    <ol class="steps" style="margin-top:16px">
+      <li>Объясни разницу между <code>on_key_down()</code> и <code>keyboard.left</code> примером из реального геймплея.</li>
+      <li>Напиши формулу прыжка: что происходит с vy при нажатии SPACE? Что происходит каждый кадр?</li>
+      <li>Расшифруй формулу <code>(tick // 5) % 3</code> — что делает каждый оператор?</li>
+      <li>Зачем нужен clamp? Что произойдёт без него?</li>
+      <li>Что такое coyote time и почему это улучшает игру?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 29. NEXT LESSON PREVIEW -->
+<section class="slide"
+  data-notes="Анонс следующего урока. Попроси учеников подумать: что значит 'хорошее ощущение от управления'? Дай задание на наблюдение: поиграть в любую игру сегодня и обратить внимание на то, как реагирует персонаж на нажатие кнопок.">
+  <div class="slide__inner">
+    <h2>Урок 43 — <span class="accent">UX и game feel</span></h2>
+    <p class="lead">Почему одни игры ощущаются хорошо, а другие — нет</p>
+    <div class="grid grid--2" style="margin-top:16px;align-items:start">
+      <div class="card card--glow">
+        <h3>Что будем делать</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Добавим анимацию смерти и победы</li>
+          <li>Реализуем screen shake (тряска экрана)</li>
+          <li>Добавим particle effects (частицы)</li>
+          <li>Настроим «вес» персонажа (инерция)</li>
+          <li>Сделаем звуковую обратную связь</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3>Задание до урока 43</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Поиграй в Celeste, Hollow Knight или Braid</li>
+          <li>Обрати внимание: насколько быстро реагирует персонаж?</li>
+          <li>Есть ли у прыжка «вес»?</li>
+          <li>Что происходит при смерти?</li>
+          <li>Сравни с какой-нибудь «деревянной» игрой</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 30. HOMEWORK (extended list) -->
+<section class="slide"
+  data-notes="Напомни: ДЗ сдают до следующего урока. Гифку обязательно! Это мотивирует. Скажи, что лучшие гифки покажешь на уроке 43.">
+  <div class="slide__inner">
+    <h2>Итого — <span class="accent">что сдать</span></h2>
+    <p class="lead">Чек-лист ДЗ к уроку 43</p>
+    <ol class="steps" style="margin-top:16px">
+      <li>Walker запускается без ошибок и personage движется влево/вправо стрелками.</li>
+      <li>Прыжок работает по SPACE. Второй прыжок в воздухе невозможен (нет бесконечного прыжка).</li>
+      <li>Анимация бега включается при движении и выключается в покое.</li>
+      <li>При прыжке — спрайт <code>hero_jump</code>, при беге — спрайты <code>hero_run1/2/3</code>, в покое — <code>hero_idle</code>.</li>
+      <li>Персонаж не выходит за границы экрана (clamp реализован).</li>
+      <li><strong>Бонус:</strong> Двойной прыжок реализован и работает корректно.</li>
+      <li><strong>Гифка:</strong> Запись экрана с бегающим и прыгающим персонажем — отправить в чат.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 31. FINAL — cover green -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрывающий слайд. Персонаж Walker — это заготовка для платформера урока 44. Ребёнок уходит с живым бегающим героем. Клавиатура, прыжок с гравитацией, анимация — три кита любого платформера.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Персонаж живёт!<br>До урока 43 — UX и game feel
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 35 — ИИ-автокомплитеры, ИИ-IDE и ИИ-платформы | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 35</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">ИИ-автокомплитеры, ИИ-IDE и ИИ-платформы</h2>
+  <div class="meta"><span>Отдел:</span> <span>Искусственный</span> <span>интеллект.</span> <span>Неделя:</span> <span>9.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Искусственный интеллект. <strong>Неделя:</strong> 9. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Показать следующий уровень ИИ — автокомплит прямо в редакторе и ИИ-IDE типа Cursor. Познакомить с платформой Lovable.dev / Readdy.ai как подготовкой к финальному проекту (урок 36).</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает:</p>
+<p>— что такое автокомплитеры на базе ИИ и как они ускоряют написание кода;</p>
+<p>— как работают ИИ-IDE и какие возможности они предоставляют (подсказки, рефакторинг, генерация тестов);</p>
+<p>— что такое ИИ-платформы для обучения и разработки (например, Lovable);</p>
+<p>— что ИИ-инструменты помогают изучать язык быстрее и проверять идеи;</p>
+<p>— ограничения ИИ-платформ и необходимость контроля со стороны человека.</p>
+<p>Ученик может:</p>
+<p>— использовать автокомплитеры для ускорения написания кода;</p>
+<p>— работать с ИИ-IDE для генерации, тестирования и отладки кода;</p>
+<p>— применять ИИ-платформы для изучения Python или создания проектов;</p>
+<p>— оценивать результат работы ИИ и корректировать.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE Desktop с ИИ-автокомплитом (встроенный GigaChat), Cursor (https://cursor.com), Lovable.dev, Readdy.ai.</p>
+<h2>⚙️ Техтребования</h2>
+<p>GigaIDE уже установлен. Cursor — demo-аккаунт. Lovable.dev — регистрация по Google/Яндекс через родителя.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Разбор ДЗ-багфикса. Демо: преподаватель печатает <code>def fibo</code> — GigaIDE дописывает функцию целиком.</li>
+<li>5–20. Теория и демонстрация.</li>
+</ul>
+<p>  <strong>ИИ-автокомплит.</strong> Это как T9, но умный. В GigaIDE после установки и входа в аккаунт Сбера — встроенный помощник. Печатаешь начало, жмёшь Tab — получаешь продолжение. Показываем.</p>
+<p>  <strong>ИИ-IDE.</strong> Cursor — редактор на базе VS Code с встроенным ИИ. Ctrl+K — «перепиши эту функцию». Ctrl+L — чат. Для детей — пока знакомство, основной редактор — GigaIDE.</p>
+<p>  <strong>ИИ-платформы.</strong> Lovable.dev и Readdy.ai — ты описываешь сайт словами, платформа генерирует HTML/CSS/JS. Для завтрашнего урока 36.</p>
+<ul>
+<li>20–40. Практика. Ребёнок в GigaIDE печатает начало кода («функция приветствия, которая спрашивает имя и возраст») — видит предложения. Принимает/отклоняет. Пишет 3 функции с автокомплитом, 3 — без, сравнивает ощущения.</li>
+<li>40–55. Заглядываем в Lovable.dev. Регистрация с родителем. Пишем первый промпт: «Создай простой сайт-визитку для школьника Пети, увлекающегося Python. Тёмный фон, зелёный акцент, секции: Обо мне, Проекты, Контакт». Смотрим, что получилось. Это разминка к уроку 36.</li>
+<li>55–60. Итог. 3 пункта: автокомплит ускоряет, не думает за тебя; ИИ-IDE — следующий уровень; платформы типа Lovable — для быстрого прототипа. ДЗ.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Автокомплит — это быстрее, но ты всё равно должен понимать, что приняла IDE».</li>
+<li>«Никогда не принимай Tab не читая. Иногда ИИ подсовывает ерунду».</li>
+<li>«Cursor — взрослый редактор, мы играем. Рабочий инструмент — GigaIDE».</li>
+<li>«Ctrl+K — рефакторинг, Ctrl+L — чат. Запомни эти две комбинации в Cursor».</li>
+<li>«Lovable.dev — ты пишешь словами, он делает сайт. Волшебство».</li>
+<li>«Платформа = быстро, но результат надо чистить».</li>
+<li>«Хороший промпт для сайта = 3–5 секций + стиль + цвет + аудитория».</li>
+<li>«Завтра (урок 36) — твой сайт-визитка. Сегодня — репетиция».</li>
+<li>«Ты всё равно главный. ИИ — подмастерье».</li>
+<li>«Проверяй сгенерированный код запуском всегда».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>Мини-скетч сайта-визитки в Lovable.dev. Просто увидеть, ощутить, обсудить, что можно улучшить.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>Написать на бумаге (или в заметках) план сайта-визитки, который будем делать завтра. 5 секций: имя, фото/аватар, обо мне, мои проекты Python (из курса), контакт. Собрать список своих проектов (Виселица, Тамагочи, и т.д.).</p>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок пользуется автокомплитом в GigaIDE. Запускает Cursor хотя бы один раз. Открывает Lovable.dev и генерирует первый прототип.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>Слепо принимает все подсказки автокомплита. Тренируем — читай, потом Tab.</li>
+<li>Cursor на английском пугает. Переключаем язык, показываем Ctrl+L.</li>
+<li>Lovable генерирует не то. Переписываем промпт подробнее.</li>
+<li>Регистрация через родителя — задержка. Готовим демо-аккаунт преподавателя.</li>
+<li>«Зачем учиться, если ИИ всё пишет?» — показываем, что ИИ ошибается, ты должен уметь чинить.</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Звёздная задача: попросить Cursor переписать функцию из Тамагочи с комментариями на каждой строке. Сравнить стиль объяснения с YandexGPT.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Весь урок — три типа ИИ-инструментов: автокомплит (GigaIDE), ИИ-IDE (Cursor), платформа (Lovable). Завтра будем делать сайт.</p>
+<hr>
+</div>
+</body>
+</html>
