@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 22 — Файлы. Часть 1 | EdusonGames</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">32</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 22 — файлы. Главный инсайт: переменные живут пока программа запущена. Файлы — навсегда. Начни с вопроса: «Что будет с очками Морского боя когда закроешь программу?» — исчезнут! Файлы это фиксят.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №22</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Работа с файлами.<br>Часть 1
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Разбор домашнего задания (урок 21)
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор ДЗ урока 21 — модули. Спроси: кто сделал бонусные задачи? Покажи как работает loot_drop. Вручи бейдж 'Мастер импорта' тем кто прислал ДЗ. Это первые 5 минут урока.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span></h2>
+    <p class="lead">Урок 21 · Модули · Бейдж «Мастер импорта»</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+import math
+import time
+
+# ДЗ Задача 1: Секретное слово
+secret_word = random.choice(["кот", "пёс", "птица", "рыба", "лев"])
+hidden = "_ " * len(secret_word)
+print(f"Загадано слово: {hidden.strip()}")
+print(f"Длина: {len(secret_word)} букв")
+
+# ДЗ Задача 2: Тригонометрия
+print(f"\nsin(π/2) = {math.sin(math.pi/2):.1f}")
+print(f"cos(0)   = {math.cos(0):.1f}")
+print(f"tan(π/4) = {math.tan(math.pi/4):.4f}")
+
+# ДЗ Бонус: Игровая экономика
+def loot_drop(rarity):
+    ranges = {"common": (1, 20), "rare": (50, 200), "epic": (500, 2000)}
+    lo, hi = ranges.get(rarity, (1, 10))
+    return random.randint(lo, hi)
+
+print("\n=== Лут-дроп ===")
+for rarity in ["common", "rare", "epic"]:
+    gold = loot_drop(rarity)
+    print(f"  {rarity}: {gold} золота")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Что ты уже умеешь
+     ============================ -->
+<section class="slide"
+  data-notes="Слайд-пауза: напомни что ученик уже освоил. Акцент: модули — это чужой код. Файлы — это способ сохранить свой код. Главный вопрос урока: почему данные пропадают? — Сейчас ответим.">
+  <div class="slide__inner">
+    <h2>Твой арсенал к <span class="accent">уроку 22</span></h2>
+    <p class="lead">Всё это ты уже знаешь — сегодня добавляем файлы</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card card--glow">
+        <div style="font-size:24px;margin-bottom:8px">✅</div>
+        <h3>Уже освоено</h3>
+        <ul class="clean">
+          <li>Переменные, типы, условия</li>
+          <li>Циклы for и while</li>
+          <li>Функции def / return</li>
+          <li>Модули math, random, time</li>
+          <li>Списки и словари</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:24px;margin-bottom:8px">🆕</div>
+        <h3>Сегодня учим</h3>
+        <ul class="clean">
+          <li>open() — открыть файл</li>
+          <li>read() — прочитать файл</li>
+          <li>write() — записать в файл</li>
+          <li>Режимы r, w, a</li>
+          <li>Конструкция with open()</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Проблема — данные исчезают
+     ============================ -->
+<section class="slide"
+  data-notes="Мотивация: показать боль. Ребёнок набирает очки в игре, закрывает — всё пропало. Спроси: «Что случится с очками Морского боя если закрыть программу?» Файлы — решение. Переменные живут в памяти RAM, файлы — на диске.">
+  <div class="slide__inner">
+    <h2>Проблема: <span class="accent">данные исчезают</span></h2>
+    <p class="lead">Переменные живут в памяти — только пока программа запущена</p>
+    <div class="grid grid--2" style="margin-top:16px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)">
+        <h3 style="color:#fca5a5">Без файлов</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Набрал 5000 очков в «Морском бое»</li>
+          <li>Закрыл программу</li>
+          <li>Открыл снова...</li>
+          <li><span style="color:#fca5a5">Результат: 0. Всё пропало.</span></li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">С файлами</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Набрал 5000 очков</li>
+          <li>Сохранил в <code>score.txt</code></li>
+          <li>Закрыл, открыл снова</li>
+          <li><span style="color:#86efac">Результат: 5000. Сохранено навсегда!</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block">
+      Метафора: переменная — это запоминалка в голове. Файл — тетрадка в портфеле. Выключил компьютер — из головы всё вышло. Тетрадка осталась лежать.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Самопроверка — три вопроса
+     ============================ -->
+<section class="slide"
+  data-notes="Три вопроса перед теорией. Дай 1 минуту подумать. Не оценивай — просто активируй знания. Правильные ответы появятся в ходе урока.">
+  <div class="slide__inner">
+    <h2>Самопроверка — <span class="accent">три вопроса</span></h2>
+    <p class="lead">Подумай и ответь для себя — без оценок</p>
+    <ol class="steps" style="margin-top:12px">
+      <li>
+        <div><strong>Что происходит с переменными когда ты закрываешь программу?</strong> Куда уходят данные? Можно ли их вернуть?</div>
+      </li>
+      <li>
+        <div><strong>Где хранятся файлы на компьютере?</strong> Чем файл отличается от переменной? Что у них общего?</div>
+      </li>
+      <li>
+        <div><strong>Как работают сохранения в играх?</strong> Когда ты сохраняешь игру, что происходит «под капотом»?</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Зелёная обложка — Попробуй сам
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза. Дай 2 минуты: пусть каждый ученик запишет свой ответ на вопрос 'Как работает сохранение в любимой игре?'">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Попробуй сам!<br>
+        <span style="font-size:0.65em;font-weight:600;color:#333;">Как сохраняется твоя любимая игра?</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: План урока
+     ============================ -->
+<section class="slide"
+  data-notes="Дай ученикам 1 минуту просмотреть план. Скажи: главное — три режима открытия файла и конструкция with. К концу урока напишем Дневник 2.0 — реальную программу с сохранением данных.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <ol class="steps" style="margin-top:8px">
+      <li><div><span class="amber">0 – 5 мин</span> — Разбор ДЗ: секретное слово, тригонометрия, диктор</div></li>
+      <li><div><span class="amber">5 – 20 мин</span> — Теория: <code>open</code>, режимы r / w / a, конструкция <code>with</code></div></li>
+      <li><div><span class="amber">20 – 40 мин</span> — Практика: создать <code>notes.txt</code>, прочитать, построчно</div></li>
+      <li><div><span class="amber">40 – 55 мин</span> — Мини-проект «Дневник 2.0»: добавить / читать / очистить / выйти</div></li>
+      <li><div><span class="amber">55 – 60 мин</span> — Опасность режима <code>"w"</code> + домашнее задание</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Алгоритм работы с файлом
+     ============================ -->
+<section class="slide"
+  data-notes="Чёткий алгоритм из 5 шагов — как работать с любым файлом в Python. Это универсальная инструкция. Повторите вместе вслух перед теорией.">
+  <div class="slide__inner">
+    <h2>Алгоритм: <span class="accent">работа с файлом</span></h2>
+    <p class="lead">5 шагов — работает для любого файлового задания</p>
+    <ol class="steps" style="margin-top:12px">
+      <li>
+        <div><strong>Выбери режим:</strong> <code>"r"</code> — читать, <code>"w"</code> — писать заново, <code>"a"</code> — дописывать в конец.</div>
+      </li>
+      <li>
+        <div><strong>Открой файл через with:</strong> <code>with open("файл.txt", "режим", encoding="utf-8") as f:</code></div>
+      </li>
+      <li>
+        <div><strong>Выполни операцию:</strong> <code>f.read()</code>, <code>f.write("текст\n")</code>, или <code>for line in f:</code></div>
+      </li>
+      <li>
+        <div><strong>Обработай данные:</strong> распечатай, сохрани в переменную, обработай строки через <code>.strip()</code></div>
+      </li>
+      <li>
+        <div><strong>Закрытие — автоматически:</strong> блок <code>with</code> закрывает файл сам. Ничего дополнительно делать не нужно.</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Метафора — тетрадка vs голова
+     ============================ -->
+<section class="slide"
+  data-notes="Живая метафора: ОЗУ vs диск. Дети хорошо понимают метафору тетрадки. Важно закрепить — переменные исчезают, файлы — нет. Это фундаментальное понимание.">
+  <div class="slide__inner">
+    <h2>Память vs <span class="accent">файл</span></h2>
+    <p class="lead">Почему данные исчезают и как их сохранить навсегда</p>
+    <div class="grid grid--2" style="margin-top:10px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <div style="font-size:32px;margin-bottom:8px">🧠</div>
+        <h3 style="color:#fca5a5">Переменная = голова</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Быстрая и удобная</li>
+          <li>Хранится в RAM (оперативная память)</li>
+          <li>Когда выключил компьютер — забыл</li>
+          <li>При закрытии программы — исчезает</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:32px;margin-bottom:8px">📓</div>
+        <h3 style="color:#86efac">Файл = тетрадка</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Медленнее, но надёжнее</li>
+          <li>Хранится на диске (SSD/HDD)</li>
+          <li>Выключил компьютер — осталась</li>
+          <li>Можно открыть через год</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:8px">
+      Любая игра, любое приложение, любой сайт — всё хранит данные в файлах или базах данных. Ты учишься как настоящий разработчик!
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Практика — записываем настройки игры
+     ============================ -->
+<section class="slide"
+  data-notes="Дополнительная практика: запись настроек игры. Словарь настроек сохраняется и читается. Предложи поменять значения и запустить снова — увидят что они 'сохранились'.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">настройки игры</span></h2>
+    <p class="lead">Сохраняем и загружаем пользовательские настройки</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция сохранения настроек в settings.txt
+settings = {
+    "volume": 80,
+    "brightness": 65,
+    "fullscreen": True,
+    "language": "ru",
+    "difficulty": "medium",
+}
+
+def save_settings(settings):
+    """Симулируем запись в settings.txt"""
+    lines = []
+    for key, value in settings.items():
+        lines.append(f"{key}={value}")
+    print("=== Сохранение settings.txt ===")
+    for line in lines:
+        print(f"  {line}")
+    return lines
+
+def load_settings(lines):
+    """Симулируем чтение settings.txt"""
+    loaded = {}
+    for line in lines:
+        key, value = line.split("=", 1)
+        loaded[key] = value
+    return loaded
+
+# Сохраняем
+saved = save_settings(settings)
+
+# Загружаем обратно
+print("\n=== Загрузка settings.txt ===")
+loaded = load_settings(saved)
+print(f"Громкость: {loaded['volume']}%")
+print(f"Яркость: {loaded['brightness']}%")
+print(f"Язык: {loaded['language']}")
+print(f"Сложность: {loaded['difficulty']}")
+print("\nНастройки загружены успешно!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Теория — open() и три режима
+     ============================ -->
+<section class="slide"
+  data-notes="Три режима: r, w, a. w — бульдозер, сносит всё. a — дописывает. Очень важно показать разницу. Скажи: запомнить легко — r=read, w=write, a=append. encoding=utf-8 всегда при кириллице.">
+  <div class="slide__inner">
+    <h2><code>open()</code> и три <span class="accent">режима</span></h2>
+    <p class="lead">r — читать, w — писать с нуля, a — дописывать</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--glow">
+        <h3><span style="color:var(--cyan)">"r"</span> — read</h3>
+        <p style="margin-bottom:10px">Открыть для чтения. Файл должен существовать. Если нет — <span style="color:#fca5a5">FileNotFoundError</span>.</p>
+        <pre><code class="language-python">with open("f.txt", "r") as f:
+    content = f.read()
+    print(content)</code></pre>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3><span style="color:#fca5a5">"w"</span> — write</h3>
+        <p style="margin-bottom:10px;color:#fca5a5">ОПАСНО: <strong>удаляет</strong> старое содержимое и пишет заново!</p>
+        <pre><code class="language-python">with open("f.txt", "w") as f:
+    f.write("Новый текст\n")
+# Старое ИСЧЕЗЛО!</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3><span style="color:#86efac">"a"</span> — append</h3>
+        <p style="margin-bottom:10px">Дописывает в конец. Старое сохраняется. Безопасно!</p>
+        <pre><code class="language-python">with open("f.txt", "a") as f:
+    f.write("Ещё строка\n")
+# Старое НЕ тронуто</code></pre>
+      </div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p style="color:var(--text)">Всегда указывай <code>encoding="utf-8"</code> при работе с текстом на кириллице. Иначе получишь кракозябры.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Игровое применение файлов
+     ============================ -->
+<section class="slide"
+  data-notes="Покажи как файлы используются в реальных играх. Три примера — сохранение прогресса, таблица рекордов, настройки. Это мотивирует учеников — они видят зачем это нужно прямо сейчас.">
+  <div class="slide__inner">
+    <h2>Файлы в <span class="accent">реальных играх</span></h2>
+    <p class="lead">Именно это используют разработчики в EdisonGames каждый день</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--glow">
+        <div style="font-size:24px;margin-bottom:8px">💾</div>
+        <h3>Сохранение игры</h3>
+        <p>level=5, hp=80, gold=320 — всё записывается в файл save.txt. При следующем запуске читается обратно.</p>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:24px;margin-bottom:8px">🏆</div>
+        <h3>Таблица рекордов</h3>
+        <p>Каждый рекорд добавляется в scores.txt режимом "a". При открытии главного меню файл читается и сортируется.</p>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:24px;margin-bottom:8px">⚙️</div>
+        <h3>Настройки игры</h3>
+        <p>Громкость, яркость, раскладка клавиш — хранятся в settings.txt. Игрок настроил один раз — сохранилось навсегда.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Зелёная обложка — Пришло время вопросов
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов после теории о трёх режимах. Дай 2 минуты — дети должны спросить всё непонятное про r, w, a до практики.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Пришло время<br>вопросов!
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Теория — with open()
+     ============================ -->
+<section class="slide"
+  data-notes="with — контекстный менеджер. Автоматически закрывает файл. Объясни: открыл файл — обязан закрыть. with делает это за тебя, даже если произошла ошибка. Это золотой стандарт Python-разработчика.">
+  <div class="slide__inner">
+    <h2><code>with open()</code> — <span class="accent">золотой стандарт</span></h2>
+    <p class="lead">Автоматически закрывает файл — никогда не забудешь</p>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.04)">
+        <h3 style="color:#fca5a5">Без with — опасно</h3>
+        <pre style="margin-top:8px"><code class="language-python">f = open("f.txt", "r")
+data = f.read()
+# если здесь ошибка...
+process_data(data)
+f.close()  # может не выполниться!</code></pre>
+        <p style="margin-top:8px;color:#fca5a5">Если возникнет исключение, <code>f.close()</code> не вызовется — файл останется открытым.</p>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">С with — безопасно</h3>
+        <pre style="margin-top:8px"><code class="language-python">with open("f.txt", "r") as f:
+    data = f.read()
+    process_data(data)
+# файл закрыт АВТОМАТИЧЕСКИ
+# даже если была ошибка</code></pre>
+        <p style="margin-top:8px;color:#86efac">Блок <code>with</code> гарантирует закрытие файла в любом случае.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Практика — сохраняем рекорд игры
+     ============================ -->
+<section class="slide"
+  data-notes="Практика: запись и чтение рекорда. Показываем симуляцию — в реальном GigaIDE создастся настоящий файл. Дай ученикам поменять имя игрока и очки.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">сохраняем рекорд</span></h2>
+    <p class="lead">Записать очки в файл и прочитать обратно</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция сохранения рекорда
+# (в реальном GigaIDE файл создаётся на диске)
+
+# --- Записываем рекорды ---
+scores = [
+    ("Артём", 5200),
+    ("Маша", 4800),
+    ("Дима", 6100),
+    ("Лена", 3900),
+]
+
+print("=== Записываем в scores.txt ===")
+for name, score in scores:
+    line = f"{name}:{score}"
+    print(f"  + {line}")
+
+# --- Читаем и сортируем ---
+print("\n=== Таблица рекордов ===")
+sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
+for rank, (name, score) in enumerate(sorted_scores, 1):
+    medal = ["🥇", "🥈", "🥉"][rank-1] if rank <= 3 else f"{rank}."
+    print(f"  {medal} {name}: {score} очков")
+
+# --- Добавляем нового игрока ---
+new_player = ("Игорь", 5500)
+scores.append(new_player)
+print(f"\n  + Добавлен: {new_player[0]} — {new_player[1]} очков")
+print(f"Всего рекордов: {len(scores)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Интерактив — пишем и читаем файл
+     ============================ -->
+<section class="slide"
+  data-notes="Живой пример: запись и чтение. В Skulpt файловые операции симулируются через виртуальную ФС, поэтому показываем через print что было бы в файле. Запусти код вместе с учениками и объясни каждый шаг.">
+  <div class="slide__inner">
+    <h2>Пишем и читаем <span class="accent">файл</span></h2>
+    <p class="lead"><code>open</code>, <code>write</code>, <code>read</code> — три базовых действия</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция работы с файлами
+# (в реальном GigaIDE файлы создаются на диске)
+
+# --- Запись в файл ---
+lines = [
+    "Запись 1: Началась стажировка\n",
+    "Запись 2: Написал первую функцию\n",
+    "Запись 3: Создал Морской бой!\n",
+]
+
+print("=== Записываем в diary.txt ===")
+for line in lines:
+    print(f"  + {line.strip()}")
+
+# --- Чтение ---
+print("\n=== Читаем diary.txt ===")
+for i, line in enumerate(lines, 1):
+    print(f"  {i}. {line.strip()}")
+
+# --- Добавляем запись ---
+new_entry = "Запись 4: Освоил файлы!"
+lines.append(new_entry + "\n")
+print(f"\n  + Добавлено: {new_entry}")
+print(f"\nИтого записей: {len(lines)}")
+print("\nВсе записи:")
+print("".join(lines))</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Практика — сохранение прогресса игры
+     ============================ -->
+<section class="slide"
+  data-notes="Второй практический пример: сохранение прогресса героя. Это классический game-dev кейс. Словарь данных сохраняется построчно. Предложи ученикам добавить поле 'оружие' или 'уровень'.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">прогресс героя</span></h2>
+    <p class="lead">Сохраняем состояние персонажа между сессиями</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция сохранения/загрузки героя
+hero = {
+    "name": "Артём",
+    "level": 7,
+    "hp": 85,
+    "gold": 1250,
+    "kills": 42,
+    "location": "Тёмный лес",
+}
+
+def save_hero(hero):
+    """Симулируем запись в save.txt"""
+    lines = [f"{key}={value}" for key, value in hero.items()]
+    print("=== Сохранение в save.txt ===")
+    for line in lines:
+        print(f"  {line}")
+    return lines
+
+def load_hero(lines):
+    """Симулируем чтение из save.txt"""
+    loaded = {}
+    for line in lines:
+        key, value = line.split("=")
+        loaded[key] = value
+    return loaded
+
+# Сохраняем
+saved = save_hero(hero)
+
+# Загружаем
+print("\n=== Загрузка из save.txt ===")
+loaded = load_hero(saved)
+print(f"Герой: {loaded['name']}")
+print(f"Уровень: {loaded['level']}")
+print(f"Золото: {loaded['gold']}")
+print(f"Локация: {loaded['location']}")
+print("\nИгра продолжается!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Теория — три способа прочитать
+     ============================ -->
+<section class="slide"
+  data-notes="Три способа прочитать файл: read() — всё сразу, readline() — одна строка, for line in f — по строкам. strip() убирает \n. Спроси: какой способ выбрать для большого файла? for line — самый экономичный по памяти.">
+  <div class="slide__inner">
+    <h2>Три способа <span class="accent">прочитать</span> файл</h2>
+    <p class="lead"><code>read()</code>, <code>readline()</code>, <code>for line in f</code> — разные ситуации</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--glow">
+        <h3><code>f.read()</code></h3>
+        <p style="margin-bottom:10px">Читает весь файл одной строкой. Удобно для небольших файлов.</p>
+        <pre><code class="language-python">with open("f.txt", "r",
+         encoding="utf-8") as f:
+    all_text = f.read()
+    print(all_text)</code></pre>
+      </div>
+      <div class="card">
+        <h3><code>f.readline()</code></h3>
+        <p style="margin-bottom:10px">Читает одну строку за вызов. Курсор двигается вперёд.</p>
+        <pre><code class="language-python">with open("f.txt", "r",
+         encoding="utf-8") as f:
+    first = f.readline()
+    second = f.readline()
+    print(first, second)</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3><code>for line in f</code></h3>
+        <p style="margin-bottom:10px">Читает построчно. Идеально для больших файлов. Самый популярный способ.</p>
+        <pre><code class="language-python">with open("f.txt", "r",
+         encoding="utf-8") as f:
+    for line in f:
+        print(line.strip())</code></pre>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:8px">
+      <code>line.strip()</code> — убирает символ <code>\n</code> в конце каждой строки. Без него вывод будет с лишними пустыми строками.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Отладка — найди баг с файлами
+     ============================ -->
+<section class="slide"
+  data-notes="Задание на отладку: три ошибки в коде с файлами. Дай 2 минуты найти. Типичные детские ошибки — неверный режим, нет encoding, нет \\n. Разберите вместе. Ошибки в реальном коде — это нормально!">
+  <div class="slide__inner">
+    <h2>Найди <span class="accent">баги</span> в файловом коде!</h2>
+    <p class="lead">В этом коде 3 ошибки — найди и исправь их</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># ЗАДАНИЕ: Найди и исправь 3 ошибки!
+# Запусти код, прочитай ошибку, исправь, запусти снова.
+
+# Симуляция записи в дневник
+entries = []
+
+def add_entry(text):
+    # Ошибка 1: запись без символа новой строки
+    entries.append(text)  # нужно: text + "\n"
+    print(f"Добавлено: {text}")
+
+def show_all():
+    # Ошибка 2: нет метода strip() при выводе
+    for i, e in enumerate(entries, 1):
+        print(f"{i}. {e}")  # нужно: e.strip()
+
+def clear_wrong():
+    # Ошибка 3: используем "w" вместо очистки списка
+    # Это уничтожит файл если бы он существовал!
+    entries = []  # локальная переменная — не меняет глобальную!
+    # нужно: entries.clear() или global entries
+
+add_entry("Начал стажировку в EdisonGames!")
+add_entry("Написал Морской бой")
+show_all()
+clear_wrong()
+print(f"После очистки: {len(entries)} записей")  # ожидаем 0, получим 2
+
+# ИСПРАВЛЕННАЯ ВЕРСИЯ (раскомментируй):
+# entries = []
+# entries.append("Запись 1\n")
+# entries.append("Запись 2\n")
+# for i, e in enumerate(entries, 1):
+#     print(f"{i}. {e.strip()}")
+# entries.clear()
+# print(f"После очистки: {len(entries)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Мини-проект — Дневник 2.0
+     ============================ -->
+<section class="slide"
+  data-notes="Мини-проект: дневник с меню. Это реальная программа с постоянным хранением. Демонстрирует все три режима в одной программе. Запусти — покажи ученикам как всё работает, потом предложи изменить записи.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span class="accent">«Дневник 2.0»</span></h2>
+    <p class="lead">Добавить / Прочитать / Очистить / Выйти — всё с файлом</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Дневник EdisonGames - симуляция (файл в памяти)
+diary = []
+
+def add_entry(text):
+    diary.append(text)
+    print(f"Запись добавлена: {text[:30]}...")
+
+def show_entries():
+    if not diary:
+        print("Дневник пуст")
+        return
+    print(f"Всего записей: {len(diary)}")
+    for i, entry in enumerate(diary, 1):
+        print(f"  {i}. {entry}")
+
+def clear_diary():
+    diary.clear()
+    print("Дневник очищен")
+
+# Главный цикл
+add_entry("Начал стажировку в EdisonGames!")
+add_entry("Написал Морской бой — я крут!")
+add_entry("Сегодня изучил модули Python")
+show_entries()
+print()
+add_entry("Освоил работу с файлами!")
+show_entries()
+print()
+clear_diary()
+show_entries()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Зелёная обложка — пауза перед экспериментами
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза перед свободными экспериментами. Скажи: 5 минут — твоё время. Меняй код, ломай его, чини — вот как настоящие разработчики учатся.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Попробуй сам!<br>
+        <span style="font-size:0.65em;font-weight:600;color:#333;">5 минут свободных экспериментов</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Исследуй сам — эксперименты с файлами
+     ============================ -->
+<section class="slide"
+  data-notes="Слайд для самостоятельных экспериментов. 5 минут свободной работы. Дети меняют данные, запускают, смотрят что происходит. Обсудите результаты: что удивило?">
+  <div class="slide__inner">
+    <h2>Исследуй <span class="accent">сам</span></h2>
+    <p class="lead">Запусти, измени, изучи — 5 минут свободных экспериментов</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Эксперимент 1: Как strip() меняет строку?
+lines = ["Привет\n", "  Мир  \n", "\t Питон\t\n"]
+print("=== strip() в действии ===")
+for line in lines:
+    print(f"До: {repr(line)}")
+    print(f"После: {repr(line.strip())}")
+    print()
+
+# Эксперимент 2: enumerate — зачем нужен?
+print("=== enumerate ===")
+tasks = ["Написать код", "Протестировать", "Сдать задание"]
+for i, task in enumerate(tasks, 1):
+    print(f"  {i}. {task}")
+
+# Эксперимент 3: split и join — работа со строками файла
+print("\n=== Разбор данных из 'файла' ===")
+raw_data = "Артём:7:1250:Тёмный лес"
+parts = raw_data.split(":")
+print(f"Имя: {parts[0]}")
+print(f"Уровень: {parts[1]}")
+print(f"Золото: {parts[2]}")
+print(f"Локация: {parts[3]}")
+
+# Собрать обратно
+new_data = ":".join([parts[0], "8", parts[2], "Замок"])
+print(f"\nПосле повышения уровня: {new_data}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <p style="font-size:14px;color:var(--text)"><strong>Вопросы:</strong> 1) Что делает <code>repr()</code>? 2) Почему strip() важен при чтении файлов? 3) Как можно использовать split(":") для хранения данных?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Типичные ошибки
+     ============================ -->
+<section class="slide"
+  data-notes="Типичные ошибки с файлами. w удаляет данные — классическая детская ошибка. FileNotFoundError при r. Отсутствие \n. Разбери каждую ошибку и спроси: как её исправить? Пусть ученики сами предложат решения.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> с файлами</h2>
+    <p class="lead">Предупреждён — значит вооружён</p>
+    <div class="grid grid--2" style="margin-top:10px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">"w" уничтожает данные</h3>
+        <pre style="margin-top:8px"><code class="language-python"># Первый запуск — всё хорошо
+with open("f.txt", "w") as f:
+    f.write("Важные данные")
+
+# Второй запуск — данные СНЕСЕНЫ!
+with open("f.txt", "w") as f:
+    f.write("Новое")
+# "Важные данные" — нет!</code></pre>
+        <p style="margin-top:8px;color:var(--text)">Решение: используй <code>"a"</code> для дозаписи!</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">Забыл encoding</h3>
+        <pre style="margin-top:8px"><code class="language-python"># Плохо — кракозябры!
+with open("f.txt", "r") as f:
+    print(f.read())
+
+# Правильно:
+with open("f.txt", "r",
+          encoding="utf-8") as f:
+    print(f.read())</code></pre>
+        <p style="margin-top:8px;color:var(--text)">Правило: ВСЕГДА <code>encoding="utf-8"</code></p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">FileNotFoundError</h3>
+        <pre style="margin-top:8px"><code class="language-python">with open("no_file.txt", "r") as f:
+    # FileNotFoundError!
+    # Файл не существует</code></pre>
+        <p style="margin-top:8px;color:var(--text)">Решение: проверь путь или используй <code>try/except</code> (урок 23)</p>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">Нет \n в конце строки</h3>
+        <pre style="margin-top:8px"><code class="language-python">with open("f.txt", "a") as f:
+    f.write("Строка 1")
+    f.write("Строка 2")
+# В файле: "Строка 1Строка 2"
+# Нужно: f.write("Строка 1\n")</code></pre>
+        <p style="margin-top:8px;color:var(--text)">Всегда заканчивай строку символом <code>\n</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Словарь программиста — файловые операции
+     ============================ -->
+<section class="slide"
+  data-notes="Быстрый словарь — 4 ключевых понятия файловой работы. Попроси объяснить каждое своими словами. Это хорошая проверка перед переходом к итогам урока.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">файловых операций</span></h2>
+    <p class="lead">Четыре понятия, которые нужно знать как таблицу умножения</p>
+    <div class="grid grid--2" style="margin-top:10px">
+      <div class="card card--glow">
+        <h3>Открытие и режимы</h3>
+        <div class="kv" style="margin-top:8px">
+          <div class="kv__item">
+            <div class="kv__key" style="color:var(--cyan)">"r"</div>
+            <div class="kv__val">Read — только читать. Файл должен существовать.</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key" style="color:#fca5a5">"w"</div>
+            <div class="kv__val">Write — писать заново. Удаляет старое! Осторожно.</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key" style="color:#86efac">"a"</div>
+            <div class="kv__val">Append — дописывать. Старое сохраняется. Безопасно.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card card--glow">
+        <h3>Методы и инструменты</h3>
+        <div class="kv" style="margin-top:8px">
+          <div class="kv__item">
+            <div class="kv__key">f.read()</div>
+            <div class="kv__val">Прочитать весь файл одной строкой.</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">f.write()</div>
+            <div class="kv__val">Записать строку в файл.</div>
+          </div>
+          <div class="kv__item">
+            <div class="kv__key">with open</div>
+            <div class="kv__val">Контекстный менеджер — закрывает файл автоматически.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Прогресс модуля — где мы сейчас
+     ============================ -->
+<section class="slide"
+  data-notes="Слайд прогресса — показывает где ученик в Модуле 6. Второй из четырёх уроков. Мотивирующий момент — уже половина пути к финалу.">
+  <div class="slide__inner">
+    <h2>Прогресс <span class="accent">Модуля 6</span></h2>
+    <p class="lead">Отдел интеграции · Уроки 21–24</p>
+    <div class="grid grid--4" style="margin-top:12px">
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:6px">✅</div>
+        <h3 style="font-size:15px">Урок 21</h3>
+        <p>Модули: math, random, time, pip</p>
+        <p style="color:var(--green);font-weight:700;margin-top:6px;font-size:13px">Пройдено</p>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:22px;margin-bottom:6px">✅</div>
+        <h3 style="font-size:15px">Урок 22</h3>
+        <p>Файлы ч.1: open, read, write, append</p>
+        <p style="color:var(--green);font-weight:700;margin-top:6px;font-size:13px">Сейчас!</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:6px">📁</div>
+        <h3 style="font-size:15px">Урок 23</h3>
+        <p>Файлы ч.2: readlines, try/except, CSV</p>
+        <p style="color:var(--muted);font-size:13px;margin-top:6px">Следующий</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:6px">🏆</div>
+        <h3 style="font-size:15px">Урок 24</h3>
+        <p>Финальный квиз-проект с файлами</p>
+        <p style="color:var(--muted);font-size:13px;margin-top:6px">Финал</p>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:8px">
+      Ты на середине пути! После урока 23 твои программы смогут работать с данными как настоящие игровые приложения.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Словарь урока 22
+     ============================ -->
+<section class="slide"
+  data-notes="Словарь урока. Пройдись по каждому термину, спроси у учеников своими словами что значит каждый. Особо подчеркни разницу w и a — это самая важная пара.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 22</span></h2>
+    <div class="card" style="margin-top:8px">
+      <ul class="clean">
+        <li><strong style="color:var(--cyan);font-family:'JetBrains Mono',monospace">"r"</strong> — Read: открыть для чтения. Файл должен существовать.</li>
+        <li><strong style="color:#fca5a5;font-family:'JetBrains Mono',monospace">"w"</strong> — Write: открыть для записи. <span style="color:#fca5a5">Удаляет</span> старое содержимое!</li>
+        <li><strong style="color:#86efac;font-family:'JetBrains Mono',monospace">"a"</strong> — Append: дописать в конец. Старое содержимое сохраняется.</li>
+        <li><strong style="color:var(--amber);font-family:'JetBrains Mono',monospace">with open</strong> — контекстный менеджер: автоматически закрывает файл. Золотой стандарт.</li>
+        <li><strong style="color:var(--amber);font-family:'JetBrains Mono',monospace">encoding="utf-8"</strong> — всегда! Иначе кириллица превратится в кракозябры.</li>
+        <li><strong style="color:var(--amber);font-family:'JetBrains Mono',monospace">strip()</strong> — убирает <code>\n</code> и пробелы по краям строки при чтении файла.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Поздравление — ты освоил файлы!
+     ============================ -->
+<section class="slide"
+  data-notes="Поздравительный слайд перед ДЗ. Три категории: знаешь, умеешь, впереди. Вручи бейдж 'Хранитель данных' тем кто участвовал активно.">
+  <div class="slide__inner">
+    <h2>Отличная работа, <span class="accent">стажёр!</span></h2>
+    <p class="lead">Урок 22 пройден — данные больше не исчезают!</p>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="card card--glow">
+        <div style="font-size:22px;margin-bottom:8px">🧠</div>
+        <h3>Знаешь</h3>
+        <ul class="clean">
+          <li>Три режима файлов</li>
+          <li>Зачем нужен with</li>
+          <li>Когда encoding важен</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:22px;margin-bottom:8px">⚡</div>
+        <h3>Умеешь</h3>
+        <ul class="clean">
+          <li>Записывать в файл</li>
+          <li>Читать из файла</li>
+          <li>Дописывать в конец</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div style="font-size:22px;margin-bottom:8px">🚀</div>
+        <h3>Впереди</h3>
+        <ul class="clean">
+          <li>readlines и списки</li>
+          <li>try/except для ошибок</li>
+          <li>CSV и таблицы данных</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 29: Проверьте себя — 5 вопросов
+     ============================ -->
+<section class="slide"
+  data-notes="Самопроверка: 5 вопросов по теме урока. Дай 3 минуты ответить письменно или в голове. Потом разбери ответы вместе. Правильные ответы: 1) Режим 'a' (append). 2) with open() — автозакрытие. 3) strip() убирает \n и пробелы. 4) FileNotFoundError. 5) encoding='utf-8' для кириллицы. Попроси поднять руку за каждый правильный ответ — весело и информативно.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <p class="lead">5 вопросов — проверь что усвоил на этом уроке</p>
+    <div class="grid grid--2" style="margin-top:10px">
+      <ol class="steps">
+        <li>
+          <div>
+            <strong>Вопрос 1.</strong> Какой режим нужно использовать чтобы <em>дописать</em> строку в конец файла не удалив старое содержимое?<br>
+            <span style="color:var(--green);font-size:13px;margin-top:4px;display:inline-block">Ответ: режим <code>"a"</code> (append)</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Вопрос 2.</strong> Зачем нужна конструкция <code>with open()</code>? Что произойдёт с файлом если её не использовать и программа упадёт с ошибкой?<br>
+            <span style="color:var(--green);font-size:13px;margin-top:4px;display:inline-block">Ответ: <code>with</code> автоматически закрывает файл — даже при ошибке. Без него файл может остаться открытым и занятым.</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Вопрос 3.</strong> Зачем вызывать <code>.strip()</code> при чтении строк из файла?<br>
+            <span style="color:var(--green);font-size:13px;margin-top:4px;display:inline-block">Ответ: убирает <code>\n</code> и пробелы по краям, иначе вывод будет с лишними пустыми строками.</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Вопрос 4.</strong> Какая ошибка возникнет если открыть несуществующий файл в режиме <code>"r"</code>?<br>
+            <span style="color:var(--green);font-size:13px;margin-top:4px;display:inline-block">Ответ: <code>FileNotFoundError</code></span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Вопрос 5.</strong> Почему важно писать <code>encoding="utf-8"</code> при работе с текстовыми файлами содержащими кириллицу?<br>
+            <span style="color:var(--green);font-size:13px;margin-top:4px;display:inline-block">Ответ: без явного encoding Python может использовать системную кодировку Windows (cp1251) и текст превратится в кракозябры.</span>
+          </div>
+        </li>
+      </ol>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card--glow">
+          <div style="font-size:22px;margin-bottom:8px">🏅</div>
+          <h3>Результат</h3>
+          <ul class="clean">
+            <li><span class="amber">5/5</span> — Мастер файлов!</li>
+            <li><span style="color:var(--cyan)">3–4/5</span> — Хороший результат</li>
+            <li><span style="color:var(--muted)">1–2/5</span> — Повторим ещё раз</li>
+          </ul>
+        </div>
+        <div class="quote-block">
+          Не расстраивайся если что-то забыл — к концу урока 23 это всё станет автоматическим!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 30: ★★ Расширенное задание — компилятор
+     ============================ -->
+<section class="slide"
+  data-notes="Расширенное задание для продвинутых учеников: мини-система учёта задач с поиском и статистикой. Покажи код, объясни структуру. Предложи поменять задачи на свои. Бонус: добавить метку 'срочно' к задаче. Это задание дополняет обязательное ДЗ.">
+  <div class="slide__inner">
+    <h2>Задание <span class="accent">★★</span> — Менеджер задач</h2>
+    <p class="lead">Продвинутый уровень · Симуляция файловой базы задач</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># ★★ Менеджер задач с приоритетами
+# Симуляция работы с файлом tasks.txt
+
+tasks = []  # имитирует содержимое файла
+
+def add_task(text, priority="normal"):
+    """Добавляем задачу (режим 'a' в реальном коде)"""
+    entry = f"[{priority.upper()}] {text}"
+    tasks.append(entry)
+    print(f"  + Добавлено: {entry}")
+
+def show_tasks(filter_priority=None):
+    """Читаем задачи (режим 'r' в реальном коде)"""
+    print(f"\n=== Задачи {'(все)' if not filter_priority else '(' + filter_priority + ')'} ===")
+    found = 0
+    for i, task in enumerate(tasks, 1):
+        if filter_priority is None or filter_priority.upper() in task:
+            print(f"  {i}. {task}")
+            found += 1
+    if found == 0:
+        print("  (нет задач)")
+    print(f"  Итого: {found} задач")
+
+def complete_task(number):
+    """Отметить выполненной — перезаписать файл (режим 'w')"""
+    if 1 <= number <= len(tasks):
+        old = tasks[number - 1]
+        tasks[number - 1] = old.replace("[", "[DONE_").rstrip() + " ✓"
+        print(f"  Выполнено: {tasks[number-1]}")
+    else:
+        print(f"  Ошибка: задача #{number} не существует")
+
+def stats():
+    high = sum(1 for t in tasks if "[HIGH]" in t)
+    done = sum(1 for t in tasks if "[DONE_" in t)
+    print(f"\n=== Статистика ===")
+    print(f"  Всего: {len(tasks)}")
+    print(f"  Срочных: {high}")
+    print(f"  Выполнено: {done}")
+    print(f"  Осталось: {len(tasks) - done}")
+
+# Заполняем задачи
+print("=== Заполнение tasks.txt ===")
+add_task("Написать функцию save_hero()", "high")
+add_task("Изучить режимы r / w / a", "normal")
+add_task("Сделать ДЗ по файлам", "high")
+add_task("Добавить таблицу рекордов в игру", "normal")
+add_task("Прочитать про CSV формат", "low")
+
+# Показываем все
+show_tasks()
+
+# Только срочные
+show_tasks("high")
+
+# Выполняем первую
+complete_task(1)
+
+# Итоговая статистика
+stats()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Расширенное домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="ДЗ — 5 задач. 1-3 обязательны, 4-5 бонус. Объясни каждую. Напомни: в реальном GigaIDE файлы создаются на диске. Прислать скриншот с результатом до следующего урока.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">5 задач · ~25 минут · Задачи 1–3 обязательны</p>
+    <ol class="steps" style="margin-top:12px">
+      <li>
+        <div><strong>todo.txt</strong> — через программу добавь 5 задач (режим <code>"a"</code>). Каждая задача с новой строки. Затем прочитай файл и выведи на экран.</div>
+      </li>
+      <li>
+        <div><strong>Счётчик строк</strong> — прочитай любой <code>.txt</code> файл построчно (<code>for line in f</code>) и посчитай сколько строк. Выведи: «В файле N строк».</div>
+      </li>
+      <li>
+        <div><strong>Пронумерованный вывод</strong> — прочитай <code>todo.txt</code>, выведи каждую задачу с номером: «1. Купить хлеб», «2. Написать код». Используй <code>enumerate()</code>.</div>
+      </li>
+      <li>
+        <div><strong>Бонус: Рекордсмен</strong> — создай <code>scores.txt</code>, запиши 5 имён с очками (режим <code>"a"</code>), прочитай назад и найди максимум. Выведи: «Рекордсмен: Имя — N очков».</div>
+      </li>
+      <li>
+        <div><strong>Бонус: Очистка дневника</strong> — создай программу-меню: «1 — добавить запись, 2 — прочитать, 3 — очистить». При выборе 3 перезапиши файл пустой строкой через режим <code>"w"</code>.</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Зелёная обложка — До следующего урока!
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрывающий слайд ДЗ. Напомни прислать скриншот до следующего урока. Анонс урока 23 — readlines, try/except, CSV.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        До следующего<br>урока!
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Финал
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрытие урока. Анонс урока 23 — readlines, try/except, бинарные файлы. Вручи бейдж «Хранитель данных». Спроси: что было самым важным сегодня? Дай время ответить 2-3 ученикам.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Бейдж «Хранитель данных»</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Файлы покорены!<br>
+        <span style="font-size:0.7em;font-weight:600;color:#333;">Урок 23 → Файлы. Часть 2</span>
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

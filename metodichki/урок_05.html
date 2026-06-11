@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 5 — Как работать со строками | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 5</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать со строками</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Системных данных</p>
+<p><strong>Неделя:</strong> 5</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок умеет создавать строки разными способами, узнавать их длину, получать символы по индексу, объединять и повторять строки.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> что такое строка и для чего она используется; как создавать строки с одинарными и двойными кавычками; что такое длина строки и как узнать её через <code>len()</code>; что такое индексация и с какого числа она начинается; как объединять строки через <code>+</code>; как повторять строки через <code>*</code>; что строки — неизменяемый тип данных.</li>
+<li><strong>Ученик умеет / может:</strong> создавать строки; выводить их через <code>print()</code>; определять длину через <code>len()</code>; получать символы по индексу; объяснять, почему нумерация с нуля; объединять строки через <code>+</code>; повторять через <code>*</code>; сохранять в переменные; использовать в input/print.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ-помощники: GigaChat (для генерации смешных строк)</li>
+<li>Файлы-заготовки: <code>strings_demo.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<p>Python 3.11+, IDE.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ</strong></p>
+<ul>
+<li>«Покажи Электронного помощника. Чётко! Сегодня мы дадим твоим текстам суперсилы».</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо</strong></p>
+<ul>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>Строка (str)</strong> — текст в кавычках. Может быть пустой <code>""</code>, длинной, с пробелами, с эмодзи.</p>
+<p>  - <strong>len()</strong> — длина строки в символах.</p>
+<p>  - <strong>Индекс</strong> — порядковый номер символа. В Python — с 0.</p>
+<p>  - <strong>Конкатенация <code>+</code></strong> — склейка строк.</p>
+<p>  - <strong>Повторение <code>*</code></strong> — умножаем строку на число.</p>
+<p>  - <strong>Неизменяемость</strong> — строку нельзя менять на месте, только создать новую.</p>
+<ul>
+<li>Живой код:</li>
+</ul>
+<pre><code class="language-python">  s = "Привет"
+  print(len(s))         # 6
+  print(s[0], s[-1])    # 'П' 'т'
+  print(s + ", мир!")   # конкатенация
+  print("Ха" * 5)       # ХаХаХаХаХа</code></pre>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (7 мин):</strong> создать 5 строк (любимая книга, город, мама, питомец, мечта). Вывести длину каждой через <code>len()</code>.</li>
+<li><strong>Задание 2 (12 мин):</strong> «Первая и последняя буква»: программа спрашивает слово, выводит первую, последнюю и длину.</li>
+<li><strong>Задание 3 (10 мин):</strong> «Эхо»: спрашивает фразу, число повторов, выводит <code>фраза <em> число</code>. Добавить пробел между: <code>(phrase + " ") </em> n</code>.</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Анализатор имени»</strong></p>
+<ul>
+<li>Программа спрашивает имя и фамилию, выводит:</li>
+</ul>
+<p>  - полное имя = <code>name + " " + surname</code></p>
+<p>  - инициалы: <code>name[0] + ". " + surname[0] + "."</code></p>
+<p>  - длина полного имени без пробела.</p>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Показ Анализатора.</li>
+<li>Вопросы: «Почему нумерация с 0? Что значит "строки неизменяемы"?»</li>
+<li>Похвала: «Скоро ты сделаешь настоящий дневник».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Строка — это цепочка символов, как бусы. Каждая бусина на своём месте».</li>
+<li>«Индексация с нуля — потому что 0 — это тоже число, и так удобнее для компьютера».</li>
+<li>«Отрицательный индекс — это "с конца". <code>-1</code> — последняя буква».</li>
+<li>«<code>len()</code> — как линейка для текста».</li>
+<li>«Строки нельзя менять "на месте". Это как печать на бумаге — только переписать заново».</li>
+<li>«<code>"а" * 10</code> — это не умножение математическое, это повторение».</li>
+<li>«Будь внимателен: <code>"2" + "3"</code> = <code>"23"</code>, а не 5! Это строки».</li>
+<li>«Чем длиннее строка, тем медленнее <code>*</code>. Пока это не важно, но запомни».</li>
+<li>«Попробуй сам: 5 минут без подсказок».</li>
+<li>«Бейдж "Строковед" ждёт после следующих уроков».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Анализатор имени»</li>
+<li><strong>Что получится:</strong> программа печатает полное имя, инициалы, длину.</li>
+<li><strong>Где показать:</strong> скрин в чат курса.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Напиши программу, которая спрашивает 3 любимых слова, выводит каждое в обратном порядке (<code>слово[::-1]</code> — дадим бонус-намёк), считает общую длину трёх слов.</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик создаёт строки с <code>""</code> и <code>''</code> и объясняет, когда какие удобнее.</li>
+<li>Ученик использует <code>len()</code> и индексацию по положительным и отрицательным индексам.</li>
+<li>Ученик применяет <code>+</code> и <code>*</code> корректно.</li>
+<li>Ученик объясняет «неизменяемость» строк на примере.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong>IndexError при обращении к <code>s[100]</code></strong> → читаем ошибку: «индекс вне диапазона». Проверяем len.</li>
+<li><strong>Путает <code>"5" + 3</code></strong> → TypeError. Обсуждаем: нужно <code>int("5") + 3</code> или <code>"5" + str(3)</code>.</li>
+<li><strong>Двойные кавычки внутри двойных</strong> → показываем, как экранировать <code>\"</code> или чередовать <code>'..."..."..'</code>.</li>
+<li><strong>Не понимает <code>s[-1]</code></strong> → рисуем на доске: слева 0, 1, 2, справа −3, −2, −1.</li>
+<li><strong><code>s[0] = "А"</code> — ошибка</strong> → учебный момент неизменяемости.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Познакомься с срезами: <code>s[0:3]</code> — первые 3 буквы, <code>s[::-1]</code> — строка задом наперёд. Напиши программу, которая превращает слово в палиндром: <code>s + s[::-1]</code>.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке преподаватель показывает, как попросить ИИ сгенерировать смешные тестовые строки: «GigaChat, придумай 10 длинных вымышленных имён жителей планеты Зелёного Банана для тестирования моей программы». Это готовит к уроку 8, где сгенерированные тексты пойдут в дневник.</p>
+<hr>
+</div>
+</body>
+</html>

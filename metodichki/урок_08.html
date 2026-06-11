@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 8 — Проект «Электронный помощник ч.2: личный дневник» + генерация текста ИИ | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 8</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Проект «Электронный помощник ч.2: личный дневник» + генерация текста ИИ</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Системных данных</p>
+<p><strong>Неделя:</strong> 8</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Проект (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок пишет программу-дневник с добавлением, сортировкой и форматированным выводом записей, использует ИИ для генерации тестовых записей.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик умеет / может:</strong> создавать пустой список и добавлять в него элементы; объединять элементы в список с помощью <code>extend()</code>; сортировать список по алфавиту; форматировать и выводить данные в читаемом виде; использовать f-строки для динамического вывода данных; объединять несколько операций над списком (ввод, сортировка, форматирование, вывод) в одну программу; использовать ИИ для генерации текста.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ: YandexGPT / GigaChat — для генерации тестовых записей дневника</li>
+<li>Файлы-заготовки: <code>diary_template.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<p>Python 3.11+, открытый YandexGPT.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ и анонс проекта</strong></p>
+<ul>
+<li>«Сегодня — большой проект. Твой личный цифровой дневник. В конце программа будет помнить 5-10 твоих записей и выводить их красиво».</li>
+</ul>
+<p><strong>5–15 мин. Разбор ТЗ + демо эталона</strong></p>
+<ul>
+<li>Показываем работу готового дневника: приветствует, спрашивает 5 записей, сортирует, выводит.</li>
+<li>Объясняем <code>extend()</code>: «как append, но для нескольких элементов сразу».</li>
+<li>Демо: как попросить GigaChat сгенерировать 5 записей для теста.</li>
+</ul>
+<p><strong>15–45 мин. Самостоятельная разработка</strong></p>
+<ul>
+<li><strong>Шаг 1 (10 мин):</strong> пустой список <code>diary = []</code>. Цикл-заглушка (пока что — 5 копипаст строк с <code>input</code> и <code>.append()</code>, без цикла).</li>
+<li><strong>Шаг 2 (10 мин):</strong> пользователь вводит заголовок записи и текст. Формат: <code>diary.append(f"[{title}] {text}")</code>.</li>
+<li><strong>Шаг 3 (10 мин):</strong> после 5 ввода — <code>diary.sort()</code>. Красивый вывод через f-строки и нумерацию (<code>print(f"Запись 1: {diary[0]}")</code> × 5).</li>
+<li><strong>Шаг 4 (5 мин):</strong> <code>extend()</code> — добавить ещё 2 «заготовки», сгенерированные ИИ.</li>
+</ul>
+<p><strong>45–55 мин. ИИ-генерация тестовых записей</strong></p>
+<ul>
+<li>Промпт в YandexGPT: «Сгенерируй 5 коротких записей для дневника школьника 10 лет: что он ел, с кем гулял, что изучал. Формат <code>[заголовок] текст</code>. Каждая запись в отдельной строке».</li>
+<li>Копируем 2–3 записи, вручную превращаем в Python-список, вставляем через <code>diary.extend([...])</code>.</li>
+</ul>
+<p><strong>55–60 мин. Защита проекта</strong></p>
+<ul>
+<li>Защита по шаблону (5 пунктов).</li>
+<li>Бейдж «Автор дневника».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Сегодня — второй большой проект. Дневник».</li>
+<li>«Правило 5 минут — в силе. Сначала сам».</li>
+<li>«<code>append</code> — по одному, <code>extend</code> — списком. Запомни».</li>
+<li>«Отсортированный список — это плюс UX. Профи всегда так делают».</li>
+<li>«ИИ — не для списывания, а для генерации тестовых данных. Почувствуй разницу».</li>
+<li>«Промпт к ИИ — часть задачи. Хороший промпт = хороший результат».</li>
+<li>«Копируй результат ИИ не слепо — адаптируй под свой код».</li>
+<li>«Защита 5 минут. Готов? Тренировались».</li>
+<li>«Вау, твой дневник работает! Второй проект в портфолио».</li>
+<li>«Следующий модуль — условия. Программа начнёт принимать решения сама».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Личный дневник»</li>
+<li><strong>Что получится:</strong> программа принимает 5 записей + 2–3 из ИИ, сортирует, красиво выводит.</li>
+<li><strong>Где показать:</strong> в чат курса с родителями.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Добавь в дневник ещё одну функцию: перед сортировкой выведи «самый длинный заголовок» через <code>max(diary, key=len)</code> (это бонус-подсказка для опережающих, обычным — просто добавить ещё 2 записи через extend).</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Программа использует <code>append</code> и <code>extend</code> минимум по одному разу.</li>
+<li>Программа сортирует список и выводит его форматированно через f-строки.</li>
+<li>Ученик написал минимум 1 промпт в ИИ и использовал результат.</li>
+<li>Ученик защитил проект по шаблону.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong><code>extend</code> принимает не то</strong> → напоминаем: <code>extend()</code> хочет итерируемый объект (список, кортеж), не одну строку.</li>
+<li><strong>ИИ генерирует с форматированием markdown</strong> → разбираем: как попросить «просто текст без звёздочек».</li>
+<li><strong><code>sort()</code> ломается на смешанных типах</strong> → следим, чтобы в списке были только строки.</li>
+<li><strong>Копипаст ИИ выдаёт синтаксическую ошибку</strong> → читаем traceback, находим кавычку не ту.</li>
+<li><strong>Ученик ленится писать сам, копирует всё из ИИ</strong> → мягко возвращаем к правилу «5 минут подумай сам».</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Реализуй команду «покажи запись №N»: ученик вводит число, программа выводит <code>diary[N-1]</code>.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке ИИ — <strong>генератор контента</strong>. Промпт: «Ты — школьник 10 лет. Напиши 5 коротких записей для своего личного дневника. Формат каждой: <code>[Заголовок] Текст до 20 слов</code>. Отдельными строками, без markdown и звёздочек». Учитель показывает, как адаптировать полученное под код.</p>
+<hr>
+</div>
+</body>
+</html>

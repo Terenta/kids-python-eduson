@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 4 — Проект «Электронный помощник ч.1 — Автоматизируйте онбординг» + дебаггинг с ИИ | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 4</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Проект «Электронный помощник ч.1 — Автоматизируйте онбординг» + дебаггинг с ИИ</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Математических основ</p>
+<p><strong>Неделя:</strong> 4</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Проект (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок самостоятельно пишет программу из ≥30 строк с переменными, вводом-выводом и арифметикой, а также впервые использует ИИ для дебаггинга ошибок.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик умеет:</strong> использовать простые типы данных, комментарии, переменные, операторы присваивания и пользовательский ввод, чтобы самостоятельно написать программу; использовать ИИ для дебаггинга, чтобы понимать и исправлять ошибки.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ-помощники: YandexGPT (https://ya.ru/alisa) или GigaChat (https://giga.chat) — первый контакт</li>
+<li>Файлы-заготовки: <code>helper_v1.py</code> (каркас с комментариями-подсказками)</li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<ul>
+<li>Python 3.11+, IDE</li>
+<li>Открытая вкладка браузера с YandexGPT/GigaChat</li>
+</ul>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ и анонс проекта</strong></p>
+<ul>
+<li>Что говорит преподаватель: «Сегодня ты — не ученик. Ты — разработчик, делающий настоящий продукт: электронного помощника, который регистрирует новых пользователей кафе / фитнес-клуба / курса. И ещё — знакомишься с ИИ-напарником».</li>
+</ul>
+<p><strong>5–15 мин. Разбор ТЗ и демо результата</strong></p>
+<ul>
+<li>Показываем готовый эталон: программа спрашивает имя, возраст, рост, вес, считает ИМТ, выводит «карточку клиента» с рекомендацией.</li>
+<li>Правило «5 минут подумай сам» — впервые вводится.</li>
+<li>Как работает YandexGPT для дебага: показываем на фейковой ошибке.</li>
+</ul>
+<p><strong>15–45 мин. Самостоятельная разработка под наблюдением</strong></p>
+<ul>
+<li><strong>Шаг 1 (10 мин):</strong> заглушки-комментарии плана (псевдокод). Ребёнок пишет <code># 1. спросить имя</code>, <code># 2. спросить возраст</code>... До кода.</li>
+<li><strong>Шаг 2 (15 мин):</strong> реализация inputs и вычислений. ИМТ = <code>вес / (рост/100)**2</code>.</li>
+<li><strong>Шаг 3 (10 мин):</strong> красивый вывод через f-строки с <code>\n</code>. Комментарии по ходу.</li>
+</ul>
+<p><strong>45–55 мин. Дебаг с ИИ</strong></p>
+<ul>
+<li>Преподаватель ломает программу в одном месте (лишняя скобка, забытый int). Ученик видит ошибку.</li>
+<li>Вместе идём в YandexGPT: копируем traceback, добавляем промпт: «Я учусь Python. Вот моя ошибка: [traceback]. Что делает эту ошибку и как исправить? Не давай готовый код, объясни причину».</li>
+<li>Исправляем по объяснению ИИ.</li>
+</ul>
+<p><strong>55–60 мин. Защита проекта</strong></p>
+<ul>
+<li>Ученик защищает по шаблону: что делает, демо, сложная часть, что улучшить, вопросы.</li>
+<li>Бейдж «Укротитель ввода-вывода».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Сегодня у тебя большой день. Настоящий проект, как в айти-компании».</li>
+<li>«Правило №1: 5 минут пробуй сам. Молча. Не спрашиваешь меня, не идёшь в ИИ. Просто думаешь».</li>
+<li>«Ошибка — не провал. Ошибка — это подсказка, что улучшить».</li>
+<li>«Traceback читаем снизу вверх. Самая нижняя строка — суть ошибки».</li>
+<li>«ИИ — не волшебник, который даёт готовый код. ИИ — напарник, который ОБЪЯСНЯЕТ».</li>
+<li>«Если ИИ предлагает готовое решение — не копируй слепо. Разберись, почему».</li>
+<li>«Промпт к ИИ — такое же искусство, как и код. Учись формулировать».</li>
+<li>«Давай защитишь проект, как настоящий разработчик: что сделал, как сделал, что сложного».</li>
+<li>«Вау, ты за 60 минут написал 50 строк рабочего кода. Первый проект в портфолио!»</li>
+<li>«Бейдж "Укротитель ввода-вывода" твой. Завтра — строки».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Электронный помощник ч.1 — Онбординг»</li>
+<li><strong>Что получится:</strong> программа ≥30 строк, собирает данные клиента, считает ИМТ, выводит карточку.</li>
+<li><strong>Где показать:</strong> в чат курса с родителями, объяснить на 1 минуту.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Доработай помощника: добавь вопрос про любимый спорт и вывод 2 разных рекомендаций в зависимости от ответа... подожди, условий ещё нет. Тогда добавь просто ещё 2 поля — телефон и email. Пришли файл.</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Программа содержит ≥4 <code>input()</code> и ≥2 вычисления.</li>
+<li>Ребёнок самостоятельно нашёл и исправил минимум 1 ошибку.</li>
+<li>Ребёнок использовал ИИ-ассистента минимум 1 раз для объяснения ошибки.</li>
+<li>Ребёнок защитил проект по шаблону (5 пунктов).</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong>Ступор на старте</strong> → возвращаемся к псевдокоду с комментариев.</li>
+<li><strong>Копирует код из ИИ</strong> → прячем окно ИИ, пишем вместе по 1 строке.</li>
+<li><strong>ИМТ считается неправильно</strong> → разбираем приоритет операций и скобки.</li>
+<li><strong>Боится защищать проект</strong> → делаем репетицию, пишем 5 пунктов на бумаге.</li>
+<li><strong>Траблы с YandexGPT</strong> → переключаемся на GigaChat, объясняем, что оба — аналоги.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Добавь расчёт «идеальной массы» (рост − 100 для мужчин, рост − 110 для женщин — пусть спрашивает пол, хотя условий пока нет, выведи ОБА варианта).</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке ИИ впервые становится «напарником по дебагу». Ученик копирует traceback в YandexGPT с промптом «Объясни ошибку, не давай готовый код». Это закладывает ключевую привычку курса. Пример промпта для учителя: «Я ученик 10 лет, учу Python. Моя программа выдала ошибку: [traceback]. Объясни по-детски, что случилось и на какой строке искать. Готовое решение НЕ давай».</p>
+<hr>
+</div>
+</body>
+</html>

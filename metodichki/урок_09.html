@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 9 — Как работать с условиями с помощью if и else | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 9</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с условиями с помощью if и else</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Игровой логики</p>
+<p><strong>Неделя:</strong> 9</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок умеет писать программы с ветвлением через <code>if/else</code>, использует операторы сравнения и значения True/False.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> что такое условие и зачем оно нужно; как работает конструкция <code>if</code>; как работает ветка <code>else</code>; что программа выполняет разные действия в зависимости от условия; что такое логическое выражение; что такое значения <code>True</code> и <code>False</code>; назначение операторов сравнения <code>==</code>, <code>!=</code>, <code><</code>, <code>></code>, <code><=</code>, <code>>=</code>; что код внутри <code>if</code> и <code>else</code> выделяется отступами; что отступы в Python имеют значение.</li>
+<li><strong>Ученик умеет / может:</strong> писать простые условия; использовать конструкцию <code>if/else</code>; проверять ввод пользователя; создавать простые программы с выбором действий (вопрос-ответ, проверка).</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ: GigaChat (для проверочных сценариев)</li>
+<li>Файлы-заготовки: <code>if_else_demo.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<p>Python 3.11+.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ</strong></p>
+<ul>
+<li>«Покажи дневник. Сегодня программа научится ДУМАТЬ — принимать решения сама. Модуль "Игровая логика" — твой любимый будет».</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо</strong></p>
+<ul>
+<li>Метафора: <strong>if/else — как светофор</strong>. Условие True — едем, False — стоим.</li>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>Условие</strong> — вопрос, на который ответ True или False.</p>
+<p>  - <strong>if</strong> — если условие True, выполни блок.</p>
+<p>  - <strong>else</strong> — иначе выполни другое.</p>
+<p>  - <strong>True / False</strong> — булевы значения (логические).</p>
+<p>  - <strong>Операторы сравнения:</strong> <code>==</code> (равно), <code>!=</code> (не равно), <code><</code>, <code>></code>, <code><=</code>, <code>>=</code>.</p>
+<p>  - <strong>Отступ (4 пробела)</strong> — единственный способ сказать Python «этот блок внутри if».</p>
+<ul>
+<li>Живой код:</li>
+</ul>
+<pre><code class="language-python">  age = int(input("Возраст: "))
+  if age &gt;= 18:
+      print("Можно водить машину")
+  else:
+      print("Ещё рано")</code></pre>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (8 мин):</strong> «Тёплый или холодный»: спроси температуру, скажи «одевайся теплее» если < 10, иначе «футболка ок».</li>
+<li><strong>Задание 2 (12 мин):</strong> «Угадай число»: в переменной <code>secret = 7</code>. Спроси ввод. Если <code>==</code> — «молодец», иначе — «мимо».</li>
+<li><strong>Задание 3 (10 мин):</strong> «Пароль»: <code>password = "python123"</code>. Спроси ввод. Если совпал — «добро пожаловать», иначе «доступ запрещён».</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Турникет метро»</strong></p>
+<ul>
+<li>Программа спрашивает возраст. Если <7 — «бесплатно». Если >=7 и <=100 — «пройдите, приложите карту». Если >100 — «вы рекордсмен!».</li>
+<li>Внимание: пока без <code>elif</code> — через вложенные if, как задание на внимательность к отступам.</li>
+</ul>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Показ Турникета.</li>
+<li>Вопросы: «Что выведет <code>5 == "5"</code>? Зачем <code>==</code>, а не <code>=</code>?»</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Сегодня программа учится думать. Решать сама».</li>
+<li>«Условие — это вопрос. Ответ — True или False».</li>
+<li>«<code>=</code> — присвоить. <code>==</code> — сравнить. Две большие разницы».</li>
+<li>«Отступ в Python — не декорация. Это СИНТАКСИС. 4 пробела».</li>
+<li>«Tab или пробелы — не мешай. Держись одного».</li>
+<li>«if без else — можно. else без if — нельзя».</li>
+<li>«Сравнивать можно числа, строки и много чего. Python умный».</li>
+<li>«<code>"5" == 5</code> — это False. Типы разные».</li>
+<li>«Попробуй сам. 5 минут».</li>
+<li>«Скоро сделаешь базу данных игры с паролем — настоящую программу».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Турникет метро»</li>
+<li><strong>Что получится:</strong> программа с 2–3 ветвлениями решает, пропустить или нет.</li>
+<li><strong>Где показать:</strong> скрин в чат.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Напиши программу «Светофор»: спроси цвет (red/yellow/green), если red — «Стой», если green — «Иди», иначе — «Приготовься». Через вложенные if-else (без elif).</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик пишет минимум 2 разных if/else.</li>
+<li>Ученик использует минимум 3 оператора сравнения.</li>
+<li>Отступы корректны (4 пробела, без смешения табов и пробелов).</li>
+<li>Ученик объясняет, чем <code>=</code> отличается от <code>==</code>.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong>IndentationError</strong> → проверяем отступы, все одинаковые (4 пробела).</li>
+<li><strong><code>if age = 10</code></strong> → синтаксическая ошибка. Напоминаем про <code>==</code>.</li>
+<li><strong><code>"5" == 5</code></strong> → False. Обсуждаем типы, учимся переводить через <code>int()</code>.</li>
+<li><strong>else в неправильном месте</strong> → else относится к последнему if. Рисуем дерево.</li>
+<li><strong>Забыл двоеточие <code>:</code> после условия</strong> → SyntaxError. Разбираем.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Программа «Камень-ножницы-бумага»: ты вводишь, компьютер выбирает <code>random.choice(...)</code>. Кто победил?</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Учитель показывает: «GigaChat, придумай 5 тестовых сценариев для моей программы "Турникет метро": какие возрасты попробовать, чтобы проверить все ветки». Ученик учится использовать ИИ для QA — проверки своей программы.</p>
+<hr>
+</div>
+</body>
+</html>

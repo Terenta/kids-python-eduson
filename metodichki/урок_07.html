@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 7 — Как использовать методы для работы со списками и строками | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 7</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как использовать методы для работы со списками и строками</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Системных данных</p>
+<p><strong>Неделя:</strong> 7</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок умеет применять основные методы строк (<code>upper</code>, <code>lower</code>, <code>strip</code>, <code>replace</code>) и списков (<code>append</code>, <code>remove</code>, <code>pop</code>, <code>sort</code>).</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> зачем нужны методы для строк и списков; назначение основных методов строк — <code>upper()</code>, <code>lower()</code>, <code>strip()</code>, <code>replace()</code>; назначение основных методов списков — <code>append()</code>, <code>remove()</code>, <code>pop()</code>, <code>sort()</code>.</li>
+<li><strong>Ученик умеет / может:</strong> применять методы строк для изменения текста; очищать и изменять введённый пользователем текст; добавлять элементы в список; удалять элементы из списка; сортировать список.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ: GigaChat (для тестовых данных)</li>
+<li>Файлы-заготовки: <code>methods_demo.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<p>Python 3.11+.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ</strong></p>
+<ul>
+<li>«Покажи дни недели. Сегодня — методы. Это когда у строки и списка есть "встроенные кнопки"».</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо</strong></p>
+<ul>
+<li>Метафора: <strong>метод — это кнопка на самом объекте</strong>. <code>list.append(x)</code> — нажал кнопку «добавить».</li>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>Метод</strong> — функция, вызываемая через точку на объекте.</p>
+<p>  - <strong><code>upper()</code></strong> — ВЕРХНИЙ регистр.</p>
+<p>  - <strong><code>lower()</code></strong> — нижний регистр.</p>
+<p>  - <strong><code>strip()</code></strong> — обрезает пробелы по краям.</p>
+<p>  - <strong><code>replace(a, b)</code></strong> — заменить a на b.</p>
+<p>  - <strong><code>append(x)</code></strong> — добавить в конец списка.</p>
+<p>  - <strong><code>remove(x)</code></strong> — удалить первое вхождение x.</p>
+<p>  - <strong><code>pop()</code></strong> — вытащить последний элемент (и вернуть).</p>
+<p>  - <strong><code>sort()</code></strong> — отсортировать на месте.</p>
+<ul>
+<li>Живой код:</li>
+</ul>
+<pre><code class="language-python">  s = "  Привет, Мир!  "
+  print(s.strip().upper().replace("МИР", "Python"))
+  lst = [3, 1, 2]
+  lst.append(10)
+  lst.sort()
+  lst.pop()
+  lst.remove(2)
+  print(lst)</code></pre>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (10 мин):</strong> «Очиститель ввода»: спросить фразу, вывести её <code>strip().lower()</code>.</li>
+<li><strong>Задание 2 (12 мин):</strong> «Цензор»: спросить предложение, заменить 2 слова на «[скрыто]». Подсказка: <code>.replace()</code>.</li>
+<li><strong>Задание 3 (10 мин):</strong> «Список покупок»: пустой список, 5 раз <code>input</code> → <code>append</code>, в конце <code>sort()</code>, вывести, <code>pop()</code> последний, вывести снова.</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Редактор заметок»</strong></p>
+<ul>
+<li>Программа спрашивает заметку, очищает пробелы, делает ВСЕ БУКВЫ ПРОПИСНЫМИ первое слово (через срез и <code>.upper()</code>), заменяет «плохо» на «отлично». Добавляет в список <code>notes</code>. Выводит сортированный список.</li>
+</ul>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Показ редактора.</li>
+<li>Вопросы: «Метод меняет объект сам или возвращает новый? (у строк — возвращает новый, у списков — меняет)».</li>
+<li>Бейдж «Строковед» — после защиты.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Метод — это встроенная кнопка объекта. Точка — и название метода».</li>
+<li>«Важно: у СТРОК методы ВОЗВРАЩАЮТ новую строку (строки неизменяемы). У списков — МЕНЯЮТ сам список».</li>
+<li>«Цепочка методов: <code>s.strip().lower()</code> — сначала обрежь, потом в нижний регистр».</li>
+<li>«<code>sort()</code> — ничего не возвращает! <code>print(lst.sort())</code> выведет None. Сортирует на месте».</li>
+<li>«<code>pop()</code> — возвращает то, что удалил. Удобно».</li>
+<li>«<code>remove(x)</code> удаляет первое вхождение. Если x нет — ValueError».</li>
+<li>«В профи-коде всегда очищают <code>input().strip()</code> — чтобы убрать лишние пробелы».</li>
+<li>«Попробуй сам. 5 минут».</li>
+<li>«Отлично! Скоро большой проект — дневник».</li>
+<li>«Эти методы ты будешь использовать каждый день в разработке».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Редактор заметок»</li>
+<li><strong>Что получится:</strong> программа очищает и изменяет заметки, кладёт в отсортированный список.</li>
+<li><strong>Где показать:</strong> скрин в чат.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Программа: спроси 5 имён, заппенди в список, отсортируй, выведи ПЕРВОЕ заглавными (<code>.upper()</code>) и ПОСЛЕДНЕЕ строчными (<code>.lower()</code>).</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик применяет минимум 3 метода строк и 3 метода списков.</li>
+<li>Ученик объясняет разницу: метод строки возвращает, метод списка меняет.</li>
+<li>Ученик использует цепочку методов <code>.strip().lower()</code>.</li>
+<li>Ученик правильно обрабатывает пользовательский ввод через <code>.strip()</code>.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong><code>print(lst.sort())</code> выдаёт None</strong> → объясняем: sort ничего не возвращает.</li>
+<li><strong><code>s.upper()</code> не меняет s</strong> → нужно <code>s = s.upper()</code>.</li>
+<li><strong><code>remove</code> на несуществующем</strong> → ValueError. Ловим позже, когда условия.</li>
+<li><strong>Путают <code>append</code> и <code>extend</code></strong> → <code>extend</code> (разберём на уроке 8) — добавляет несколько.</li>
+<li><strong>Вкладывают метод в метод криво</strong> → шаг за шагом: сначала <code>.strip()</code>, потом <code>.lower()</code>.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Изучи <code>.split(" ")</code> — как разбить строку на список слов. Потом <code>.join()</code> — обратная операция. Напиши программу: спроси предложение, выведи, сколько в нём слов.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>«GigaChat, напиши 10 примеров неаккуратно введённого текста с лишними пробелами и заглавными не к месту — для теста моего очистителя». Ученик учится промптить под конкретную задачу теста.</p>
+<hr>
+</div>
+</body>
+</html>

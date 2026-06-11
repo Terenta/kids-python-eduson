@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 1 — Где разработчики пишут код и как его запускать | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 1</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Где разработчики пишут код и как его запускать</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Математических основ</p>
+<p><strong>Неделя:</strong> 1</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок понимает, что такое Python и IDE, устанавливает среду разработки и самостоятельно запускает свою первую программу <code>print("Hello, world")</code> локально и в облаке.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> что такое Python и как он работает; что такое IDE и какие среды разработки бывают (GigaIDE, Google Colab и др.); что нужно, чтобы запустить код; как установить Python и среду разработки; как запустить код.</li>
+<li><strong>Ученик умеет / может:</strong> запустить <code>print('Hello, world')</code> локально и в облачной IDE.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE Desktop (основное), Google Colab (запасной вариант), Python 3.11+</li>
+<li>ИИ-помощники: GigaChat (встроен в GigaIDE) — для демонстрации, не для решения</li>
+<li>Файлы-заготовки: <code>hello.py</code> (пустой файл-шаблон в папке <code>lesson_01</code>)</li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<ul>
+<li>Компьютер с доступом в интернет</li>
+<li>Python 3.11+ и GigaIDE Desktop установлены (или Colab)</li>
+<li>Камера/микрофон для онлайн-формата</li>
+</ul>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Приветствие и знакомство с курсом</strong></p>
+<ul>
+<li>Что говорит преподаватель: «Привет! Сегодня ты напишешь свою первую настоящую программу. Да, прямо сегодня. Никакой теории на две недели без клавиатуры — код через 15 минут».</li>
+<li>Что делает ученик: включает камеру, открывает рабочий стол, готовит тетрадь для заметок.</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо (живой показ на экране)</strong></p>
+<ul>
+<li>Ключевые концепции: что такое Python (язык, на котором «говорят» с компьютером), что такое IDE (мастерская программиста), чем GigaIDE отличается от Colab (локально vs в облаке).</li>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>Python</strong> — язык программирования, названный в честь комик-группы «Летающий цирк Монти Пайтона».</p>
+<p>  - <strong>IDE</strong> — integrated development environment, «редактор с суперсилами»: подсказки, запуск, отладка.</p>
+<p>  - <strong>GigaIDE</strong> — российская IDE от СБЕРа со встроенным GigaChat.</p>
+<p>  - <strong>Google Colab</strong> — «блокнот в облаке», работает в браузере.</p>
+<p>  - <strong>Интерпретатор</strong> — программа, которая читает твой код построчно и выполняет.</p>
+<p>  - <strong>print()</strong> — команда «выведи на экран».</p>
+<ul>
+<li>Живой код в GigaIDE: преподаватель открывает пустой файл, печатает <code>print("Hello, world")</code>, нажимает Run. Тот же код — в Colab.</li>
+</ul>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (5–7 мин):</strong> открыть GigaIDE, создать файл <code>hello.py</code>, написать <code>print("Hello, world")</code>, запустить. Артефакт — скриншот с надписью в терминале.</li>
+</ul>
+<p>  - Что говорит преподаватель: «Смотри, я печатаю слово в слово. Скобки и кавычки — обязательно. Теперь ты. Если что-то красное внизу — не пугайся, это подсказка, а не ругань».</p>
+<ul>
+<li><strong>Задание 2 (10 мин):</strong> поменять текст внутри кавычек — написать приветствие от имени ученика: <code>print("Привет, я Миша, и я пишу код!")</code>. Запустить 3 разные версии: по-русски, по-английски, с эмодзи.</li>
+<li><strong>Задание 3 (10 мин):</strong> открыть Google Colab (colab.research.google.com), создать новый блокнот, написать тот же <code>print</code>, запустить в облаке. Сравнить: где быстрее запускается?</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Визитка программиста»</strong></p>
+<ul>
+<li>Ребёнок пишет 5 строк про себя через <code>print</code>: имя, возраст, город, любимая игра, зачем пришёл учиться программированию.</li>
+<li>Сохраняет файл как <code>visitka.py</code>, запускает, делает скриншот.</li>
+</ul>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Ученик показывает экран с работающей «Визиткой».</li>
+<li>Вопросы преподавателя: «Что такое print простыми словами? Чем GigaIDE отличается от Colab?»</li>
+<li>Похвала: «Ты уже программист. Первый бейдж — "Первый print" — твой».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Привет, будущий разработчик! Сегодня мы напишем первую настоящую программу».</li>
+<li>«IDE — это как кухня повара: всё под рукой».</li>
+<li>«Если что-то красное в терминале — это подсказка, а не ругань».</li>
+<li>«Кавычки и скобки — обязательные, они как знаки препинания для Python».</li>
+<li>«Попробуй сам, у тебя 5 минут. Застрял — скажешь».</li>
+<li>«Запомни: Python не любит пробелы там, где их не ждут. Будь внимательным».</li>
+<li>«Колаб — это когда компьютера нет под рукой, а код писать хочется».</li>
+<li>«Отлично! Ты установил среду разработки — это уже половина инженерии».</li>
+<li>«Мы не учим теорию — мы сразу пишем».</li>
+<li>«Поздравляю, бейдж "Первый print" получен!»</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Визитка программиста»</li>
+<li><strong>Что получится:</strong> программа из 5 <code>print</code>, рассказывающая о тебе.</li>
+<li><strong>Где показать:</strong> отправить скриншот в чат курса родителям.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Добавь в <code>visitka.py</code> ещё 3 строки — любимая еда, мечта, любимый мем. Пришли скриншот запущенной программы в чат.</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик установил GigaIDE (или открыл Colab) самостоятельно.</li>
+<li>Ученик написал <code>print()</code> с русским и английским текстом.</li>
+<li>Ученик запустил код локально И в облаке.</li>
+<li>Ученик объяснил, что такое IDE и print, своими словами.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong>Не устанавливается Python</strong> → используем Colab как временное решение, установку доделываем на ДЗ вместе с родителем.</li>
+<li><strong>Кавычки «ёлочки» вместо прямых</strong> → показываем переключение раскладки, объясняем: Python понимает только <code>"</code> и <code>'</code>.</li>
+<li><strong>Забыл закрыть скобку</strong> → читаем сообщение ошибки вместе (учебный момент).</li>
+<li><strong>Русский текст выдаёт кракозябры в терминале</strong> → проверяем кодировку файла (UTF-8), в GigaIDE это по умолчанию.</li>
+<li><strong>Нет интернета для Colab</strong> → заранее готовим GigaIDE как основной вариант.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Напиши программу, которая выводит твоё имя 10 раз через <code>print("Миша " * 10)</code>. Потом подумай: как заставить её вывести имя «зигзагом» через пробелы и табуляцию <code>\t</code>.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке ИИ работает в режиме «смотри, вот помощник на будущее». Преподаватель один раз открывает GigaChat и спрашивает: «Объясни 10-летнему, что такое Python за 3 предложения». Ученик видит ответ — это подготовка к уроку 4, где ИИ будет помогать с дебагом. Пример промпта для учителя: «Ты — детский преподаватель. Объясни, что такое Python, 10-летнему ребёнку тремя короткими предложениями, с метафорой».</p>
+<hr>
+</div>
+</body>
+</html>

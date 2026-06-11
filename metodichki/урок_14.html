@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 14 — Как работать с циклом while | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 14</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с циклом while</h2>
+  <div class="meta"><span>Отдел:</span> <span>4.</span> <span>Автоматизации</span> <span>Неделя:</span> <span>14</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 4. Автоматизации <strong>Неделя:</strong> 14 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Освоить цикл <code>while</code> как «цикл-пока»: научить описывать повторение, у которого число итераций заранее неизвестно; объяснить роль условия, счётчика и ловушки бесконечного цикла.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: когда удобнее <code>while</code>; чем <code>for</code> отличается от <code>while</code>; что <code>while</code> выполняется, пока условие истинно; отличие от <code>if</code>; что условие проверяется перед каждой итерацией; что такое счётчик; что такое бесконечный цикл и почему он возникает. Ученик может: писать простые <code>while</code>, использовать условие, менять переменную внутри цикла, останавливать цикл, создавать программы с повторениями.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, YandexGPT (для объяснения ошибок и «почему цикл не останавливается»).</p>
+<h2>⚙️ Техтребования</h2>
+<p>Как в уроке 13. Важно: научить ребёнка нажимать <strong>Ctrl+C</strong> в терминале, чтобы остановить бесконечный цикл.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие. Проверка ДЗ (чётные числа, суммы). Показ одной задачки из ДЗ на экране.</li>
+<li><strong>5–15.</strong> Теория. Сравниваю: «<code>for</code> — знаю, сколько раз. <code>while</code> — не знаю, делаю, пока условие не выполнится. Как поездка на лифте: нажал кнопку — едешь, пока не приедешь». Демо: <code>n = 1; while n <= 5: print(n); n += 1</code>. Отдельно — «чем <code>while</code> НЕ является» — это не <code>if</code>. Показываю, что будет, если забыть <code>n += 1</code> (бесконечный цикл — ломаем Ctrl+C).</li>
+<li><strong>15–45.</strong> Практика.</li>
+</ul>
+<p>  1. Игра «Угадай число» (урезанная версия без <code>random</code>): загадано <code>secret = 7</code>, пользователь вводит число в цикле <code>while guess != secret</code>, программа отвечает «больше/меньше».</p>
+<p>  2. Счётчик до первого введённого «стоп»: <code>while True: cmd = input(); if cmd == "стоп": break</code> — аккуратно вводим <code>break</code>, подробнее на уроке 15.</p>
+<p>  3. Обратный отсчёт от 10 до 0 с шагом <code>-1</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Банкомат». Баланс = 1000. В цикле пользователь вводит сумму снятия; программа вычитает, пока баланс больше 0; выводит «Баланс исчерпан».</li>
+<li><strong>55–60.</strong> Итог + ДЗ. Показываю «что будет на следующем уроке» — <code>break</code>, <code>continue</code>, <code>else</code>.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«<code>for</code> — это пробежка 10 кругов. <code>while</code> — бежишь, пока не устал».</li>
+<li>«Цикл проверяет условие НА ВХОДЕ, каждый круг заново».</li>
+<li>«Если <code>while True:</code> — это цикл-навсегда. Ломается только изнутри».</li>
+<li>«Счётчик — это переменная, которую ты сам двигаешь: <code>n += 1</code>».</li>
+<li>«Забыл <code>n += 1</code>? Python будет крутиться вечно. Ctrl+C спасает».</li>
+<li>«<code>if</code> — это вопрос один раз. <code>while</code> — это вопрос перед каждым шагом».</li>
+<li>«Проверь условие: при каком значении цикл остановится?».</li>
+<li>«"Пока пользователь не ввёл стоп" — классический <code>while</code>».</li>
+<li>«Условие цикла читай как "пока это верно — крути"».</li>
+<li>«<code>while guess != 7:</code> — "пока не угадал, продолжай спрашивать"».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Банкомат» (описан выше) — закрепляет обновление переменной внутри цикла и условие остановки.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Угадай число от 1 до 20 (загадано в коде), дать 5 попыток через <code>while attempts < 5</code>.</li>
+<li>Ввести в цикле слова, завершить по пустой строке, в конце вывести количество слов.</li>
+<li>Написать таблицу удвоения: начинаем с 1, удваиваем, пока число меньше 1000 (должно вывести 1, 2, 4, 8, 16, …, 512).</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок различает <code>for</code> и <code>while</code> и объясняет словами; самостоятельно пишет счётчик и не забывает его обновлять; знает, как остановить бесконечный цикл.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Бесконечный цикл.</strong> Тренируем Ctrl+C и проверку: «где я меняю условие?».</li>
+<li><strong>Путают <code>=</code> и <code>==</code>.</strong> Показываю: <code>n = 5</code> — присваивание, <code>n == 5</code> — сравнение.</li>
+<li><strong>Пишут <code>while (n <= 5)</code> со скобками как в C++.</strong> Скобки не нужны, не ошибка, но объясняю стиль Python.</li>
+<li><strong>Не понимают <code>n += 1</code>.</strong> Раскладываю: это то же самое, что <code>n = n + 1</code>.</li>
+<li><strong>Делают <code>while</code> там, где достаточно <code>for</code>.</strong> Учу выбору: знаешь число повторений → <code>for</code>.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>«Сумма цифр числа»: даём число <code>n = 12345</code>; в <code>while n > 0</code> отрываем последнюю цифру через <code>n % 10</code> и складываем, потом <code>n //= 10</code>. Ответ 15.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>Если ребёнок поймал бесконечный цикл и не понимает почему — копируем код в YandexGPT с промптом «Найди в этом коде причину бесконечного цикла, объясни 10-летнему». Разбираем ответ: ИИ указывает, что переменная не меняется. Учимся критически читать ответ.</p>
+<hr>
+</div>
+</body>
+</html>

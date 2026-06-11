@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 13 — Как работать с циклом for | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 13</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с циклом for</h2>
+  <div class="meta"><span>Отдел:</span> <span>4.</span> <span>Автоматизации</span> <span>Неделя:</span> <span>13</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 4. Автоматизации <strong>Неделя:</strong> 13 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Познакомить ребёнка с идеей повторяющегося действия через цикл <code>for</code>: научить перебирать числа через <code>range()</code> и элементы списка, уверенно писать простые циклы и решать задачи на повторение.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: что такое цикл и зачем он нужен; что <code>for</code> используется, когда известно число повторений; что такое последовательность значений; как работает <code>range()</code>; что переменная цикла автоматически принимает новые значения; роль отступов. Ученик может: писать простые циклы <code>for</code>, использовать <code>range()</code>, перебирать числа и элементы списка, решать задачи на повторение.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE Desktop (основной), Google Colab (демо), Python 3.11, YandexGPT через Алису — для объяснения ошибок. Слайды Eduson по теме урока.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Рабочий ноутбук, установленный Python 3.11+, GigaIDE, устойчивый интернет, наушники. Открытая вкладка Алисы для YandexGPT.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие. Разбор ДЗ урока 12 (база данных по игре): что получилось, где «застрял» на условиях.</li>
+<li><strong>5–15.</strong> Теория + демо. «Представь, что нужно вывести "Привет" 100 раз. Копировать? Нет — есть цикл <code>for</code>». Показываю <code>for i in range(5): print(i)</code> — объясняю, что <code>i</code> — это «коробочка, в которую по очереди кладут 0, 1, 2, 3, 4». Разбираем <code>range(start, stop)</code>, <code>range(start, stop, step)</code>. Потом <code>for name in ["Аня", "Боря", "Витя"]</code>.</li>
+<li><strong>15–45.</strong> Практика (3 задания со скриптом).</li>
+</ul>
+<p>  1. Вывести числа от 1 до 10 и их квадраты: <code>for n in range(1, 11): print(n, n**2)</code>.</p>
+<p>  2. В списке <code>cities = ["Москва", "Казань", "Уфа", "Сочи"]</code> вывести каждый город с номером через <code>enumerate()</code> либо через параллельный счётчик.</p>
+<p>  3. Сумма чисел от 1 до 100: <code>total = 0; for n in range(1, 101): total += n; print(total)</code> — ожидаемый вывод <code>5050</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Таблица умножения». Ввод числа <code>n</code>, вывод его таблицы умножения от 1 до 10 через <code>for</code>.</li>
+<li><strong>55–60.</strong> Итог: 3 пункта («что такое <code>for</code>», «что делает <code>range</code>», «зачем отступы»). ДЗ.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Цикл — это твой робот-помощник: сказал сделать 10 раз — сделает 10 раз».</li>
+<li>«<code>range(5)</code> — это не <code>[1, 2, 3, 4, 5]</code>, а <code>[0, 1, 2, 3, 4]</code>. Запоминаем — Python всегда стартует с нуля».</li>
+<li>«Переменная <code>i</code> — это коробочка, которая обновляется сама».</li>
+<li>«Отступ — это вход в тело цикла. Забыл отступ — Python обидится».</li>
+<li>«Не бойся использовать <code>i</code>, <code>n</code>, <code>city</code> — называй переменную по смыслу».</li>
+<li>«Сначала напиши вручную, что должен вывести цикл на первых 3 шагах. Потом пиши код».</li>
+<li>«Если <code>range(1, 10)</code> — десятка не входит. Хочешь десятку — пиши <code>range(1, 11)</code>».</li>
+<li>«<code>for</code> перебирает не только числа — он перебирает любую последовательность: список, строку, кортеж».</li>
+<li>«Если зациклило — проверь: переменная в условии точно меняется?».</li>
+<li>«Правило 5 минут: подумай сам до того, как спрашивать Алису».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Генератор паролей» (ASCII-уровень). Используя <code>for i in range(8)</code> и <code>random.choice(letters)</code> (модуль <code>random</code> — даю готовый), собрать строку из 8 случайных символов. Это тизер урока 21 — модули.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Вывести чётные числа от 2 до 20 через <code>range(2, 21, 2)</code>.</li>
+<li>Посчитать сумму всех элементов списка <code>[3, 7, 2, 9, 4]</code>.</li>
+<li>Переписать пример из урока с именами друзей (свой список, минимум 5 имён), вывести «Привет, [имя]!» для каждого.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок пишет цикл <code>for</code> без подглядывания; понимает, зачем <code>range()</code>; умеет перебирать элементы списка; объясняет, что <code>i</code> меняется автоматически.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Путают <code>range(5)</code> и <code>range(1, 5)</code>.</strong> Пишу на листе «диапазон» и «отрезок», показываю визуально.</li>
+<li><strong>Забывают отступ → <code>IndentationError</code>.</strong> Показываю <code>traceback</code>, разбираем сообщение.</li>
+<li><strong>Пишут <code>for i = 0 to 5</code> (из Scratch).</strong> Спокойно поправляю: «Python говорит по-своему».</li>
+<li><strong>Не понимают <code>n</strong>2</code>.** Повторяю про степень из урока 2.</li>
+<li><strong>Пишут <code>print(i)</code> вне цикла.</strong> Прошу объяснить, в какой момент вызывается <code>print</code>.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>«Звёздный треугольник»: через <code>for</code> напечатать треугольник из <code>*</code> высотой 10 строк. Это закрепляет вложенные операции над строками перед уроком 16.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT используется точечно: если ребёнок получил <code>IndentationError</code> или <code>NameError</code>, копируем traceback в Алису с промптом «Объясни ошибку простыми словами 10-летнему». Ответ разбираем вместе. <strong>ИИ НЕ пишет за ребёнка код циклов — правило «5 минут подумай сам» в силе.</strong></p>
+<hr>
+</div>
+</body>
+</html>

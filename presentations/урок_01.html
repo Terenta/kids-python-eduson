@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 1 — Как разработчики пишут и запускают код | EdusonGames</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">26</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Первый слайд. Поприветствуй учеников, представься. Расскажи, что сегодня — первый день «стажировки» в EdusonGames. Скажи, что к концу урока они напишут свою первую программу.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №1</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Как разработчики пишут<br>и запускают код
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Добро пожаловать
+     ============================ -->
+<section class="slide"
+  data-notes="Расскажи об EdusonGames. Подчеркни: каждый месяц — новый отдел. Это держит интерес. Объясни, что стажировка — это как настоящая работа, где они будут получать задачи и сдавать проекты.">
+  <div class="slide__inner">
+    <h2>Добро пожаловать на стажировку <span class="accent">EdusonGames</span></h2>
+    <p>Приветствуем вас в Eduson Games — компании, которая занимается разработкой игр на Python. Студия EdusonGames — это ведущая компания по разработке компьютерных игр, известная своими инновационными и увлекательными проектами.</p>
+    <p>В студии есть несколько отделов, каждый месяц — это новый отдел, новые навыки, новые проекты и новые рабочие задачи.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Что вы узнаете
+     ============================ -->
+<section class="slide"
+  data-notes="Объяви цели урока. Акцент: в конце урока они напишут настоящую программу на Python. Это главная мотивация — конкретный измеримый результат через 45–60 минут.">
+  <div class="slide__inner">
+    <h2>Что вы узнаете в <span class="accent">этом уроке</span></h2>
+    <p>В этом уроке вы узнаете, что вас ждёт в курсе на пути от первых строчек кода до полноценных игр. Вы узнаете, что такое язык программирования, программа, Python и какие инструменты используют Python-разработчики, чтобы писать и запускать код. В конце урока вы напишите свою первую программу на Python.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Стажировка — отделы 1–2
+     ============================ -->
+<section class="slide"
+  data-notes="Первые два отдела. Скажи: мы сейчас в Отделе математических основ — самом первом. Именно здесь они научатся запускать код и создадут первый проект — Электронного помощника.">
+  <div class="slide__inner" style="gap:16px">
+    <h2>Как будет проходить <span class="accent">стажировка</span></h2>
+    <p>В студии EdusonGames есть несколько отделов:</p>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">1.</span>
+        <span class="dept__title">Отдел математических основ</span>
+      </div>
+      <p>Это самый первый отдел, в котором вы научитесь запускать код, работать с переменными, добавлять ввод и вывод в программы, а также напишите свой первый проект — «Электронный помощник» — и научитесь использовать нейросети, чтобы отлавливать ошибки.</p>
+    </div>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">2.</span>
+        <span class="dept__title">Отдел системных данных</span>
+      </div>
+      <p>Вы поймёте, как работать с простыми типами данных — строками, списками — а затем продолжите работу над проектом «Электронный помощник» и добавите функцию личного дневника.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Стажировка — отделы 3–4
+     ============================ -->
+<section class="slide"
+  data-notes="Отдел игровой логики — условия, if/else. Отдел автоматизации — циклы, первая игра Лабиринт. Скажи: 'К тому времени вы уже будете настоящими разработчиками!'">
+  <div class="slide__inner" style="gap:16px">
+    <h2>Как будет проходить <span class="accent">стажировка</span></h2>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">3.</span>
+        <span class="dept__title">Отдел игровой логики</span>
+      </div>
+      <p>Вы научитесь писать программы, которые выполняют разные действия в зависимости от условия. Например, такие, которые отвечают пользователю в зависимости от сообщения, которое он ввёл. Затем вы напишите код для базы данных по игре и научитесь генерировать изображения в ИИ.</p>
+    </div>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">4.</span>
+        <span class="dept__title">Отдел автоматизации</span>
+      </div>
+      <p>Вы использовать циклы, чтобы писать программы, которые могут повторять действия много раз без помощи человека, а затем напишите свою первую консольную игру — «Лабиринт».</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Стажировка — отделы 5–6
+     ============================ -->
+<section class="slide"
+  data-notes="Функции и интеграция. Морской бой для двоих — хороший крючок для детей. Спроси: кто играл в Морской бой? Вот такую игру они напишут сами.">
+  <div class="slide__inner" style="gap:16px">
+    <h2>Как будет проходить <span class="accent">стажировка</span></h2>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">5.</span>
+        <span class="dept__title">Отдел Функциональных механик</span>
+      </div>
+      <p>Здесь ты узнаешь, что такое функции в Python и как они помогают реализовывать сложные игровые механики. Также поможешь разработать проект «Морской бой для двоих».</p>
+    </div>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">6.</span>
+        <span class="dept__title">Отдел Интеграции</span>
+      </div>
+      <p>В играх часто нужны дополнительные файлы и модули — здесь как раз занимаются их подключением. Кроме того, ты создашь квиз для нашей викторины для сотрудников.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Стажировка — отделы 7–8
+     ============================ -->
+<section class="slide"
+  data-notes="Структуры данных и ООП. Виселица — классическая игра, её знают все. Тамагочи — поколение родителей в восторге. Используй эти названия как мотиватор.">
+  <div class="slide__inner" style="gap:16px">
+    <h2>Как будет проходить <span class="accent">стажировка</span></h2>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">7.</span>
+        <span class="dept__title">Отдел проектирования структур</span>
+      </div>
+      <p>Здесь создают персонажей игры и настраивают их взаимодействие. Ты узнаешь, что такое кортежи, словари и другие структуры в Python. Затем ты используешь нейросети и разработаешь игровой проект «Виселица» — игру для угадывания слов.</p>
+    </div>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">8.</span>
+        <span class="dept__title">Отдел объектов и классов</span>
+      </div>
+      <p>Здесь ты узнаешь, что такое объектно-ориентированное программирование — способ писать код так, чтобы он был понятным, аккуратным и легко расширялся, а затем напишешь игру-тамагочи.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Стажировка — отделы 9–10 + финал
+     ============================ -->
+<section class="slide"
+  data-notes="Финальные отделы — ИИ и PyGame. Главная мотивация: в конце курса они создадут собственную игру. Это мощный финальный аккорд для слайда с планом курса.">
+  <div class="slide__inner" style="gap:14px">
+    <h2>Как будет проходить <span class="accent">стажировка</span></h2>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">9.</span>
+        <span class="dept__title">Отдел искусственного интеллекта</span>
+      </div>
+      <p>Ты узнаешь, как использовать ИИ в обычной жизни и в разработке: от помощи в обучении до написания кода. Даже на совсем незнакомых языках :)</p>
+    </div>
+    <div class="dept">
+      <div class="dept__header">
+        <span class="dept__num">10.</span>
+        <span class="dept__title">Отдел разработки</span>
+      </div>
+      <p>Здесь ты узнаешь, что такое PyGame и разработаешь две полноценных игры — со звуком, анимацией и помощью от нейросетей.</p>
+    </div>
+    <p style="font-size:15px;margin-top:2px">В конце стажировки ты применишь все знания, которые ты получил, и разработаешь собственную игру.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Question cover (green)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Разминочный вопрос. Дай 1–2 минуты, пусть ученики выскажутся. Не оценивай ответы — просто принимай. Потом покажи, что ответ — на следующем слайде.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        С чего начать писать код<br>для игр и программ?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Что такое код и программы
+     ============================ -->
+<section class="slide"
+  data-notes="Базовые определения. Попроси привести примеры программ, которыми они пользуются. Затем введи два ключевых понятия — код и программа. Выделенный блок — это главная мысль слайда.">
+  <div class="slide__inner">
+    <h2>Что такое код и <span class="accent">программы</span></h2>
+    <p>Каждый день вы пользуетесь программами — открываете страницы в браузере, отправляете сообщения в мессенджере, слушаете музыку в стриминговых сервисах. Все эти программы работают благодаря коду.</p>
+    <div class="quote-block">
+      Код — это последовательность команд, которые компьютер выполняет одну за другой. Программа — это набор таких команд.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Языки программирования
+     ============================ -->
+<section class="slide"
+  data-notes="Зачем нужны языки программирования. Метафора: компьютер говорит только на языке 0 и 1. Мы придумали языки-посредники. Слово 'языки программирования' выделено — попроси учеников его повторить.">
+  <div class="slide__inner">
+    <h2>Для того, чтобы писать код, разработчики придумали <span class="accent">языки программирования</span></h2>
+    <p>Компьютер сам по себе не понимает на человеческом языке «Открой игру» или «Посчитай, сколько будет 5 + 7». Поэтому люди придумали языки программирования — специальные языки, на которых можно объяснить компьютеру, что делать. Они называются <span class="amber">языками программирования</span>.</p>
+    <p>На одних языках создают сайты, на других — игры, на третьих — программы для телефонов. Один из таких языков — Python.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Какие языки вы знаете? (обсуждение)
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивная пауза. Пусть ученики называют языки программирования, которые знают — Scratch, JavaScript, C++, Java, Lua. Любой ответ правильный. Поддержи и зафиксируй интерес.">
+  <div class="slide__inner" style="justify-content:center;align-items:flex-start;padding-top:60px">
+    <p class="discussion-text">Какие языки программирования<br>вы знаете?</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Python
+     ============================ -->
+<section class="slide"
+  data-notes="Представляем Python. Подчеркни: он похож на английский текст — поэтому его легко читать. Спроси: что из списка применений им интересно больше всего? Телеграм-боты, нейросети или игры?">
+  <div class="slide__inner">
+    <h2>На стажировке вы научитесь разрабатывать игры и приложения на <span class="accent">Python</span></h2>
+    <p>Python — один из самых популярных языков в мире. Код на Python выглядит как обычный английский текст, поэтому Python-разработчики быстро читают код и пишут программы.</p>
+    <p style="margin-top:2px">Python позволяет:</p>
+    <ul class="clean" style="margin-top:6px">
+      <li>создавать приложения, которые доступны онлайн;</li>
+      <li>обучать нейросети, распознавать речь и картинки;</li>
+      <li>разрабатывать Telegram-ботов;</li>
+      <li>и даже разрабатывать игры.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Код на Python похож на английский
+     ============================ -->
+<section class="slide"
+  data-notes="Первый взгляд на настоящий код. Прочитай команду вслух по-русски: print — значит напечатай. В скобках — что именно вывести. Скажи: в конце урока они сами напишут эту строчку.">
+  <div class="slide__inner">
+    <h2>Код на Python похож на обычный <span class="accent">английский язык</span></h2>
+    <p>Начать писать код на Python совсем не сложно — код на нём выглядит как обычный текст, в котором каждая строка — отдельная инструкция.</p>
+    <p>Так выглядит код программы, с которой начинают все разработчики. Она говорит «выведи фразу "Привет, мир!" в консоль». В конце урока вы самостоятельно повторите этот пример и напишите свою первую программу.</p>
+    <pre><code class="language-python">print('Привет, мир!')</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Как и где писать код
+     ============================ -->
+<section class="slide"
+  data-notes="Почему блокнот неудобен. Код можно написать где угодно, но нужны инструменты. Спроси: что неудобно в обычном блокноте? (нет подсказок, нет цветов, нельзя запустить одной кнопкой)">
+  <div class="slide__inner">
+    <h2>Как и где писать <span class="accent">код на Python</span></h2>
+    <p>Код можно написать в обычном блокноте на компьютере, и он выполнится. Но это неудобно — блокнот не показывает ошибки и не помогает написать команды правильно. Разработчики используют специальные инструменты, которые упрощают работу с кодом.</p>
+    <div class="card" style="margin-top:4px">
+      <div class="terminal" style="margin:0 0 10px">
+        <div class="terminal__body">
+          <span class="terminal__prompt">Блокнот (Notepad)</span><br>
+          print('Привет, мир')
+        </div>
+      </div>
+      <p style="font-size:13px">Код можно писать даже в обычном блокноте, но удобнее это делать в специальных программах.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Редакторы кода / IDE
+     ============================ -->
+<section class="slide"
+  data-notes="Среды разработки. Объясни, что IDE — это как швейцарский нож для разработчика. Подсветка кода, запуск кнопкой, автодополнение. Можно показать PyCharm или VS Code.">
+  <div class="slide__inner">
+    <h2>Как редакторы кода упрощают <span class="accent">разработку</span></h2>
+    <p>Редактор кода — это программа, которую вы установите на свой компьютер, чтобы писать код. Редактор кода позволяет создавать сложные программы из нескольких файлов, управлять проектом целиком и использовать дополнительные библиотеки.</p>
+    <div class="grid grid--2" style="margin-top:6px;align-items:start">
+      <div class="terminal">
+        <div class="terminal__body">
+          <span style="color:#c4b5fd">print</span>(<span style="color:#86efac">"Привет, мир"</span>)
+        </div>
+      </div>
+      <div class="card">
+        <p style="color:var(--text);font-size:15px">Программы, в которых пишут код, называются <strong>средами разработки</strong> или <strong>редакторами кода</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Google Colab — браузерный редактор
+     ============================ -->
+<section class="slide"
+  data-notes="Google Colab — онлайн редактор. Главное преимущество: ничего не нужно устанавливать. Работает прямо в браузере. Именно его ученики будут использовать на первых уроках.">
+  <div class="slide__inner">
+    <h2>Код можно писать прямо <span class="accent">в браузере</span></h2>
+    <p>Существуют сайты, которые позволяют писать код онлайн и без установки других программ. Один из таких сервисов — Google Colab от компании Google. Он позволяет писать и запускать код Python в браузере.</p>
+    <div class="card" style="margin-top:4px">
+      <div class="terminal" style="margin:0 0 10px">
+        <div class="terminal__body">
+          <span style="color:var(--muted);font-size:12px">Google Colab — colab.research.google.com</span><br><br>
+          <span style="color:#c4b5fd">print</span>(<span style="color:#86efac">'Привет, мир'</span>)
+        </div>
+      </div>
+      <p style="font-size:13px">Так выглядит Google Colab. Онлайн-редакторы кода позволяют быстро и просто выполнять код без установки других программ.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Question cover — вопросы
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов. Дай ученикам 2–3 минуты задать любые вопросы. Можно проверить понимание: что такое Python? Чем редактор кода отличается от блокнота?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;">
+        Пришло время<br>задавать вопросы
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Google Colab — шаги 1–2
+     ============================ -->
+<section class="slide"
+  data-notes="Открываем Colab вместе. Шаг 1: вставить ссылку в браузер. Шаг 2: нажать войти. Открой браузер на своём компьютере и покажи вживую, пусть ученики повторяют за тобой.">
+  <div class="slide__inner">
+    <h2>Как начать работать с <span class="accent">Google Colab</span></h2>
+    <ol class="steps">
+      <li>
+        <div>Скопируйте ссылку <a href="https://colab.research.google.com/" target="_blank" style="color:var(--amber);font-weight:700;text-decoration:underline;">https://colab.research.google.com/</a> и вставьте её в любой браузер, который вы используете.</div>
+      </li>
+      <li>
+        <div>Нажмите <strong style="color:var(--amber)">«Войти»</strong> в правом верхнем углу.</div>
+      </li>
+    </ol>
+    <div class="card" style="margin-top:6px">
+      <p style="font-size:13px;color:var(--muted)">На главной странице Google Colab нажмите кнопку входа в правом верхнем углу экрана.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Google Colab — шаг 3
+     ============================ -->
+<section class="slide"
+  data-notes="Вход в Google-аккаунт. Если у ученика нет аккаунта — помоги зарегистрироваться или попроси спросить данные у родителей. Без аккаунта Colab не сохраняет файлы.">
+  <div class="slide__inner">
+    <h2>Как начать работать с <span class="accent">Google Colab</span></h2>
+    <ol class="steps" style="counter-reset:step 2">
+      <li>
+        <div>Введите свою почту Google. Если почты нет — зарегистрируйтесь или спросите данные для входа у родителей :)</div>
+      </li>
+    </ol>
+    <div class="card" style="margin-top:8px">
+      <p style="font-size:13px;color:var(--muted)">На экране появится форма входа Google. Введите почту (например, имя@gmail.com) и нажмите «Далее», затем введите пароль.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21: Google Colab — шаг 4 (новый блокнот)
+     ============================ -->
+<section class="slide"
+  data-notes="Создаём новый блокнот. Объясни: блокнот в Colab — это как тетрадь для одного проекта. Каждый урок — новый блокнот. Покажи кнопку 'Создать блокнот' внизу появившегося окна.">
+  <div class="slide__inner">
+    <h2>Как начать работать с <span class="accent">Google Colab</span></h2>
+    <ol class="steps" style="counter-reset:step 3">
+      <li>
+        <div>Нажмите <strong style="color:var(--amber)">«Создать новый блокнот»</strong>. Блокноты — это отдельный пространства, файлы, в которых будет храниться ваш код.</div>
+      </li>
+    </ol>
+    <div class="card" style="margin-top:8px">
+      <p style="font-size:13px;color:var(--muted)">В появившемся окне «Открыть блокнот» нажми кнопку <strong style="color:var(--amber)">«+ Создать блокнот»</strong> внизу — откроется новый пустой блокнот готовый к работе.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 22: Google Colab — шаги 5–6 (называем, пишем код)
+     ============================ -->
+<section class="slide"
+  data-notes="Называем блокнот и пишем первый код. Попроси учеников назвать блокнот 'урок 1'. Потом диктуй print по буквам. Скажи: Ctrl+Enter запускает ячейку.">
+  <div class="slide__inner">
+    <h2>Как начать работать с <span class="accent">Google Colab</span></h2>
+    <ol class="steps" style="counter-reset:step 4">
+      <li>
+        <div>Назовите блокнот так, чтобы его всегда можно было просто найти. Например, «урок 1». Для этого кликните по названию в левом верхнем углу.</div>
+      </li>
+      <li>
+        <div>Теперь всё готово к тому, чтобы писать код! Кликните по ячейке, а затем напишите <code style="color:var(--amber);font-weight:700;">print('Привет, мир')</code> и нажмите на иконку с треугольником слева или сочетание клавиш Ctrl+Enter, чтобы запустить код.</div>
+      </li>
+    </ol>
+    <div class="terminal" style="margin-top:6px">
+      <div class="terminal__body">
+        <span style="color:#c4b5fd">print</span>(<span style="color:#86efac">'Привет, мир'</span>)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 23: Google Colab — шаг 7 (результат)
+     ============================ -->
+<section class="slide"
+  data-notes="Результат! Под ячейкой появляется текст. Скажи: 'Вот ваша первая программа на Python! Всё, что написано в print, выводится на экран.' Попроси поменять текст и запустить снова.">
+  <div class="slide__inner">
+    <h2>Как начать работать с <span class="accent">Google Colab</span></h2>
+    <ol class="steps" style="counter-reset:step 6">
+      <li>
+        <div>Отлично! Код выполнился — вы увидите в ячейке результат выполнения.</div>
+      </li>
+    </ol>
+    <div class="terminal" style="margin-top:10px">
+      <div class="terminal__body">
+        <span style="color:#c4b5fd">print</span>(<span style="color:#86efac">'Привет, мир'</span>)<br>
+        <span style="color:var(--muted)">···</span>&nbsp; Привет, мир
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 24: Время повторить самостоятельно (green)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Самостоятельная работа. Ученики сами повторяют все шаги: открывают Colab, создают блокнот, пишут print('Привет, мир') и запускают. Помогай только по запросу, не подсказывай сразу.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(24px,3.2vw,42px);font-weight:800;line-height:1.15;">
+        Время повторить<br>самостоятельно
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 25: Домашнее задание (пункты 1–4)
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание — установить Python локально. Ссылки на инструкции кликабельны. Пункты 1–3: скачать инструкцию для своей ОС, установить Python, запустить print локально. Пункт 4: поупражняться с разными фразами.">
+  <div class="slide__inner">
+    <h2>Домашнее задание: установите <span class="accent">Python на компьютер</span></h2>
+    <ol class="steps">
+      <li>
+        <div>
+          Скачайте инструкцию для вашей операционной сети:
+          <div class="dl-btns">
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/006/740/original/%D0%97%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5_%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8_Python_%D0%BD%D0%B0_%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80_c_Windows.pdf" target="_blank">Windows</a>
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/004/467/original/%D0%9A%D0%B0%D0%BA_%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D1%8C_Python_%D0%BD%D0%B0_%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80_%D1%81_Mac_OS.pdf" target="_blank">MacOS</a>
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/004/468/original/%D0%9A%D0%B0%D0%BA_%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D1%8C_Python_%D0%BD%D0%B0_%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80_%D1%81_Linux.pdf" target="_blank">Linux</a>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>Повторите инструкцию пошагово, чтобы установить Python.</div>
+      </li>
+      <li>
+        <div>
+          Скачайте инструкцию и повторите её, чтобы запустить команду print() локально. Выберите инструкцию под вашу ОС:
+          <div class="dl-btns">
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/004/469/original/%D0%9A%D0%B0%D0%BA_%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D1%82%D0%B8%D1%82%D1%8C_%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D1%83_Hello__world!_%D0%BD%D0%B4_Mac_OS.pdf" target="_blank">MacOS</a>
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/004/469/original/%D0%9A%D0%B0%D0%BA_%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D1%82%D0%B8%D1%82%D1%8C_%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D1%83_Hello__world!_%D0%BD%D0%B0_Windows.pdf" target="_blank">Windows</a>
+            <a class="dl-btn" href="https://downloads.eduson.tv/materials/files/000/004/471/original/%D0%9A%D0%B0%D0%BA_%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D1%82%D0%B8%D1%82%D1%8C_%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D1%83_Hello__world!_%D0%BD%D0%B0_Linux.pdf" target="_blank">Linux</a>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>Поупражняйся и попробуй вывести другие фразы с помощью Python. Например, своё имя, текст песни или другое забавное приветствие.</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 26: Домашнее задание — финал + компилятор
+     ============================ -->
+<section class="slide"
+  data-notes="Финальный слайд. Пункт 5 — сделать скриншот и отправить на проверку. Предложи ученикам прямо сейчас попробовать интерактивный компилятор — пусть напишут свою первую программу прямо в браузере.">
+  <div class="slide__inner">
+    <h2>Домашнее задание: установите <span class="accent">Python на компьютер</span></h2>
+    <ol class="steps" style="counter-reset:step 4">
+      <li>
+        <div>Поупражняйся и попробуй вывести другие фразы с помощью Python. Например, своё имя, текст песни или другое забавное приветствие.</div>
+      </li>
+      <li>
+        <div>Готово! Ты написал свой первый код на Python! Сделай скриншот и приложи его в карточку для проверки задания на платформе. Сделать это можно с помощью кнопки PrtSc на Windows или Command (&#8984;) + Shift + 3 на Mac.</div>
+      </li>
+    </ol>
+    <div class="compiler" data-lang="python" style="margin-top:10px">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — попробуй прямо здесь!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">print('Привет, мир!')</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

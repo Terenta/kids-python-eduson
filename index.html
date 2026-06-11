@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python и нейросети для детей 8–14 лет | EdisonGames</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --bg: #0B0F17;
+  --bg-2: #111826;
+  --violet: #7C3AED;
+  --cyan: #06B6D4;
+  --text: #F1F5F9;
+  --muted: #94A3B8;
+  --card: rgba(255,255,255,0.04);
+  --card-border: rgba(255,255,255,0.08);
+  --shadow: 0 20px 60px rgba(0,0,0,0.4);
+  --radius: 20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.15), transparent 60%),
+    radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.12), transparent 60%),
+    radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.04), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(11,15,23,0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--card-border);
+  padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+}
+
+.site-header__brand {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 700; font-size: 17px; color: var(--text);
+  text-decoration: none;
+}
+
+.site-header__brand .logo-pill {
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  border-radius: 10px; padding: 6px 12px;
+  font-size: 13px; font-weight: 700; color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.site-header__nav {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.nav-link {
+  font-size: 14px; font-weight: 500; color: var(--muted);
+  text-decoration: none; padding: 6px 14px; border-radius: 999px;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-link:hover { color: var(--text); background: var(--card); }
+.nav-link--btn {
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  color: #fff !important;
+  padding: 7px 18px;
+}
+.nav-link--btn:hover { opacity: 0.9; background: linear-gradient(135deg, var(--violet), var(--cyan)); }
+
+/* Search */
+.search-wrap {
+  position: relative;
+}
+.search-input {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 7px 16px 7px 36px;
+  font-size: 14px; color: var(--text);
+  font-family: 'Inter', sans-serif;
+  width: 220px; outline: none;
+  transition: border-color 0.2s, width 0.3s;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:focus { border-color: rgba(124,58,237,0.5); width: 280px; }
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 14px; pointer-events: none;
+}
+
+/* ── Main ── */
+main { position: relative; z-index: 1; }
+
+/* ── Hero ── */
+.hero {
+  padding: 90px 40px 70px;
+  max-width: 1280px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 28px;
+}
+
+.hero__eyebrow {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--cyan);
+  display: flex; align-items: center; gap: 8px;
+}
+.hero__eyebrow::before,
+.hero__eyebrow::after {
+  content: ''; flex: 1 1 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(6,182,212,0.5), transparent);
+}
+
+.hero__title {
+  font-size: clamp(38px, 6vw, 78px);
+  font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.accent {
+  background: linear-gradient(90deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.hero__sub {
+  font-size: clamp(16px, 1.6vw, 22px);
+  color: var(--muted); max-width: 640px; line-height: 1.6;
+}
+
+.stats-row {
+  display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+}
+
+.stat-badge {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 18px; padding: 18px 28px;
+  min-width: 120px;
+}
+.stat-badge__num {
+  font-size: 34px; font-weight: 800; line-height: 1;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.stat-badge__label {
+  font-size: 13px; color: var(--muted); font-weight: 500; text-align: center;
+}
+
+.hero__cta {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 999px;
+  font-size: 15px; font-weight: 600; text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn--primary {
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(124,58,237,0.35);
+}
+.btn--ghost {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  backdrop-filter: blur(20px);
+}
+
+/* ── Modules & Lessons ── */
+.content {
+  max-width: 1280px; margin: 0 auto;
+  padding: 0 40px 100px;
+}
+
+.module-section {
+  margin-bottom: 64px;
+}
+
+.module-header {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.module-eyebrow {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--cyan);
+}
+
+.module-title {
+  font-size: clamp(22px, 2.8vw, 32px);
+  font-weight: 700; line-height: 1.2;
+}
+
+.module-desc {
+  font-size: 15px; color: var(--muted); line-height: 1.5; margin-top: 4px;
+}
+
+.module-meta {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px;
+}
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  padding: 4px 12px; border-radius: 999px; color: var(--text);
+}
+.badge--violet { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.1); color: #c4b5fd; }
+.badge--cyan { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.1); color: #67e8f9; }
+.badge--project { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); color: #fcd34d; }
+
+/* Lessons grid */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.lesson-card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 22px 22px 18px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.lesson-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(124,58,237,0.3);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.15);
+}
+
+.lesson-card.is-project {
+  border-color: rgba(245,158,11,0.2);
+}
+.lesson-card.is-project:hover {
+  border-color: rgba(245,158,11,0.4);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.2);
+}
+
+.lesson-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--cyan));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.lesson-card:hover::before { opacity: 1; }
+.lesson-card.is-project::before { background: linear-gradient(90deg, #f59e0b, #f97316); }
+
+.lesson-card__top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+
+.lesson-num {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  flex: 0 0 auto;
+}
+
+.lesson-title {
+  font-size: 15px; font-weight: 600; line-height: 1.4;
+  color: var(--text); flex: 1;
+}
+
+.lesson-card__actions {
+  display: flex; gap: 8px;
+}
+
+.lesson-btn {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.lesson-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.lesson-btn--pres {
+  background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15));
+  border: 1px solid rgba(124,58,237,0.3);
+  color: #c4b5fd;
+}
+.lesson-btn--meto {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  color: var(--muted);
+}
+.lesson-btn--meto:hover { color: var(--text); }
+
+/* ── Hidden lesson (for search filter) ── */
+.lesson-card.hidden { display: none; }
+
+/* ── Footer ── */
+.site-footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--card-border);
+  padding: 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center;
+}
+
+.site-footer__brand {
+  font-size: 18px; font-weight: 700;
+}
+
+.site-footer__copy {
+  font-size: 13px; color: var(--muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .site-header { padding: 0 20px; }
+  .hero { padding: 60px 20px 50px; }
+  .content { padding: 0 20px 80px; }
+  .search-input { width: 160px; }
+  .search-input:focus { width: 200px; }
+  .site-header__nav { gap: 4px; }
+  .lessons-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Scroll-fade-in animation ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.module-section {
+  animation: fadeInUp 0.5s ease both;
+}
+.module-section:nth-child(1) { animation-delay: 0.05s; }
+.module-section:nth-child(2) { animation-delay: 0.10s; }
+.module-section:nth-child(3) { animation-delay: 0.15s; }
+.module-section:nth-child(4) { animation-delay: 0.18s; }
+.module-section:nth-child(5) { animation-delay: 0.21s; }
+.module-section:nth-child(6) { animation-delay: 0.24s; }
+.module-section:nth-child(7) { animation-delay: 0.27s; }
+.module-section:nth-child(8) { animation-delay: 0.30s; }
+.module-section:nth-child(9) { animation-delay: 0.33s; }
+.module-section:nth-child(10) { animation-delay: 0.36s; }
+.module-section:nth-child(11) { animation-delay: 0.39s; }
+.module-section:nth-child(12) { animation-delay: 0.42s; }
+
+/* Module color accents */
+.module-section[data-mod="1"] .module-title { color: #c4b5fd; }
+.module-section[data-mod="2"] .module-title { color: #67e8f9; }
+.module-section[data-mod="3"] .module-title { color: #fcd34d; }
+.module-section[data-mod="4"] .module-title { color: #86efac; }
+.module-section[data-mod="5"] .module-title { color: #fda4af; }
+.module-section[data-mod="6"] .module-title { color: #c4b5fd; }
+.module-section[data-mod="7"] .module-title { color: #67e8f9; }
+.module-section[data-mod="8"] .module-title { color: #fcd34d; }
+.module-section[data-mod="9"] .module-title { color: #86efac; }
+.module-section[data-mod="10"] .module-title { color: #fda4af; }
+.module-section[data-mod="11"] .module-title { color: #c4b5fd; }
+.module-section[data-mod="12"] .module-title { color: #fcd34d; }
+
+/* Jump-to module quick nav */
+.module-nav {
+  position: relative; z-index: 1;
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  padding: 0 40px 48px;
+  max-width: 1280px; margin: 0 auto;
+}
+.module-nav a {
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  text-decoration: none;
+  background: var(--card); border: 1px solid var(--card-border);
+  padding: 5px 14px; border-radius: 999px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.module-nav a:hover { color: var(--text); border-color: rgba(124,58,237,0.4); }
+
+/* No-results message */
+#no-results {
+  display: none; text-align: center; padding: 60px 20px;
+  color: var(--muted); font-size: 16px;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header class="site-header">
+  <a href="#" class="site-header__brand">
+    <span class="logo-pill">EdisonGames</span>
+    Python &amp; ИИ
+  </a>
+
+  <nav class="site-header__nav">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="search" placeholder="Поиск урока…" autocomplete="off">
+    </div>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════ HERO ════════════════════════════════ -->
+<main>
+<section class="hero">
+  <div class="hero__eyebrow">EdisonGames · Курс для школьников</div>
+
+  <h1 class="hero__title">
+    Python<br><span class="accent">и нейросети</span><br>для детей
+  </h1>
+
+  <p class="hero__sub">
+    Авторский курс программирования на Python: от первой строчки кода до собственных мини-проектов.
+    Живое программирование, мини-проекты на каждом модуле, реальные инструменты разработчика.
+  </p>
+
+  <div class="stats-row">
+    <div class="stat-badge">
+      <span class="stat-badge__num">24</span>
+      <span class="stat-badge__label">урока</span>
+    </div>
+    <div class="stat-badge">
+      <span class="stat-badge__num">8</span>
+      <span class="stat-badge__label">модулей</span>
+    </div>
+    <div class="stat-badge">
+      <span class="stat-badge__num">8–14</span>
+      <span class="stat-badge__label">лет</span>
+    </div>
+    <div class="stat-badge">
+      <span class="stat-badge__num">60</span>
+      <span class="stat-badge__label">мин / урок</span>
+    </div>
+  </div>
+
+  <div class="hero__cta">
+    <a href="#module-1" class="btn btn--primary">🚀 Начать курс</a>
+  </div>
+</section>
+
+<!-- Module quick nav -->
+<nav class="module-nav" aria-label="Переход к модулю">
+  <a href="#module-1">М1 · Основы</a>
+  <a href="#module-2">М2 · Строки и списки</a>
+  <a href="#module-3">М3 · Дневник</a>
+  <a href="#module-4">М4 · Условия</a>
+  <a href="#module-5">М5 · Циклы</a>
+  <a href="#module-6">М6 · Функции</a>
+  <a href="#module-7">М7 · Модули и файлы</a>
+  <a href="#module-8">М8 · Кортежи</a>
+</nav>
+
+<!-- ════════════════════ LESSONS BY MODULE ════════════════════ -->
+<div class="content">
+  <div id="no-results">Ничего не найдено. Попробуйте другой запрос.</div>
+
+  <!-- ─── MODULE 1 ─── -->
+  <section class="module-section" id="module-1" data-mod="1">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 1 · Уроки 1–4 · Неделя 1</div>
+      <div class="module-title">Математические основы</div>
+      <div class="module-desc">Python: первые шаги. Печатаем, считаем, задаём переменные, получаем данные от пользователя.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">🐍 Python basics</span>
+        <span class="badge badge--cyan">print · variables · input</span>
+        <span class="badge badge--project">📦 Проект: Электронный помощник</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="1">
+      <div class="lesson-card" data-title="Где разработчики пишут код и как его запускать">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 01</span>
+          <span class="badge badge--cyan" style="font-size:11px">IDE</span>
+        </div>
+        <div class="lesson-title">Где разработчики пишут код и как его запускать</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_01.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_01.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Что такое переменные и как с ними работать">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 02</span>
+        </div>
+        <div class="lesson-title">Что такое переменные и как с ними работать</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_02.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_02.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Ввод и вывод данных">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 03</span>
+        </div>
+        <div class="lesson-title">Ввод и вывод данных</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_03.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_03.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card is-project" data-title="Проект Сбор заявок электронный помощник часть 1">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 04</span>
+          <span class="badge badge--project">Проект</span>
+        </div>
+        <div class="lesson-title">Проект — Сбор заявок (электронный помощник, часть 1)</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_04.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_04.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 2 ─── -->
+  <section class="module-section" id="module-2" data-mod="2">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 2 · Уроки 5–7 · Неделя 2</div>
+      <div class="module-title">Системные данные</div>
+      <div class="module-desc">Работаем со строками, списками и их методами — строительный материал любой программы.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">str · list</span>
+        <span class="badge badge--cyan">методы строк и списков</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="2">
+      <div class="lesson-card" data-title="Как работать со строками">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 05</span></div>
+        <div class="lesson-title">Как работать со строками</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_05.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_05.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работать со списками">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 06</span></div>
+        <div class="lesson-title">Как работать со списками</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_06.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_06.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работать с методами строк и списков">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 07</span></div>
+        <div class="lesson-title">Как работать с методами строк и списков</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_07.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_07.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 3 ─── -->
+  <section class="module-section" id="module-3" data-mod="3">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 3 · Урок 8 · Неделя 2–3</div>
+      <div class="module-title">Игровая логика — Проект</div>
+      <div class="module-desc">Первый настоящий проект: электронный дневник с ИИ-генерацией. Применяем всё изученное.</div>
+      <div class="module-meta">
+        <span class="badge badge--project">📔 Проект: Электронный дневник + ИИ</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="3">
+      <div class="lesson-card is-project" data-title="Проект Электронный дневник ИИ">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 08</span>
+          <span class="badge badge--project">Проект</span>
+        </div>
+        <div class="lesson-title">Проект — Электронный дневник + ИИ</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_08.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_08.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 4 ─── -->
+  <section class="module-section" id="module-4" data-mod="4">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 4 · Уроки 9–11 · Недели 3–4</div>
+      <div class="module-title">Автоматизация</div>
+      <div class="module-desc">Учим программу принимать решения: условные операторы, логика, вложенные и каскадные ветки.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">if · elif · else</span>
+        <span class="badge badge--cyan">логические операторы</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="4">
+      <div class="lesson-card" data-title="Как работать с условиями if и else">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 09</span></div>
+        <div class="lesson-title">Как работать с условиями if и else</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_09.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_09.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Что такое логические операторы">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 10</span></div>
+        <div class="lesson-title">Что такое логические операторы</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_10.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_10.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работают вложенные и каскадные условия">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 11</span></div>
+        <div class="lesson-title">Как работают вложенные и каскадные условия</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_11.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_11.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 5 ─── -->
+  <section class="module-section" id="module-5" data-mod="5">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 5 · Уроки 13–16 · Недели 4–5</div>
+      <div class="module-title">Циклы</div>
+      <div class="module-desc">for, while, break, continue — автоматизируем повторяющиеся задачи. Финал: игра-лабиринт.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">for · while</span>
+        <span class="badge badge--cyan">break · continue · else</span>
+        <span class="badge badge--project">🌀 Проект: Лабиринт</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="5">
+      <div class="lesson-card" data-title="Как работать с циклом for">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 13</span></div>
+        <div class="lesson-title">Как работать с циклом for</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_13.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_13.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работать с циклом while">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 14</span></div>
+        <div class="lesson-title">Как работать с циклом while</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_14.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_14.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Операторы continue break else">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 15</span></div>
+        <div class="lesson-title">Операторы continue, break, else</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_15.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_15.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card is-project" data-title="Проект Лабиринт">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 16</span>
+          <span class="badge badge--project">Проект</span>
+        </div>
+        <div class="lesson-title">Проект Лабиринт</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_16.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_16.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 6 ─── -->
+  <section class="module-section" id="module-6" data-mod="6">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 6 · Уроки 17–20 · Недели 5–6</div>
+      <div class="module-title">Функциональные механики</div>
+      <div class="module-desc">Пишем собственные функции, разбираемся с параметрами и обрабатываем ошибки. Итог: ASCII-версия Морского боя.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">def · return</span>
+        <span class="badge badge--cyan">try · except</span>
+        <span class="badge badge--project">🚢 Проект: Морской бой ASCII</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="6">
+      <div class="lesson-card" data-title="Что такое функции и как создать свою функцию">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 17</span></div>
+        <div class="lesson-title">Что такое функции и как создать свою функцию</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_17.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_17.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Функции с параметрами">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 18</span></div>
+        <div class="lesson-title">Функции с параметрами</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_18.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_18.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Исключения и обработка ошибок">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 19</span></div>
+        <div class="lesson-title">Исключения и обработка ошибок</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_19.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_19.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card is-project" data-title="Проект Морской бой часть 1 ASCII-арт">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 20</span>
+          <span class="badge badge--project">Проект</span>
+        </div>
+        <div class="lesson-title">Проект Морской бой, часть 1 — ASCII-арт</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_20.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_20.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 7 ─── -->
+  <section class="module-section" id="module-7" data-mod="7">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 7 · Уроки 21–24 · Недели 6–7</div>
+      <div class="module-title">Интеграция</div>
+      <div class="module-desc">Подключаем модули из стандартной библиотеки и учимся читать/писать файлы. Финал: текстовый Квиз с ASCII-артом.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">import · os · random</span>
+        <span class="badge badge--cyan">file I/O</span>
+        <span class="badge badge--project">❓ Проект: Квиз + ASCII</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="7">
+      <div class="lesson-card" data-title="Что такое модули и как их подключать">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 21</span></div>
+        <div class="lesson-title">Что такое модули и как их подключать</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_21.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_21.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работать с файлами Часть 1">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 22</span></div>
+        <div class="lesson-title">Как работать с файлами. Часть 1</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_22.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_22.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card" data-title="Как работать с файлами Часть 2">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 23</span></div>
+        <div class="lesson-title">Как работать с файлами. Часть 2</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_23.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_23.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+      <div class="lesson-card is-project" data-title="Проект Квиз ASCII-арт">
+        <div class="lesson-card__top">
+          <span class="lesson-num">Урок 24</span>
+          <span class="badge badge--project">Проект</span>
+        </div>
+        <div class="lesson-title">Проект Квиз + ASCII-арт</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_24.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_24.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODULE 8 ─── -->
+  <section class="module-section" id="module-8" data-mod="8">
+    <div class="module-header">
+      <div class="module-eyebrow">Модуль 8 · Урок 25 · Неделя 7</div>
+      <div class="module-title">Кортежи</div>
+      <div class="module-desc">Знакомимся с кортежами — неизменяемыми последовательностями данных.</div>
+      <div class="module-meta">
+        <span class="badge badge--violet">tuple</span>
+      </div>
+    </div>
+    <div class="lessons-grid" data-module="8">
+      <div class="lesson-card" data-title="Как работать с кортежами">
+        <div class="lesson-card__top"><span class="lesson-num">Урок 25</span></div>
+        <div class="lesson-title">Как работать с кортежами</div>
+        <div class="lesson-card__actions">
+          <a href="presentations/урок_25.html" class="lesson-btn lesson-btn--pres">🎞 Презентация</a>
+          <a href="metodichki/урок_25.html" class="lesson-btn lesson-btn--meto">📄 Методичка</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /content -->
+</main>
+
+<!-- ═══════════════════════════════ FOOTER ════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="site-footer__brand">
+    <span class="accent">EdisonGames</span>
+  </div>
+  <div class="site-footer__copy">
+    Python и нейросети для детей 8–14 лет &nbsp;·&nbsp; 24 урока &nbsp;·&nbsp; 8 модулей
+  </div>
+  <div style="font-size:12px;color:var(--muted);opacity:0.6;">
+    Все материалы являются авторскими. Eduson Academy / EdisonGames.
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════ SEARCH JS ════════════════════════════ -->
+<script>
+(function() {
+  const input = document.getElementById('searchInput');
+  const cards = Array.from(document.querySelectorAll('.lesson-card'));
+  const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+  const noResults = document.getElementById('no-results');
+
+  input.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+
+    if (!q) {
+      cards.forEach(c => c.classList.remove('hidden'));
+      moduleSections.forEach(s => s.style.display = '');
+      noResults.style.display = 'none';
+      return;
+    }
+
+    let anyVisible = false;
+
+    moduleSections.forEach(section => {
+      const sectionCards = Array.from(section.querySelectorAll('.lesson-card'));
+      let sectionHasVisible = false;
+      sectionCards.forEach(card => {
+        const title = (card.dataset.title || '').toLowerCase();
+        const num = (card.querySelector('.lesson-num') || {}).textContent || '';
+        const matches = title.includes(q) || num.toLowerCase().includes(q);
+        card.classList.toggle('hidden', !matches);
+        if (matches) { sectionHasVisible = true; anyVisible = true; }
+      });
+      section.style.display = sectionHasVisible ? '' : 'none';
+    });
+
+    noResults.style.display = anyVisible ? 'none' : 'block';
+  });
+})();
+</script>
+
+</body>
+</html>

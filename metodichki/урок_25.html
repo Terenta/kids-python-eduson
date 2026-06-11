@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 25 — Как работать с кортежами | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 25</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с кортежами</h2>
+  <div class="meta"><span>Отдел:</span> <span>Проектирование</span> <span>структур.</span> <span>Неделя:</span> <span>7.</span> <span>Возраст:</span> <span>8–14.</span> </div>
+  <p><strong>Отдел:</strong> Проектирование структур. <strong>Неделя:</strong> 7. <strong>Возраст:</strong> 8–14.</p>
+<h2>🎯 Цель</h2>
+<p>Показать ребёнку, что кроме списка у Python есть «запертый» контейнер — кортеж. Научить его создавать, читать и использовать там, где данные не должны меняться: координаты, дата рождения, строки таблицы.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает:</p>
+<p>— что такое кортеж и чем он отличается от списка;</p>
+<p>— что кортеж является неизменяемым типом данных;</p>
+<p>— как создавать кортежи с помощью круглых скобок;</p>
+<p>— что элементы кортежа имеют порядок и индексацию;</p>
+<p>— как получать отдельные элементы кортежа по индексу;</p>
+<p>— что кортеж можно использовать для хранения постоянных данных;</p>
+<p>— что кортеж может содержать элементы разных типов.</p>
+<p>Ученик может:</p>
+<p>— создавать кортежи;</p>
+<p>— получать элементы кортежа по индексу;</p>
+<p>— перебирать элементы кортежа с помощью цикла <code>for</code>;</p>
+<p>— использовать кортежи как неизменяемые контейнеры (координаты точки, дни недели);</p>
+<p>— комбинировать кортежи с функциями и другими коллекциями.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE Desktop или Google Colab. YandexGPT — для объяснения ошибки <code>TypeError: 'tuple' object does not support item assignment</code>.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Python 3.11+, GigaIDE или Colab, рабочий микрофон для совместного обсуждения.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li>0–5. Тёплый старт. Проверка домашки к уроку 24 (квиз): «у кого что получилось?». Показываем демо — программа «дни недели», которую нельзя случайно сломать.</li>
+<li>5–15. Теория. Метафора: список — шкаф с одеждой, вещи можно менять местами. Кортеж — замок, его вешаешь и не открываешь. Пишем <code>point = (10, 20)</code> и <code>days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")</code>. Показываем, что <code>days[0]</code> работает, а <code>days[0] = "суббота"</code> падает.</li>
+<li>15–25. Совместный кодинг. Пишем программу «Координаты героя». <code>hero = ("Маг", 100, (15, 30))</code> — имя, HP, координаты. Достаём <code>hero[0]</code>, <code>hero[2][0]</code>, перебираем кортеж в цикле <code>for</code>.</li>
+<li>25–45. Самостоятельная задача. Ребёнок пишет программу «Дни недели»: 1) создать кортеж 7 дней, 2) спросить у пользователя номер дня (1–7), 3) вывести название. Преподаватель подсказывает, но не решает.</li>
+<li>45–55. Разбор + усложнение. «А что если пользователь ввёл 0 или 8?» — добавляем проверку. Показываем <code>TypeError</code> при попытке поменять день недели и зовём YandexGPT: «объясни эту ошибку ребёнку 10 лет».</li>
+<li>55–60. Итог. 3 пункта: кортеж нельзя менять; создаётся скобками <code>()</code>; читается как список. ДЗ — «паспорт животного».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Представь замок: повесили — и всё, не трогаем. Это и есть кортеж».</li>
+<li>«Списки — это шкаф, кортежи — это сейф».</li>
+<li>«Круглые скобки — замок закрыт. Квадратные — шкаф открыт».</li>
+<li>«Если данные никогда не должны меняться — бери кортеж, это безопаснее».</li>
+<li>«Индексация у кортежа тоже с нуля, всё как у списка».</li>
+<li>«<code>days[0]</code> прочитать можно, а <code>days[0] = ...</code> уже нельзя — вылетит ошибка».</li>
+<li>«Давай попробуем сломать программу специально — чтобы увидеть сообщение об ошибке».</li>
+<li>«Скопируй ошибку в YandexGPT и попроси объяснить простыми словами».</li>
+<li>«Координаты точки — это классический кортеж: <code>(x, y)</code>».</li>
+<li>«Кортеж можно положить внутрь списка — получится список кортежей, например список героев».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Координаты героя». 3 кортежа-героя, вывод красивой таблицы через f-строки:</p>
+<pre><code class="language-python">heroes = [
+    ("Маг", 80, (15, 30)),
+    ("Воин", 120, (40, 10)),
+    ("Лучник", 95, (25, 55)),
+]
+for name, hp, (x, y) in heroes:
+    print(f"{name}: HP={hp}, позиция ({x}, {y})")</code></pre>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<p>«Паспорт животного». Создать кортеж из 4 элементов: имя, вид, возраст, кортеж из двух любимых лакомств. Вывести через f-строку красивый «паспорт». Попробовать изменить любой элемент и скопировать текст ошибки в чат группы.</p>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок создаёт кортеж без подсказки, читает по индексу, объясняет «почему нельзя менять», уверенно отличает <code>()</code> от <code>[]</code>.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ul>
+<li>Путает <code>()</code> и <code>[]</code>. Решение — нарисовать рядом «замок» (круглые) и «шкаф» (квадратные).</li>
+<li>Пишет <code>(5)</code> и думает, что это кортеж. Объясняем: одинарный кортеж — <code>(5,)</code>, запятая обязательна.</li>
+<li>Пытается <code>.append()</code> на кортеже. Показываем <code>AttributeError</code>, радуемся — это и есть урок.</li>
+<li>Боится ошибок. Правило: ошибка — это учебный момент, а не провал.</li>
+<li>Забывает, что индексация с нуля. Повторяем: «программисты считают с нуля, как пальцы на руке без большого».</li>
+</ul>
+<h2>🎁 Бонус</h2>
+<p>Звёздная задача: сделать программу «Координаты для PyGame» — кортеж <code>(WIDTH, HEIGHT) = (800, 600)</code>, объяснить, почему в играх размер окна — это именно кортеж.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT объясняет сообщение <code>TypeError: 'tuple' object does not support item assignment</code>. Промпт: «Я учусь Python. Объясни эту ошибку простыми словами ребёнку 10 лет и покажи, как её исправить, если я всё же хочу менять данные».</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 19 — Как работать с функциями с возвратом значения | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 19</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с функциями с возвратом значения</h2>
+  <div class="meta"><span>Отдел:</span> <span>5.</span> <span>Функциональных</span> <span>механик</span> <span>Неделя:</span> <span>19</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 5. Функциональных механик <strong>Неделя:</strong> 19 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Научить функции ВОЗВРАЩАТЬ значение через <code>return</code>, отличать «функцию-действие» от «функции-вычислителя», сохранять результат в переменную, использовать в выражениях, условиях и циклах.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: что такое возврат значения через <code>return</code>; что функция может вернуть результат; разницу «выполняет действие» vs «возвращает результат»; как сохранить результат в переменную; как использовать значение в выражениях, функциях, условиях; как использовать несколько <code>return</code>; как создавать вложенные функции. Ученик может: создавать функции с возвратом; сохранять результат; использовать в арифметике, условиях, циклах; комбинировать функции всех трёх типов; писать сложные интерактивные программы (калькулятор, игры с очками).</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, YandexGPT.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Стандарт. Подготовить шаблон будущего «Морского боя» (пустая карта 5×5 для урока 20).</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие + разбор ДЗ (say_hi, count_letter, show_card).</li>
+<li><strong>5–15.</strong> Теория. Ключевой момент. «До сегодня функции говорили <code>print</code>. А что если я хочу функцию, которая вычисляет, но не печатает, — а отдаёт результат мне?». Демо:</li>
+</ul>
+<pre><code class="language-python">  def add(a, b):
+      return a + b
+
+  s = add(3, 5)
+  print(s)           # 8
+  print(add(10, 20)) # 30</code></pre>
+<p>  Различие print vs return на доске. Несколько <code>return</code>:</p>
+<pre><code class="language-python">  def sign(n):
+      if n &gt; 0: return "плюс"
+      if n &lt; 0: return "минус"
+      return "ноль"</code></pre>
+<p>  Упомянуть вложенные функции (коротко).</p>
+<ul>
+<li><strong>15–45.</strong> Практика.</li>
+</ul>
+<p>  1. Калькулятор-модуль: <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code> — все с <code>return</code>. Главная функция спрашивает операцию и числа, вызывает нужную.</p>
+<p>  2. <code>def is_even(n): return n % 2 == 0</code> — используем в цикле: <code>for n in range(10): if is_even(n): print(n)</code>.</p>
+<p>  3. <code>def max_of(lst): …</code> своими руками (без встроенного <code>max</code>). Возвращает максимум списка через <code>for</code> + <code>if</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Счёт в игре». Функция <code>calc_score(hits, misses)</code> возвращает очки по формуле <code>hits<em>10 - misses</em>3</code>. Цикл из 5 раундов: спрашиваем попадания/промахи, складываем счёт, в конце — итог.</li>
+<li><strong>55–60.</strong> Итог + ДЗ. Анонс проекта «Морской бой».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«<code>print</code> — сказал вслух. <code>return</code> — отдал в руку».</li>
+<li>«После <code>return</code> функция сразу заканчивается. Код ниже <code>return</code> не выполнится».</li>
+<li>«Результат <code>return</code> можно положить в переменную: <code>s = add(3, 5)</code>».</li>
+<li>«Можно подставить прямо: <code>print(add(3, 5) * 2)</code> — всё внутри скобок посчитается».</li>
+<li>«Несколько <code>return</code> в одной функции — это нормально. Каждый — отдельный выход».</li>
+<li>«Функция-действие (<code>show_map</code>) ничего не возвращает. Функция-вычислитель (<code>add</code>) возвращает значение».</li>
+<li>«Если нет <code>return</code>, Python возвращает <code>None</code>. Это не ошибка, но знать полезно».</li>
+<li>«Функция без <code>return</code> — это приказ. Функция с <code>return</code> — это вопрос, на который ты получил ответ».</li>
+<li>«Хорошее правило: одна функция — либо делает что-то, либо возвращает. Смешивать — плохо».</li>
+<li>«Теперь ты почти готов к "Морскому бою" — там без функций никуда».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Счёт в игре» (описан выше). Сочетает параметры, <code>return</code> и цикл.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li><code>def is_prime(n)</code> — возвращает <code>True</code>/<code>False</code>. Используется в цикле <code>for n in range(2, 30): if is_prime(n): print(n)</code>.</li>
+<li><code>def average(lst)</code> — возвращает среднее арифметическое списка.</li>
+<li>Мини-игра «Кости»: <code>def roll_dice()</code> возвращает случайное число 1–6 (подсказка: <code>random.randint(1, 6)</code> — используем <code>import random</code>). Цикл из 10 бросков, считаем, сколько раз выпала шестёрка.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок различает функции-действия и функции-значения; умеет сохранять результат в переменную и использовать в выражениях; пишет функцию с несколькими <code>return</code> под условия.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Пишут <code>print</code> вместо <code>return</code>.</strong> «Ты хочешь увидеть значение или использовать его дальше?» — разбираем разницу.</li>
+<li><strong>Код после <code>return</code> не выполняется — удивляются.</strong> Показываю, что <code>return</code> — выход.</li>
+<li><strong>Сохраняют результат, но не используют: <code>add(3, 5)</code> без присвоения.</strong> «Ты получил ответ, но выбросил».</li>
+<li><strong>Путают <code>return</code> и <code>break</code>.</strong> Разные слова, разные задачи: <code>return</code> — из функции, <code>break</code> — из цикла.</li>
+<li><strong>Вложенные функции кажутся магией.</strong> Объясняю коротко, не заставляю использовать.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Функция <code>fibonacci(n)</code> — возвращает <code>n</code>-е число Фибоначчи через цикл. Для опережающих — рекурсивный вариант (с оговоркой, что это забегание вперёд).</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — для проверки гипотез: ребёнок пишет <code>is_prime</code>, просит Алису «Дай список простых чисел до 30», сравнивает со своим результатом. Если расходится — ищут баг вместе. Это практика «ИИ как эталон», а не «ИИ-решатель».</p>
+<hr>
+</div>
+</body>
+</html>

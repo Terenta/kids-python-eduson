@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 24 — Проект «Квиз» | EdusonGames</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* ASCII block */
+  .ascii-block{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;line-height:1.5;
+    color:#7ee787;background:#0d1117;
+    border:1px solid var(--card-border);
+    border-radius:12px;padding:16px 20px;
+    white-space:pre;overflow-x:auto;
+  }
+
+  /* KV pairs */
+  .kv{display:flex;flex-direction:column;gap:10px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--card-border)}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:13px;color:#c4b5fd;flex:0 0 140px;font-weight:600}
+  .kv__val{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Timeline */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .timeline__item{display:flex;gap:18px;padding-bottom:20px;position:relative}
+  .timeline__item:last-child{padding-bottom:0}
+  .timeline__item:not(:last-child)::before{content:'';position:absolute;left:17px;top:36px;bottom:0;width:2px;background:linear-gradient(to bottom,var(--violet),transparent)}
+  .timeline__dot{flex:0 0 36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+  .timeline__content{flex:1;padding-top:4px}
+  .timeline__content h3{font-size:16px;margin-bottom:2px}
+  .timeline__content p{font-size:13px;color:var(--muted)}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">32</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Финальный урок Модуля 6! Сегодня собираем проект Квиз — функции, файлы, JSON, обработка ошибок. Поприветствуй учеников и скажи: после урока вручается значок Хранитель файлов и завершается стажировка Отдела интеграции в EdusonGames.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №24</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Проект «Квиз»
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Разбор ДЗ урок 23
+     ============================ -->
+<section class="slide"
+  data-notes="Начните с разбора домашнего задания. Попросите 2-3 ученика показать код. Разберите вместе: как открывали файл, как обрабатывали ошибки, как читали JSON. Это активирует память перед новым проектом.">
+  <div class="slide__inner">
+    <h2>Разбор ДЗ — <span class="accent">урок 23: файлы и ошибки</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">import json
+
+# Симуляция: читаем и пишем данные (без реального файла)
+diary = {"entries": [], "author": "Аня"}
+
+# Запись новой записи
+def add_entry(text):
+    diary["entries"].append(text)
+    print(f"Записано: {text}")
+
+# Чтение всех записей
+def show_all():
+    print(f"Дневник {diary['author']}:")
+    for i, e in enumerate(diary["entries"], 1):
+        print(f"  {i}. {e}")
+
+add_entry("Сегодня научилась работать с файлами")
+add_entry("try/except спасает от краша")
+show_all()
+print("JSON:", json.dumps(diary, ensure_ascii=False))</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--glow">
+          <h3>Что проверяем в ДЗ</h3>
+          <ol class="steps" style="margin-top:10px">
+            <li><div>Используется ли <code>with open()</code> вместо просто <code>open()</code></div></li>
+            <li><div>Есть ли <code>try/except FileNotFoundError</code> при чтении</div></li>
+            <li><div>Корректный <code>json.dumps()</code> и <code>json.loads()</code></div></li>
+            <li><div>Читаемые сообщения об ошибках для пользователя</div></li>
+          </ol>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Частые проблемы</h3>
+          <ul class="clean" style="margin-top:6px">
+            <li>Забыли <code>ensure_ascii=False</code> → кракозябры</li>
+            <li>Открыли режим <code>"w"</code> вместо <code>"a"</code> → потеряли данные</li>
+            <li>Не закрыли файл без <code>with</code> → ресурс завис</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Цели урока
+     ============================ -->
+<section class="slide"
+  data-notes="Озвучьте цели урока. Попросите учеников повторить своими словами: что значит 'проект из функций'? Чем функция отличается от просто кода? Активирует понимание принципа единственной ответственности.">
+  <div class="slide__inner">
+    <h2>Цели урока — <span class="accent">что вы умеете после него</span></h2>
+    <ol class="steps">
+      <li><div>Разбить проект на <span class="amber">4 независимые функции</span> — каждая делает ровно одно дело</div></li>
+      <li><div>Применить <span class="amber">принцип единственной ответственности</span> (Single Responsibility Principle) — настоящий принцип из мира профессионалов</div></li>
+      <li><div>Соединить файлы, функции и модули в <span class="amber">полноценный рабочий проект</span> — не учебный, а настоящий!</div></li>
+      <li><div>Использовать <span class="amber">ИИ для генерации данных</span> — попросить ChatGPT/YandexGPT создать вопросы в нужном формате</div></li>
+    </ol>
+    <div class="quote-block">Сегодня вы не учитесь синтаксису — вы учитесь <span class="amber">думать как архитектор</span>: разбивать задачу на части и соединять их вместе.</div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Что уже умеем
+     ============================ -->
+<section class="slide"
+  data-notes="Быстрый разогрев. Пусть ученики называют вслух: что делает open(), зачем try/except, что такое json.loads(). Активация знаний перед финальной сборкой.">
+  <div class="slide__inner">
+    <h2>Что уже умеем — <span class="accent">Отдел интеграции</span></h2>
+    <div class="grid grid--3">
+      <div class="card card--glow">
+        <h3>&#128194; Файлы</h3>
+        <p><code>open()</code>, режимы r/w/a, безопасный <code>with</code>, читаем и пишем текст</p>
+      </div>
+      <div class="card">
+        <h3>&#128737; try/except</h3>
+        <p>Перехватываем ошибки, не даём программе упасть, показываем понятные сообщения</p>
+      </div>
+      <div class="card">
+        <h3>&#128203; JSON</h3>
+        <p><code>json.dumps()</code> сохраняет словарь, <code>json.loads()</code> читает обратно</p>
+      </div>
+      <div class="card">
+        <h3>&#128295; Функции</h3>
+        <p><code>def</code>, параметры, <code>return</code> — код в блоках, каждый делает одно дело</p>
+      </div>
+      <div class="card">
+        <h3>&#128230; Модули</h3>
+        <p><code>import json</code>, <code>import os</code>, <code>import random</code> — готовые инструменты</p>
+      </div>
+      <div class="card card--glow">
+        <h3>&#128640; Сегодня</h3>
+        <p>Соединяем всё вместе в один проект — викторину с файлами и таблицей лидеров</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Задание от менеджера
+     ============================ -->
+<section class="slide"
+  data-notes="Создаём атмосферу. Читаем брифинг как реальная задача. Попросите ученика прочитать вслух — они чувствуют себя настоящими разработчиками.">
+  <div class="slide__inner">
+    <h2><span class="accent">Задание от менеджера EdusonGames</span></h2>
+    <div class="card card--glow" style="padding:24px">
+      <div class="terminal">
+        <div class="terminal__body" style="font-size:13px;line-height:1.8">
+<span style="color:#c4b5fd">От:</span>    Директор по продукту, EdusonGames
+<span style="color:#c4b5fd">Кому:</span>  Команда «Отдел интеграции»
+<span style="color:#c4b5fd">Тема:</span>  Квизовый модуль — финальная задача
+
+<span style="color:#86efac">Нашей игре нужен модуль викторины.</span>
+
+Вопросы хранятся в файле <span style="color:#79c0ff">questions.txt</span>
+Результаты записываются в <span style="color:#79c0ff">results.txt</span>
+Красивый экран запуска в ASCII-арте.
+
+<span style="color:#86efac">Требования:</span>
+  — Загрузить вопросы из файла
+  — Спросить игрока (4 варианта ответа)
+  — Подсчитать очки и записать результат
+  — Показать таблицу лидеров
+
+<span style="color:#c4b5fd">Дедлайн:</span> конец сегодняшнего занятия!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Три файла проекта
+     ============================ -->
+<section class="slide"
+  data-notes="Структура проекта: три файла. Объясните почему данные хранятся отдельно от кода — это позволяет менять вопросы без изменения кода. В GigaIDE создайте три файла вместе с классом.">
+  <div class="slide__inner">
+    <h2>Структура проекта — <span class="accent">три файла</span></h2>
+    <div class="grid grid--3">
+      <div class="card card--glow" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:10px">📄</div>
+        <h3 style="color:var(--cyan)">quiz.py</h3>
+        <p style="margin-top:8px">Весь Python-код: 4 функции + main(). <span class="amber">Логика</span> программы</p>
+        <div class="terminal" style="margin-top:10px;text-align:left">
+          <div class="terminal__body" style="font-size:11px">def load_questions()
+def ask_question()
+def save_result()
+def show_leaderboard()
+def main()</div>
+        </div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:10px">📋</div>
+        <h3 style="color:#86efac)">questions.txt</h3>
+        <p style="margin-top:8px">Вопросы в формате pipe. <span class="amber">Данные</span> — меняй без кода</p>
+        <div class="terminal" style="margin-top:10px;text-align:left">
+          <div class="terminal__body" style="font-size:11px">Вопрос|В1|В2|В3|В4|П
+Столица?|Москва|...|1
+2**10?|512|1024|...|2</div>
+        </div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:40px;margin-bottom:10px">🏆</div>
+        <h3 style="color:var(--amber)">results.txt</h3>
+        <p style="margin-top:8px"><span class="amber">История</span> всех игр. Дозапись режимом "a"</p>
+        <div class="terminal" style="margin-top:10px;text-align:left">
+          <div class="terminal__body" style="font-size:11px">Аня|8|10
+Миша|6|10
+Даша|10|10</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">Разделение <span class="amber">кода</span> и <span class="amber">данных</span> — фундаментальный принцип. Новые вопросы добавляются без изменения quiz.py!</div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Архитектура квиза
+     ============================ -->
+<section class="slide"
+  data-notes="Архитектура — 4 функции. Каждая делает ровно одно дело. Принцип единственной ответственности. Попросите учеников назвать что возвращает каждая: load_questions — список, ask_question — True/False, save_result и show_leaderboard — None.">
+  <div class="slide__inner">
+    <h2>Архитектура квиза — <span class="accent">4 функции</span></h2>
+    <svg viewBox="0 0 900 360" style="width:100%;max-height:300px" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="gv24" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#7C3AED"/>
+          <stop offset="100%" style="stop-color:#06B6D4"/>
+        </linearGradient>
+        <filter id="gf24"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <marker id="ar24v" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7C3AED"/></marker>
+        <marker id="ar24c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#06B6D4"/></marker>
+      </defs>
+      <rect x="335" y="138" width="230" height="84" rx="16" fill="url(#gv24)" filter="url(#gf24)"/>
+      <text x="450" y="176" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="20" font-weight="700" fill="white">main()</text>
+      <text x="450" y="200" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="rgba(255,255,255,0.8)">Точка входа — дирижёр</text>
+      <rect x="20" y="14" width="210" height="84" rx="14" fill="rgba(124,58,237,0.12)" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
+      <text x="125" y="48" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="600" fill="#c4b5fd">load_questions()</text>
+      <text x="125" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#94A3B8">data → list[dict]</text>
+      <text x="125" y="86" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">Читает questions.txt</text>
+      <rect x="670" y="14" width="210" height="84" rx="14" fill="rgba(6,182,212,0.12)" stroke="rgba(6,182,212,0.5)" stroke-width="1.5"/>
+      <text x="775" y="48" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="600" fill="#67e8f9">ask_question()</text>
+      <text x="775" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#94A3B8">q → True/False</text>
+      <text x="775" y="86" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">Задаёт один вопрос</text>
+      <rect x="20" y="262" width="210" height="84" rx="14" fill="rgba(124,58,237,0.12)" stroke="rgba(124,58,237,0.5)" stroke-width="1.5"/>
+      <text x="125" y="296" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" font-weight="600" fill="#c4b5fd">save_result()</text>
+      <text x="125" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#94A3B8">name, score → None</text>
+      <text x="125" y="334" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">Пишет в results.txt</text>
+      <rect x="670" y="262" width="210" height="84" rx="14" fill="rgba(6,182,212,0.12)" stroke="rgba(6,182,212,0.5)" stroke-width="1.5"/>
+      <text x="775" y="296" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" font-weight="600" fill="#67e8f9">show_leaderboard()</text>
+      <text x="775" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#94A3B8">→ None</text>
+      <text x="775" y="334" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">Таблица лидеров</text>
+      <line x1="335" y1="168" x2="230" y2="96" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar24v)"/>
+      <line x1="565" y1="168" x2="670" y2="96" stroke="#06B6D4" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar24c)"/>
+      <line x1="365" y1="222" x2="230" y2="272" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar24v)"/>
+      <line x1="535" y1="222" x2="670" y2="272" stroke="#06B6D4" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar24c)"/>
+    </svg>
+    <div class="quote-block">Принцип единственной ответственности: каждая функция делает ровно одно дело. <span class="amber">main()</span> — дирижёр всей программы.</div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Формат questions.txt
+     ============================ -->
+<section class="slide"
+  data-notes="Формат pipe-separator. Почему не запятая? В вопросах могут быть запятые. split('|') делит строку, strip() убирает пробелы. Разберите индексы: parts[0] — вопрос, parts[1..4] — варианты, parts[5] — номер правильного.">
+  <div class="slide__inner">
+    <h2>Формат файла <span class="accent">questions.txt</span></h2>
+    <p class="lead">Каждая строка — один вопрос, поля разделены символом <code>|</code></p>
+    <div class="grid grid--2">
+      <div>
+        <div class="ascii-block">Вопрос|Вар1|Вар2|Вар3|Вар4|НомерПравильного
+Столица России?|Москва|Питер|Казань|Новгород|1
+2**10 = ?|512|1024|256|2048|2
+print() это?|Змея|Вывод|Ошибка|Цикл|2</div>
+        <div class="kv" style="margin-top:14px">
+          <div class="kv__item"><span class="kv__key">parts[0]</span><span class="kv__val">Текст вопроса</span></div>
+          <div class="kv__item"><span class="kv__key">parts[1..4]</span><span class="kv__val">4 варианта ответа</span></div>
+          <div class="kv__item"><span class="kv__key">parts[5]</span><span class="kv__val">Номер правильного (1–4)</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">line = "2**10 = ?|512|1024|256|2048|2"
+parts = line.strip().split("|")
+question = parts[0]
+options = parts[1:5]
+correct = int(parts[5])
+
+print("Вопрос:", question)
+print("Варианты:", options)
+print("Правильный ответ:", correct)</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Глубже — strip() и split()
+     ============================ -->
+<section class="slide"
+  data-notes="Разберите strip() и split() детально. Спросите: что будет если строка заканчивается пробелом? Что если разделитель | встречается в самом вопросе? Пусть ученики напишут тест-кейсы для load_questions.">
+  <div class="slide__inner">
+    <h2><span class="accent">strip()</span> и <span class="accent">split()</span> — детально</h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false"># Зачем strip() перед split()
+lines = [
+    "Столица России?|Москва|Питер|Казань|Новгород|1\n",  # \n в конце
+    "  2**10 = ?|512|1024|256|2048|2  ",  # пробелы вокруг
+    "",  # пустая строка
+    "def создаёт?|Переменную|Функцию|Список|Цикл|2",  # нормальная
+]
+
+print("=== С strip() ===")
+for line in lines:
+    line = line.strip()
+    if not line:
+        print("  (пустая — пропускаем)")
+        continue
+    parts = line.split("|")
+    print(f"  {len(parts)} полей: '{parts[0]}' → ответ {parts[-1]}")
+
+print("\n=== Без strip() — проблемы! ===")
+line = "Вопрос|A|B|C|D|2\n"
+parts = line.split("|")
+print(f"Последний: '{parts[-1]}'")  # '2\n' — не число!</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--glow">
+          <h3>strip() убирает</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li><code>"\n"</code> — перенос строки (конец файла)</li>
+            <li><code>"\r"</code> — возврат каретки (Windows файлы)</li>
+            <li><code>" "</code> — пробелы по краям</li>
+            <li><code>"\t"</code> — табуляцию</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>split("|") vs split()</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li><code>split("|")</code> — делит по трубе, сохраняет пустые</li>
+            <li><code>split()</code> без аргумента — делит по всем пробелам</li>
+            <li>Для формата pipe всегда используй <code>split("|")</code></li>
+          </ul>
+        </div>
+        <div class="quote-block" style="margin-top:12px;font-size:14px">
+          <span class="amber">int(parts[-1])</span> упадёт с ValueError если в конце есть <code>\n</code>. Всегда делай strip() первым!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: load_questions()
+     ============================ -->
+<section class="slide"
+  data-notes="load_questions принимает список строк и возвращает список словарей. Каждый словарь: question, options, correct. В GigaIDE: with open(path) as f: data = f.readlines(). Спросите: почему возвращаем список, а не один вопрос?">
+  <div class="slide__inner">
+    <h2>Функция <span class="accent">load_questions()</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false"># В GigaIDE: with open(path) as f: data = f.readlines()
+# Здесь используем список строк напрямую
+RAW = [
+    "Столица России?|Москва|Питер|Казань|Новгород|1",
+    "2**10 = ?|512|1024|256|2048|2",
+    "print() делает?|Вводит|Выводит|Считает|Удаляет|2",
+]
+
+def load_questions(data):
+    questions = []
+    for line in data:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("|")
+        q = {
+            "question": parts[0],
+            "options": parts[1:5],
+            "correct": int(parts[5])
+        }
+        questions.append(q)
+    return questions
+
+qs = load_questions(RAW)
+print(f"Загружено: {len(qs)} вопросов")
+print("Первый:", qs[0]["question"])
+print("Варианты:", qs[0]["options"])</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--glow">
+          <h3>Что делает функция</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>Принимает список строк из файла</li>
+            <li>Делит каждую строку по символу <code>|</code></li>
+            <li>Создаёт словарь: <code>question</code>, <code>options</code>, <code>correct</code></li>
+            <li>Пропускает пустые строки</li>
+            <li>Возвращает список всех вопросов</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h3>В GigaIDE (реальный файл)</h3>
+          <pre style="background:#1a1f2e;border-radius:8px;padding:12px 14px;font-size:12px;margin-top:8px;border:1px solid var(--card-border)"><code class="language-python">with open("questions.txt") as f:
+    data = f.readlines()
+qs = load_questions(data)</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: ask_question()
+     ============================ -->
+<section class="slide"
+  data-notes="ask_question принимает один словарь. Печатает вопрос и 4 варианта. enumerate(list, 1) нумерует с 1. try/except защищает от нечислового ввода. Возвращает True/False — чистый результат, main() сам считает очки.">
+  <div class="slide__inner">
+    <h2>Функция <span class="accent">ask_question()</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def ask_question(q):
+    # Задаёт один вопрос. Возвращает True если правильно.
+    print("\n" + q["question"])
+    for i, opt in enumerate(q["options"], 1):
+        print(f"  {i}. {opt}")
+    answer = input("Твой ответ (1-4): ")
+    try:
+        answer = int(answer)
+    except ValueError:
+        print("  Нужно ввести число!")
+        return False
+    if answer == q["correct"]:
+        print("  Верно! +1 очко")
+        return True
+    else:
+        print(f"  Неверно. Правильный: {q['correct']}")
+        return False
+
+# Тест
+test_q = {
+    "question": "Столица России?",
+    "options": ["Москва", "Питер", "Казань", "Новгород"],
+    "correct": 1
+}
+result = ask_question(test_q)
+print("Результат:", result)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--3">
+      <div class="quote-block" style="font-size:14px;font-weight:500"><span class="amber">enumerate(list, 1)</span> — нумерация с 1</div>
+      <div class="quote-block" style="font-size:14px;font-weight:500"><span class="amber">try/except</span> — защита от нечислового ввода</div>
+      <div class="quote-block" style="font-size:14px;font-weight:500"><span class="amber">return True/False</span> — чистый результат</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Тестируем ask_question — edge cases
+     ============================ -->
+<section class="slide"
+  data-notes="Edge cases для ask_question. Что если пользователь вводит '0', '-1', '5' — число вне диапазона? Что если нажимает Enter без ввода? Пусть ученики дополнят функцию защитой от этих случаев.">
+  <div class="slide__inner">
+    <h2>Тестируем <span class="accent">ask_question()</span> — краевые случаи</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def ask_question_v2(q):
+    """Улучшенная версия: защита от всех неверных вводов."""
+    print("\n" + q["question"])
+    for i, opt in enumerate(q["options"], 1):
+        print(f"  {i}. {opt}")
+
+    answer = input("Твой ответ (1-4): ")
+
+    # Защита 1: нечисловой ввод
+    try:
+        answer = int(answer)
+    except ValueError:
+        print("  Нужно ввести ЧИСЛО от 1 до 4!")
+        return False
+
+    # Защита 2: число вне диапазона
+    if not (1 <= answer <= 4):
+        print(f"  {answer} — не из вариантов! Введи 1, 2, 3 или 4.")
+        return False
+
+    if answer == q["correct"]:
+        print("  Верно! +1 очко ✓")
+        return True
+    else:
+        correct_text = q["options"][q["correct"] - 1]
+        print(f"  Неверно. Правильный: {q['correct']}. {correct_text}")
+        return False
+
+# Тестируем с фиктивным вопросом
+test_q = {
+    "question": "Python создан в ... году?",
+    "options": ["1991", "2001", "1985", "2010"],
+    "correct": 1
+}
+
+# Симулируем ответ
+import sys, io
+# Тест 1: правильный
+print("=== Тест: правильный ответ '1' ===")
+# В реальности ввод через input() — здесь покажем логику
+print("Вопрос:", test_q["question"])
+print("Варианты:", test_q["options"])
+print("Правильный индекс:", test_q["correct"])
+print("Верно ли '1'?", 1 == test_q["correct"])</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:14px;margin-bottom:8px">❌ Без защиты — программа падает:</p>
+        <ul class="clean" style="font-size:13px">
+          <li>Ввод "abc" → ValueError на int()</li>
+          <li>Ввод "0" или "5" → неверный индекс</li>
+          <li>Пустой Enter → ValueError</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(34,197,94,0.3)">
+        <p style="color:#86efac;font-size:14px;margin-bottom:8px">✓ С защитой — программа понятно отвечает:</p>
+        <ul class="clean" style="font-size:13px">
+          <li>try/except ValueError → понятное сообщение</li>
+          <li>Проверка диапазона 1-4 → "Введи от 1 до 4"</li>
+          <li>Показываем текст правильного ответа</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: save_result + show_leaderboard
+     ============================ -->
+<section class="slide"
+  data-notes="save_result использует режим 'a' — дозапись. Каждый результат добавляется в конец, старые не стираются. show_leaderboard сортирует по убыванию очков. sorted() + key=lambda берёт второй элемент кортежа. [:3] — топ-3.">
+  <div class="slide__inner">
+    <h2><span class="accent">save_result()</span> и <span class="accent">show_leaderboard()</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Симуляция results.txt в памяти (в GigaIDE пишем в файл)
+results_db = []
+
+def save_result(name, score, total):
+    # with open("results.txt", "a") as f:
+    #     f.write(f"{name}|{score}|{total}\n")
+    results_db.append((name, score, total))
+    print(f"Сохранено: {name} — {score}/{total}")
+
+def show_leaderboard():
+    print("\n=== ТАБЛИЦА ЛИДЕРОВ ===")
+    if not results_db:
+        print("Пока никто не играл!")
+        return
+    top = sorted(results_db, key=lambda x: x[1], reverse=True)[:3]
+    medals = ["1.", "2.", "3."]
+    for i, (name, score, total) in enumerate(top):
+        print(f"  {medals[i]} {name}: {score}/{total}")
+
+save_result("Аня", 8, 10)
+save_result("Миша", 6, 10)
+save_result("Даша", 10, 10)
+show_leaderboard()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--3">
+      <div class="quote-block" style="font-size:14px;font-weight:500">Режим <span class="amber">"a"</span> — дозапись, история не стирается</div>
+      <div class="quote-block" style="font-size:14px;font-weight:500"><span class="amber">sorted(key=lambda)</span> — сортировка по очкам</div>
+      <div class="quote-block" style="font-size:14px;font-weight:500"><span class="amber">[:3]</span> — срез первых трёх элементов</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Типичные ошибки квиза
+     ============================ -->
+<section class="slide"
+  data-notes="Разберите типичные ошибки которые делают ученики. Покажите ❌ вариант — спросите что не так — покажите ✓ исправление. Формат парного анализа активирует критическое мышление.">
+  <div class="slide__inner">
+    <h2>Типичные ошибки — <span class="accent">найди и исправь</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <p style="color:#fca5a5;font-size:14px;margin-bottom:10px">❌ Ошибка 1 — лишняя логика в load_questions</p>
+          <pre style="background:#1a1f2e;border-radius:8px;padding:12px;font-size:12px;border:1px solid rgba(239,68,68,0.2)"><code class="language-python">def load_questions(data):
+    questions = []
+    for line in data:
+        parts = line.split("|")
+        q = {...}
+        questions.append(q)
+        # ОШИБКА: задаём вопрос прямо тут!
+        print(q["question"])
+        input("Ответ: ")
+    return questions</code></pre>
+          <p style="color:#fca5a5;font-size:13px;margin-top:8px">Нарушает SRP — одна функция делает два дела</p>
+        </div>
+        <div class="card" style="border-color:rgba(34,197,94,0.3);margin-top:12px">
+          <p style="color:#86efac;font-size:14px;margin-bottom:10px">✓ Правильно — каждая функция своё дело</p>
+          <pre style="background:#1a1f2e;border-radius:8px;padding:12px;font-size:12px;border:1px solid rgba(34,197,94,0.2)"><code class="language-python">def load_questions(data):
+    # Только загружает. Не спрашивает!
+    questions = []
+    for line in data:
+        parts = line.strip().split("|")
+        questions.append({...})
+    return questions
+# ask_question() — отдельная функция!</code></pre>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-color:rgba(239,68,68,0.3)">
+          <p style="color:#fca5a5;font-size:14px;margin-bottom:10px">❌ Ошибка 2 — режим "w" стирает результаты</p>
+          <pre style="background:#1a1f2e;border-radius:8px;padding:12px;font-size:12px;border:1px solid rgba(239,68,68,0.2)"><code class="language-python">def save_result(name, score, total):
+    # ОШИБКА: "w" — каждый раз стирает!
+    with open("results.txt", "w") as f:
+        f.write(f"{name}|{score}|{total}\n")</code></pre>
+          <p style="color:#fca5a5;font-size:13px;margin-top:8px">Все предыдущие результаты будут удалены</p>
+        </div>
+        <div class="card" style="border-color:rgba(34,197,94,0.3);margin-top:12px">
+          <p style="color:#86efac;font-size:14px;margin-bottom:10px">✓ Режим "a" — дозаписывает</p>
+          <pre style="background:#1a1f2e;border-radius:8px;padding:12px;font-size:12px;border:1px solid rgba(34,197,94,0.2)"><code class="language-python">def save_result(name, score, total):
+    # "a" = append — дозаписывает в конец
+    with open("results.txt", "a") as f:
+        f.write(f"{name}|{score}|{total}\n")</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: ASCII-арт
+     ============================ -->
+<section class="slide"
+  data-notes="ASCII-арт — традиция программистской культуры. Многострочная строка хранит текст с переносами. Ресурс для создания: patorjk.com/software/taag — создайте ASCII-арт своего имени.">
+  <div class="slide__inner">
+    <h2>ASCII-арт: <span class="accent">экран запуска</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">def ascii_quiz_splash():
+    # Печатает заставку игры.
+    splash = (
+        "\n"
+        "  ___  __  __ ___ ____\n"
+        " / _ \\/ / / /|_ /|_  /\n"
+        "/ // /_  _// /_ / __/\n"
+        "\\___/ /_/ /____//_/\n"
+        "\n"
+        "  EdusonGames Quiz Module\n"
+        "  -=- Проверь свои знания -=-\n"
+    )
+    print(splash)
+
+ascii_quiz_splash()
+print("Вопросы загружаются...")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--glow">
+          <h3>Зачем ASCII-арт?</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li>Традиция программистской культуры — демосцена, BBS, терминалы 80-х</li>
+            <li>Работает везде без графики и дополнительных библиотек</li>
+            <li>Делает проект уникальным и запоминающимся</li>
+            <li>Строки можно складывать через <code>+</code> или <code>()</code></li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h3>Попробуй сам</h3>
+          <p style="margin-top:6px">Создай ASCII-арт своего имени:<br><span class="amber">patorjk.com/software/taag</span><br>Выбери шрифт — скопируй — вставь!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: if __name__ == "__main__"
+     ============================ -->
+<section class="slide"
+  data-notes="Профессиональный паттерн Python. При прямом запуске __name__ = '__main__'. При импорте __name__ = 'quiz'. Guard защищает от случайного запуска при импорте. Все серьёзные Python-программы используют этот паттерн.">
+  <div class="slide__inner">
+    <h2>Паттерн <span class="accent">if __name__ == &quot;__main__&quot;</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">def main():
+    print("Квиз запускается!")
+    print("Вопросы загружены...")
+    print("Игра идёт!")
+
+# Этот guard пишется в самом конце файла:
+if __name__ == "__main__":
+    main()
+
+# Проверим значение прямо здесь:
+print(f"\n__name__ = '{__name__}'")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div>
+        <svg viewBox="0 0 400 190" style="width:100%;max-height:190px" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="180" height="170" rx="12" fill="rgba(124,58,237,0.1)" stroke="rgba(124,58,237,0.4)" stroke-width="1.5"/>
+          <text x="100" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#94A3B8">python quiz.py</text>
+          <text x="100" y="68" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#c4b5fd">__name__ ==</text>
+          <text x="100" y="88" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#c4b5fd">"__main__"</text>
+          <text x="100" y="118" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">if True →</text>
+          <text x="100" y="145" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#3fb950" font-weight="600">main()</text>
+          <text x="100" y="163" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#3fb950">запускается!</text>
+          <rect x="210" y="10" width="180" height="170" rx="12" fill="rgba(6,182,212,0.1)" stroke="rgba(6,182,212,0.4)" stroke-width="1.5"/>
+          <text x="300" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#94A3B8">import quiz</text>
+          <text x="300" y="68" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#67e8f9">__name__ ==</text>
+          <text x="300" y="88" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#67e8f9">"quiz"</text>
+          <text x="300" y="118" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#64748b">if False →</text>
+          <text x="300" y="145" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#f85149" font-weight="600">main()</text>
+          <text x="300" y="163" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#f85149">не запускается</text>
+        </svg>
+        <div class="card" style="margin-top:12px">
+          <ul class="clean">
+            <li>Позволяет импортировать функции без запуска игры</li>
+            <li>Стандарт всех серьёзных Python-программ</li>
+            <li>Разделяет «определение» и «запуск»</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Полный квиз
+     ============================ -->
+<section class="slide"
+  data-notes="Кульминация урока — полный рабочий квиз! Запустите вместе с классом. Дайте каждому ввести имя и ответить. Сравните результаты. 10–15 минут живого интерактива — самый важный момент урока!">
+  <div class="slide__inner">
+    <h2>Полный квиз — <span class="accent">запускаем!</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — quiz.py (полный проект)</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+RAW_QUESTIONS = [
+    "Столица России?|Москва|Питер|Казань|Новгород|1",
+    "2 ** 10 = ?|512|1024|256|2048|2",
+    "def создаёт?|Переменную|Функцию|Список|Цикл|2",
+    "Тип данных 3.14?|int|str|float|bool|3",
+    "return делает?|Печатает|Возвращает значение|Удаляет|Импортирует|2",
+]
+results_log = []
+
+def ascii_splash():
+    print("=" * 35)
+    print("   EDUSONGAMES QUIZ v1.0")
+    print("   Проверь свои знания Python!")
+    print("=" * 35)
+
+def load_questions(data):
+    qs = []
+    for line in data:
+        p = line.strip().split("|")
+        if len(p) == 6:
+            qs.append({"q": p[0], "opts": p[1:5], "ans": int(p[5])})
+    return qs
+
+def ask_question(q):
+    print("\n" + q["q"])
+    for i, o in enumerate(q["opts"], 1):
+        print(f"  {i}. {o}")
+    raw = input("Ответ (1-4): ")
+    try:
+        chosen = int(raw)
+        if chosen == q["ans"]:
+            print("  Верно! +1 очко"); return True
+        print(f"  Неверно. Правильный: {q['ans']}"); return False
+    except ValueError:
+        print("  Нужно ввести число!"); return False
+
+def save_result(name, score, total):
+    results_log.append((name, score, total))
+
+def show_leaderboard():
+    print("\n" + "=" * 35)
+    print("   ТАБЛИЦА ЛИДЕРОВ")
+    print("=" * 35)
+    top = sorted(results_log, key=lambda x: x[1], reverse=True)[:3]
+    medals = ["1.", "2.", "3."]
+    for i, (name, score, total) in enumerate(top):
+        print(f"  {medals[i]} {name}: {score}/{total}")
+
+def main():
+    ascii_splash()
+    name = input("\nКак тебя зовут? ")
+    questions = load_questions(RAW_QUESTIONS)
+    random.shuffle(questions)
+    score = 0
+    for q in questions:
+        if ask_question(q):
+            score += 1
+    total = len(questions)
+    pct = round(score / total * 100)
+    print(f"\n{name}: {score}/{total} ({pct}%)")
+    if pct == 100: print("ИДЕАЛЬНО!")
+    elif pct >= 80: print("Отлично!")
+    elif pct >= 60: print("Хорошо!")
+    else: print("Продолжай учиться!")
+    save_result(name, score, total)
+    show_leaderboard()
+
+if __name__ == "__main__":
+    main()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Улучшение — таймер
+     ============================ -->
+<section class="slide"
+  data-notes="Добавляем таймер. time.time() возвращает секунды с 1970 (Unix timestamp). Разница двух вызовов = прошедшее время. Спросите: как сделать разные сообщения в зависимости от времени? Быстро / нормально / медленно?">
+  <div class="slide__inner">
+    <h2>Улучшение 1 — <span class="accent">таймер и оценка скорости</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+
+def speed_rating(seconds):
+    """Оценка по времени прохождения."""
+    if seconds < 30:
+        return "Молния! ⚡ Невероятная скорость!"
+    elif seconds < 60:
+        return "Быстро! 🚀 Отличная реакция!"
+    elif seconds < 120:
+        return "Хорошо. Думаешь вдумчиво."
+    else:
+        return "Старайся думать быстрее!"
+
+def main_with_timer():
+    """Квиз с таймером."""
+    questions = [
+        {"q": "Столица России?", "opts": ["Москва", "Питер", "Казань", "Новгород"], "ans": 1},
+        {"q": "2 ** 10 = ?",     "opts": ["512", "1024", "256", "2048"],             "ans": 2},
+        {"q": "def создаёт?",    "opts": ["Переменную", "Функцию", "Список", "Цикл"], "ans": 2},
+    ]
+
+    name = "Аня"  # в реальном коде: input("Имя: ")
+    start = time.time()  # <-- НАЧАЛО отсчёта
+
+    score = 0
+    for q in questions:
+        print(q["q"])
+        # В реальном квизе: if ask_question(q): score += 1
+        score += 1  # симуляция правильных ответов
+
+    elapsed = round(time.time() - start)  # <-- КОНЕЦ отсчёта
+    pct = round(score / len(questions) * 100)
+
+    print(f"\n{name}: {score}/{len(questions)} ({pct}%)")
+    print(f"Время: {elapsed} секунд")
+    print(speed_rating(elapsed))
+
+main_with_timer()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--3" style="margin-top:12px">
+      <div class="quote-block" style="font-size:14px"><span class="amber">time.time()</span> — секунды с 1 января 1970 (Unix-время)</div>
+      <div class="quote-block" style="font-size:14px"><span class="amber">end - start</span> — сколько секунд прошло</div>
+      <div class="quote-block" style="font-size:14px"><span class="amber">round()</span> — округляем до целых секунд</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Вопросы (green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза. Пусть ученики попробуют запустить полный квиз самостоятельно на своих компьютерах в GigaIDE. Дайте 5–7 минут — учитель обходит и помогает тем, кто застрял.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;line-height:1.15;">
+        Время запустить квиз<br>самостоятельно!
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: random.shuffle и лимит вопросов
+     ============================ -->
+<section class="slide"
+  data-notes="random.shuffle() перемешивает список на месте. Спросите: зачем перемешивать? Почему random — это отдельный модуль? Лимит вопросов делает квиз динамичным. Покажите как сделать квиз на 5 из 20 вопросов.">
+  <div class="slide__inner">
+    <h2>Улучшение 2 — <span class="accent">случайный порядок и лимит</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+questions_bank = [
+    {"q": "Столица России?",  "ans": 1},
+    {"q": "2 ** 10 = ?",      "ans": 2},
+    {"q": "def создаёт?",     "ans": 2},
+    {"q": "Тип 3.14?",        "ans": 3},
+    {"q": "return делает?",   "ans": 2},
+    {"q": "len([1,2,3]) = ?", "ans": 3},
+    {"q": "print() -> ?",     "ans": 1},
+]
+
+# === Метод 1: shuffle() — перемешать весь банк ===
+bank_copy = questions_bank.copy()  # не меняем оригинал
+random.shuffle(bank_copy)
+
+print("После shuffle():", [q["q"][:12] + "..." for q in bank_copy[:3]])
+
+# === Метод 2: sample() — взять N случайных ===
+QUIZ_SIZE = 3  # в реальной игре: 5-10
+selected = random.sample(questions_bank, QUIZ_SIZE)
+
+print(f"\nВыбрали {QUIZ_SIZE} из {len(questions_bank)}:")
+for q in selected:
+    print(f"  — {q['q']}")
+
+# === В main() ===
+print("\n=== В main() используй так ===")
+print("questions = load_questions(RAW)")
+print("random.shuffle(questions)    # меняет список на месте")
+print("questions = questions[:5]    # берём первые 5")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--2" style="margin-top:12px">
+      <div class="card">
+        <h3>shuffle() vs sample()</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li><code>shuffle(list)</code> — перемешивает на месте, возвращает None</li>
+          <li><code>sample(list, k)</code> — возвращает k элементов, список не меняет</li>
+          <li>Для квиза: shuffle() потом срез <code>[:k]</code></li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3>Почему случайность важна</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Квиз каждый раз другой — нельзя выучить порядок</li>
+          <li>Честное соревнование у разных игроков</li>
+          <li>Из 100 вопросов можно делать разные квизы по 10</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: ИИ генерирует вопросы
+     ============================ -->
+<section class="slide"
+  data-notes="ИИ-интеграция. YandexGPT генерирует вопросы в нужном формате. Покажите промпт. Обсудите: что ещё можно попросить ИИ — переводить? Усложнять? Генерировать объяснения к ответам?">
+  <div class="slide__inner">
+    <h2>ИИ генерирует вопросы <span class="accent">автоматически</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="card card--glow">
+          <h3>Промпт для YandexGPT / ChatGPT</h3>
+          <div class="terminal" style="margin-top:10px">
+            <div class="terminal__body" style="font-size:12px;line-height:1.7">
+<span style="color:#c4b5fd">Ты:</span> Сгенерируй 10 вопросов о Python
+для детей 10-14 лет. Формат строки:
+
+<span style="color:#79c0ff">Вопрос|Вар1|Вар2|Вар3|Вар4|НомерПравильного</span>
+
+Пример:
+<span style="color:#86efac">print() делает?|Вводит|Выводит|Считает|Удаляет|2</span>
+
+Только строки в формате, без нумерации.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Поток работы с ИИ</h3>
+          <div class="timeline" style="margin-top:10px">
+            <div class="timeline__item">
+              <div class="timeline__dot">1</div>
+              <div class="timeline__content"><h3>Показываешь формат</h3><p>Один пример — ИИ понял паттерн pipe-separated</p></div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot">2</div>
+              <div class="timeline__content"><h3>ИИ генерирует строки</h3><p>10 вопросов в точном формате, без лишнего текста</p></div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot">3</div>
+              <div class="timeline__content"><h3>Вставляешь в файл</h3><p>Копируешь в questions.txt — квиз работает!</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">ИИ не заменяет программиста — он берёт скучную часть (генерацию данных), а ты пишешь умный код.</div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Промпты для разных тем
+     ============================ -->
+<section class="slide"
+  data-notes="Промпт-инжиниринг для генерации вопросов. Покажите как правильно задать формат. Обсудите: что бывает если ИИ нарушает формат? Как проверить что загрузка работает? Это реальный навык из профессии AI-engineer.">
+  <div class="slide__inner">
+    <h2>ИИ + квиз — <span class="accent">промпты для разных тем</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="card card--glow">
+          <h3>Промпт для Python-вопросов</h3>
+          <div class="terminal" style="margin-top:10px">
+            <div class="terminal__body" style="font-size:11px;line-height:1.7">Сгенерируй 10 вопросов о Python
+для детей 12-14 лет. Уровень:
+начинающий. Формат СТРОГО:
+
+Вопрос|Вар1|Вар2|Вар3|Вар4|Номер
+
+Пример:
+print() делает?|Вводит|Выводит|Считает|Удаляет|2
+
+Только строки в формате. Без номеров
+строк, без дополнительного текста!</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h3>Для математики</h3>
+          <div class="terminal" style="margin-top:8px">
+            <div class="terminal__body" style="font-size:11px;line-height:1.7">Тема: умножение до 100.
+Уровень: 5 класс.
+Формат: Вопрос|А|Б|В|Г|Номер
+Пример:
+7 × 8 = ?|54|56|58|52|2</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Проверка качества ответа ИИ</h3>
+          <ol class="steps" style="margin-top:10px">
+            <li><div>Посчитай количество строк — 10?</div></li>
+            <li><div>Каждая строка содержит ровно 5 символов <code>|</code></div></li>
+            <li><div>Последнее поле — число от 1 до 4</div></li>
+            <li><div>Запусти <code>load_questions()</code> — нет ли ValueError</div></li>
+          </ol>
+        </div>
+        <div class="compiler" data-lang="python" style="margin-top:12px">
+          <div class="compiler-header">
+            <span class="lang-badge">Python — валидация</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">lines = [
+    "print() делает?|Вводит|Выводит|Считает|Удаляет|2",
+    "7 x 8 = ?|54|56|58|52",  # ПЛОХАЯ: нет ответа!
+    "def создаёт?|Переменную|Функцию|Список|Цикл|2",
+    "range(5) даёт?|0-4|1-5|0-5|1-4|1",
+]
+
+print("=== Валидация строк ИИ ===")
+ok = bad = 0
+for i, line in enumerate(lines, 1):
+    parts = line.strip().split("|")
+    if len(parts) != 6:
+        print(f"  Строка {i}: ОШИБКА — {len(parts)} полей вместо 6")
+        bad += 1
+        continue
+    try:
+        ans = int(parts[5])
+        if 1 <= ans <= 4:
+            print(f"  Строка {i}: OK — '{parts[0][:25]}'")
+            ok += 1
+        else:
+            print(f"  Строка {i}: ОШИБКА — ответ {ans} вне 1-4")
+            bad += 1
+    except ValueError:
+        print(f"  Строка {i}: ОШИБКА — ответ не число")
+        bad += 1
+print(f"\nИтог: {ok} OK, {bad} ошибок")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="Три уровня домашнего задания. Базовый — 10 вопросов через ИИ. Средний — топ-3 и время. Продвинутый — категории вопросов с выбором. Пусть ученики сами выберут уровень.">
+  <div class="slide__inner">
+    <h2>Домашнее задание — <span class="accent">три уровня</span></h2>
+    <div class="grid grid--3">
+      <div class="card card--glow">
+        <h3>&#127807; Базовый</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Попроси YandexGPT сгенерировать 10 новых вопросов</li>
+          <li>Добавь в questions.txt в правильном формате</li>
+          <li>Проверь что квиз читает их корректно</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>&#128640; Средний</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Показывай только топ-3 в таблице лидеров</li>
+          <li>Добавь время прохождения (<code>time.time()</code>)</li>
+          <li>Оценка словами: отлично / хорошо / старайся</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3>&#127919; Продвинутый</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Добавь категории: Python, История, Наука</li>
+          <li>Перед игрой игрок выбирает категорию</li>
+          <li>Prefix в строке: <code>python|Вопрос|...|1</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Подсказка для топ-3 и времени:</h3>
+      <pre style="background:#1a1f2e;border-radius:10px;padding:12px 16px;font-size:13px;margin-top:8px;border:1px solid var(--card-border)"><code class="language-python">import time
+start = time.time()
+# ... игра ...
+elapsed = round(time.time() - start)
+print(f"Время: {elapsed} сек")
+top3 = sorted(results_log, key=lambda x: x[1], reverse=True)[:3]</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Пошаговый план выполнения ДЗ
+     ============================ -->
+<section class="slide"
+  data-notes="Пошаговый план помогает ученикам не потеряться при самостоятельной работе дома. Подчеркните: каждый шаг — маленький и проверяемый. Запускайте после каждого шага!">
+  <div class="slide__inner">
+    <h2>Пошаговый план — <span class="accent">как сделать ДЗ</span></h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li><div>Открой GigaIDE, создай файл <code>quiz.py</code> и <code>questions.txt</code></div></li>
+        <li><div>Попроси ИИ сгенерировать 10 вопросов в формате pipe — вставь в questions.txt</div></li>
+        <li><div>Скопируй функцию <code>load_questions()</code> — проверь что читает 10 вопросов</div></li>
+        <li><div>Скопируй <code>ask_question()</code> с защитой от неверного ввода</div></li>
+        <li><div>Добавь <code>save_result()</code> и <code>show_leaderboard()</code></div></li>
+        <li><div>Напиши <code>main()</code> который объединяет всё</div></li>
+        <li><div>Добавь ASCII-арт заставку — создай на patorjk.com</div></li>
+        <li><div>Сыграй сам — попроси друга сыграть. Проверь что результаты сохраняются!</div></li>
+      </ol>
+      <div>
+        <div class="card card--glow">
+          <h3>Проверяй после каждого шага!</h3>
+          <ul class="clean" style="margin-top:10px">
+            <li>Шаг 3: <code>print(len(questions))</code> → должно быть 10</li>
+            <li>Шаг 4: введи неверный ответ "abc" → не должно падать</li>
+            <li>Шаг 5: запусти дважды → в results.txt должно быть 2 записи</li>
+            <li>Шаг 6: пройди весь квиз — работает?</li>
+          </ul>
+        </div>
+        <div class="quote-block" style="margin-top:16px">
+          <span class="amber">Правило: после каждого шага — запускай!</span> Лучше поймать ошибку в маленьком куске чем искать её в 100 строках.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Финальный блиц
+     ============================ -->
+<section class="slide"
+  data-notes="Блиц перед вручением значка. Ответы: 1) делит строку по символу, 2) load_questions(), 3) a — дозаписывает, 4) при прямом запуске, 5) True/False (bool).">
+  <div class="slide__inner">
+    <h2>Финальный блиц — <span class="accent">5 вопросов</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <ol class="steps">
+          <li><div><strong>split("|") — что делает?</strong><br><span style="color:var(--muted);font-size:14px">a) Делит строку по символу<br>b) Соединяет строки</span></div></li>
+          <li><div><strong>Какая функция возвращает список вопросов?</strong><br><span style="color:var(--muted);font-size:14px">ask_question() или load_questions()?</span></div></li>
+          <li><div><strong>Какой режим файла дозаписывает?</strong><br><span style="color:var(--muted);font-size:14px">a) "a" &nbsp; b) "w" &nbsp; c) "r"</span></div></li>
+        </ol>
+      </div>
+      <div>
+        <ol class="steps" start="4">
+          <li><div><strong>Когда __name__ равен "__main__"?</strong><br><span style="color:var(--muted);font-size:14px">При прямом запуске или при импорте?</span></div></li>
+          <li><div><strong>ask_question() возвращает что?</strong><br><span style="color:var(--muted);font-size:14px">Число? Строку? True/False?</span></div></li>
+        </ol>
+        <div class="card card--glow" style="margin-top:14px">
+          <h3>Ответы</h3>
+          <p style="font-size:14px;margin-top:6px">
+            1) a — делит строку<br>
+            2) load_questions()<br>
+            3) a — "a" дозаписывает<br>
+            4) при прямом запуске<br>
+            5) True/False (bool)
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Словарь урока
+     ============================ -->
+<section class="slide"
+  data-notes="Словарь урока — закрепление терминов. Пройдитесь по каждому: пусть ученики попробуют дать определение до того как вы покажете его. Это активная стратегия запоминания.">
+  <div class="slide__inner">
+    <h2>Словарь урока — <span class="accent">ключевые термины</span></h2>
+    <div class="grid grid--2">
+      <div class="kv">
+        <div class="kv__item">
+          <span class="kv__key">SRP</span>
+          <span class="kv__val">Single Responsibility Principle — каждая функция делает ровно одно дело</span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">pipe-format</span>
+          <span class="kv__val">Формат данных: поля разделены символом | — удобно для CSV-подобных файлов</span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">__name__</span>
+          <span class="kv__val">Специальная переменная Python: "__main__" при прямом запуске, имя модуля при импорте</span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">main guard</span>
+          <span class="kv__val">Паттерн <code>if __name__ == "__main__":</code> — защищает код от случайного запуска при импорте</span>
+        </div>
+      </div>
+      <div class="kv">
+        <div class="kv__item">
+          <span class="kv__key">enumerate()</span>
+          <span class="kv__val">Встроенная функция: возвращает (индекс, элемент) при обходе списка</span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">sorted() + lambda</span>
+          <span class="kv__val">Сортировка по ключу: <code>sorted(lst, key=lambda x: x[1], reverse=True)</code></span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">time.time()</span>
+          <span class="kv__val">Текущее время в секундах с 01.01.1970 (Unix timestamp). Разность = длительность</span>
+        </div>
+        <div class="kv__item">
+          <span class="kv__key">random.shuffle()</span>
+          <span class="kv__val">Перемешивает список на месте (in-place). Возвращает None!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Модуль 6 завершён
+     ============================ -->
+<section class="slide"
+  data-notes="Модуль 6 завершён. Пусть ученики сами называют что изучили в каждом уроке. Активное повторение закрепляет лучше пассивного слушания.">
+  <div class="slide__inner">
+    <h2>Модуль 6 завершён — <span class="accent">что изучили</span></h2>
+    <div class="grid grid--2">
+      <div class="timeline">
+        <div class="timeline__item">
+          <div class="timeline__dot">21</div>
+          <div class="timeline__content"><h3>Импорт модулей</h3><p>import, from...import, math, random, time, pip — готовые инструменты</p></div>
+        </div>
+        <div class="timeline__item">
+          <div class="timeline__dot">22</div>
+          <div class="timeline__content"><h3>Файлы. Часть 1</h3><p>open(), режимы r/w/a, with, read(), write() — Дневник 2.0</p></div>
+        </div>
+        <div class="timeline__item">
+          <div class="timeline__dot">23</div>
+          <div class="timeline__content"><h3>Файлы. Часть 2</h3><p>readlines(), try/except, FileNotFoundError, JSON, os.path</p></div>
+        </div>
+        <div class="timeline__item">
+          <div class="timeline__dot">24</div>
+          <div class="timeline__content"><h3>Проект «Квиз»</h3><p>4 функции, ASCII-арт, ИИ-генерация данных, if __name__ — финал!</p></div>
+        </div>
+      </div>
+      <div class="card card--glow">
+        <h3>Навыки Модуля 6</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>Читать и писать файлы безопасно (with + try/except)</li>
+          <li>Хранить структурированные данные в JSON</li>
+          <li>Использовать стандартные модули Python</li>
+          <li>Строить программу из функций с чёткими ролями</li>
+          <li>Использовать ИИ для генерации данных</li>
+          <li>Писать профессионально (if __name__)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Вручение значка
+     ============================ -->
+<section class="slide"
+  data-notes="Торжественное вручение значка! Пусть каждый ученик скажет одно слово — что больше всего запомнилось из Модуля 6.">
+  <div class="slide__inner">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:18px;padding:12px 0;text-align:center">
+      <div style="font-size:80px;line-height:1;filter:drop-shadow(0 0 40px rgba(251,191,36,0.7))">&#127885;</div>
+      <h2>Значок <span class="accent">«Хранитель файлов»</span></h2>
+      <p class="lead" style="max-width:600px">Вручается за мастерское владение файлами, модулями, JSON и создание полноценного проекта «Квиз»</p>
+      <div class="grid grid--3" style="width:100%;max-width:800px">
+        <div class="card" style="text-align:center;padding:18px">
+          <div style="font-size:32px;margin-bottom:6px">&#128194;</div>
+          <p>Читаю и пишу файлы с open() и with</p>
+        </div>
+        <div class="card" style="text-align:center;padding:18px">
+          <div style="font-size:32px;margin-bottom:6px">&#128737;</div>
+          <p>Защищаю код с try/except</p>
+        </div>
+        <div class="card" style="text-align:center;padding:18px">
+          <div style="font-size:32px;margin-bottom:6px">&#127942;</div>
+          <p>Строю программы из функций с чёткими ролями</p>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <span style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:600">Модуль 6 завершён</span>
+        <span style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:600">6 значков из 6</span>
+        <span style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.4);color:#67e8f9;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:600">Стажировка EdusonGames пройдена!</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     NEW: Портфель разработчика
+     ============================ -->
+<section class="slide"
+  data-notes="Портфолио разработчика. Объясните: работодатели смотрят на GitHub. Даже школьные проекты могут быть в портфолио. Попросите учеников рассказать кому они уже показывали свои программы.">
+  <div class="slide__inner">
+    <h2>Ваш <span class="accent">портфель разработчика</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <div class="card card--glow">
+          <h3>Что у вас уже есть</h3>
+          <div class="timeline" style="margin-top:12px">
+            <div class="timeline__item">
+              <div class="timeline__dot">✓</div>
+              <div class="timeline__content"><h3>Угадай число</h3><p>Алгоритмы, random, условия</p></div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot">✓</div>
+              <div class="timeline__content"><h3>Морской бой</h3><p>6 функций, игровая логика</p></div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot">✓</div>
+              <div class="timeline__content"><h3>Дневник 2.0</h3><p>Файлы, постоянное хранилище</p></div>
+            </div>
+            <div class="timeline__item">
+              <div class="timeline__dot">✓</div>
+              <div class="timeline__content"><h3>Квиз</h3><p>Архитектура, ИИ-интеграция</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Как оформить для портфолио</h3>
+          <ol class="steps" style="margin-top:10px">
+            <li><div>Добавь README.md — 3 строчки: что делает, как запустить, пример</div></li>
+            <li><div>Загрузи на GitHub — бесплатно, смотрят все HR</div></li>
+            <li><div>Сделай скриншот запуска — вставь в README</div></li>
+            <li><div>Покажи маме/папе/другу — объясни своими словами что написал</div></li>
+          </ol>
+        </div>
+        <div class="quote-block" style="margin-top:16px">
+          <span class="amber">Реальный работодатель</span> смотрит не на оценки, а на то, что ты сделал своими руками. Квиз — это уже реальный проект!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Что дальше — Модуль 7 ООП
+     ============================ -->
+<section class="slide"
+  data-notes="Что дальше? Модуль 7 — ООП. Классы и объекты. Всё что изучили — фундамент ООП. Классы = функции и данные вместе. Проект — RPG с Hero и Enemy.">
+  <div class="slide__inner">
+    <h2>Что дальше — <span class="accent">Модуль 7: ООП</span></h2>
+    <div class="grid grid--2">
+      <div class="card card--glow">
+        <h3>Объектно-ориентированное программирование</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>Классы и объекты — объединяем данные и функции</li>
+          <li><code>__init__</code> — конструктор, создаёт объект</li>
+          <li><code>self</code> — ссылка на текущий объект</li>
+          <li>Методы — функции внутри класса</li>
+          <li>Наследование — код без дублирования</li>
+          <li>Проект: RPG-игра с Hero и Enemy</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Вот как это выглядит:</h3>
+        <pre style="background:#1a1f2e;border-radius:10px;padding:12px 16px;font-size:13px;margin-top:10px;border:1px solid var(--card-border)"><code class="language-python">class Hero:
+    def __init__(self, name):
+        self.name = name
+        self.hp = 100
+        self.score = 0
+
+    def attack(self, enemy):
+        dmg = 20
+        enemy.hp -= dmg
+        self.score += dmg
+        print(f"{self.name} наносит {dmg}!")
+
+player = Hero("Аня")
+boss = Hero("Дракон")
+player.attack(boss)
+print(f"HP дракона: {boss.hp}")</code></pre>
+      </div>
+    </div>
+    <div class="quote-block">Классы — это способ организовать функции и данные вместе. Вы уже готовы!</div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Проекты которые создали
+     ============================ -->
+<section class="slide"
+  data-notes="Галерея проектов. Попросите поднять руку тех кто показал проект родителям. Это мотивирует! Напомните: это не учебные упражнения — это реальные программы.">
+  <div class="slide__inner">
+    <h2>Проекты которые вы <span class="accent">создали</span></h2>
+    <div class="grid grid--4">
+      <div class="card" style="text-align:center;padding:18px">
+        <div style="font-size:36px;margin-bottom:10px">&#127919;</div>
+        <h3 style="font-size:16px">Угадай число</h3>
+        <p>Двоичный поиск, random, условия, счётчик попыток</p>
+      </div>
+      <div class="card" style="text-align:center;padding:18px">
+        <div style="font-size:36px;margin-bottom:10px">&#9875;</div>
+        <h3 style="font-size:16px">Морской бой</h3>
+        <p>6 функций, сетка, алгоритм выстрела, бот-симуляция</p>
+      </div>
+      <div class="card" style="text-align:center;padding:18px">
+        <div style="font-size:36px;margin-bottom:10px">&#128213;</div>
+        <h3 style="font-size:16px">Дневник 2.0</h3>
+        <p>Файлы, режимы, чтение записей, хранение данных</p>
+      </div>
+      <div class="card card--glow" style="text-align:center;padding:18px">
+        <div style="font-size:36px;margin-bottom:10px">&#127942;</div>
+        <h3 style="font-size:16px">Квиз</h3>
+        <p>4 функции, файлы, таблица лидеров, ASCII-арт, ИИ</p>
+      </div>
+    </div>
+    <div class="card card--glow" style="text-align:center;padding:20px">
+      <p style="font-size:18px;font-weight:600">Это не учебные упражнения — это реальные программы которыми можно пользоваться!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Финальный (green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Финальный слайд. Попросите каждого назвать одно слово — что они больше всего получили от этого курса. Следующая стажировка — Модуль 7, ООП и RPG. До встречи!">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Стажировка завершена!<br>Следующий: Модуль 7 — ООП
+      </h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  /* ---- Skulpt compiler ---- */
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function initCompilers(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+
+  /* ---- Slide navigation ---- */
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',initCompilers):initCompilers();
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

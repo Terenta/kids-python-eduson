@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 3 — Как добавить в код ввод и вывод | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 3</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как добавить в код ввод и вывод</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Математических основ</p>
+<p><strong>Неделя:</strong> 3</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок умеет запрашивать данные у пользователя через <code>input()</code>, красиво выводить их через <code>print()</code> и f-строки, комментирует свой код.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> как выводить текст с помощью <code>print()</code>; как добавлять пользовательский ввод с помощью <code>input()</code>; как выводить текст и результаты арифметических операций; как комментировать код; как переносить строки; как использовать f-строки.</li>
+<li><strong>Ученик умеет / может:</strong> использовать <code>print()</code> и <code>input()</code>, чтобы производить арифметические операции с переменными.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE / Colab</li>
+<li>ИИ-помощники: GigaChat (для демо)</li>
+<li>Файлы-заготовки: <code>io_demo.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<ul>
+<li>Python 3.11+, работающая IDE.</li>
+</ul>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ</strong></p>
+<ul>
+<li>Что говорит преподаватель: «Покажи произведение любимого числа на рост. Ух ты, круто. А теперь — твоя программа будет разговаривать с пользователем. Реально».</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо</strong></p>
+<ul>
+<li>Ключевая идея: программа становится живой, когда спрашивает и отвечает.</li>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>input()</strong> — вопрос пользователю; всегда возвращает строку.</p>
+<p>  - <strong>int(), float()</strong> — превращают строку в число.</p>
+<p>  - <strong>f-строка</strong> — <code>f"Привет, {name}!"</code> — подставляет значение переменной.</p>
+<p>  - <strong>Комментарий</strong> — <code># это не код, это для человека</code>.</p>
+<p>  - <strong>\n</strong> — перевод строки внутри print.</p>
+<p>  - <strong>sep, end</strong> — параметры print.</p>
+<ul>
+<li>Живой код:</li>
+</ul>
+<pre><code class="language-python">  name = input("Как тебя зовут? ")
+  age = int(input("Сколько тебе лет? "))
+  print(f"Привет, {name}! Через 10 лет тебе будет {age + 10}.")</code></pre>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (8 мин):</strong> «Диалог»: программа спрашивает имя и любимый цвет, отвечает комплиментом. Добавить комментарии к каждой строке.</li>
+<li><strong>Задание 2 (12 мин):</strong> «Калькулятор»: спрашивает 2 числа, выводит сумму, разность, произведение, частное через f-строки. Ошибка: не забыть обернуть input в <code>int()</code>.</li>
+</ul>
+<p>  - Что говорит преподаватель: «Запомни: <code>input</code> всегда возвращает строку. Чтобы сложить — переведи в число через <code>int()</code>».</p>
+<ul>
+<li><strong>Задание 3 (8 мин):</strong> «Конвертер температуры»: запрос градусов Цельсия, вывод в Фаренгейтах (<code>C * 9/5 + 32</code>).</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Анкета нового ученика»</strong></p>
+<ul>
+<li>Программа спрашивает: имя, возраст, город, любимый предмет, мечта. Выводит красивую карточку через f-строки с <code>\n</code>.</li>
+</ul>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Ученик показывает «Анкету» на себе и на маме.</li>
+<li>Вопросы: «Почему input всегда возвращает строку? Что делают f-строки?»</li>
+<li>Похвала: «Следующий урок — большой проект. Ты готов!»</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Программа сама спрашивает и отвечает — это называется интерактивность».</li>
+<li>«input() всегда возвращает СТРОКУ, даже если ты ввёл число. Запомни навсегда».</li>
+<li>«f-строки — это магия подстановки. <code>f"{name}"</code> — и переменная внутри текста».</li>
+<li>«Комментарии — это записки самому себе через полгода».</li>
+<li>«Не торопись с кодом — сначала продумай, что спрашиваешь».</li>
+<li>«Попробуй сам 5 минут — не получилось, посмотри на ошибку, прочитай вслух».</li>
+<li>«Красный текст снизу — не злой. Он говорит, на какой строке проблема».</li>
+<li>«Ты сделал программу, которая общается с человеком. Это уже приложение».</li>
+<li>«Запомни: красивый вывод — половина успеха программы».</li>
+<li>«Через один урок — твой первый большой проект. Готовимся».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Анкета нового ученика»</li>
+<li><strong>Что получится:</strong> интерактивная программа из 5–6 вопросов, выводящая красивую карточку.</li>
+<li><strong>Где показать:</strong> запусти маме/папе — пусть заполнят свою анкету.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Доделай калькулятор: спроси 2 числа и операцию словом (пока что только покажи 4 результата — +, –, *, /). Пришли скриншот работы.</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик использует минимум 3 <code>input()</code> в одной программе.</li>
+<li>Ученик корректно преобразует строку в число (<code>int</code>, <code>float</code>).</li>
+<li>Ученик применяет f-строки минимум 2 раза.</li>
+<li>Ученик пишет минимум 3 смысловых комментария.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong><code>TypeError: can only concatenate str and int</code></strong> → забыл обернуть в <code>int()</code>. Разбираем, что input — всегда строка.</li>
+<li><strong>f-строка без f</strong> → <code>"{name}"</code> не работает, нужно <code>f"{name}"</code>. Проверяем первую букву.</li>
+<li><strong>Ученик вводит буквы вместо цифр</strong> → ошибка <code>ValueError</code>. Говорим: на следующем модуле научимся это ловить через условия.</li>
+<li><strong>Забывает закрыть кавычку в prompt input</strong> → читаем traceback вместе.</li>
+<li><strong>Не понимает, куда девается введённое значение</strong> → рисуем: «твой ввод идёт в коробку <code>name</code>».</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Сделай программу, которая спрашивает имя и год рождения, а потом выводит год, в котором ученику исполнится 100 лет.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке ИИ помогает придумать красивый текст для «Анкеты». Преподаватель показывает: «Смотри, спросим GigaChat: "Придумай 5 интересных вопросов для анкеты школьника"». Пример промпта: «Придумай 5 нестандартных вопросов для анкеты школьника 10 лет, чтобы узнать про его мечты и хобби».</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 18 — Как использовать функции с параметрами | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 18</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как использовать функции с параметрами</h2>
+  <div class="meta"><span>Отдел:</span> <span>5.</span> <span>Функциональных</span> <span>механик</span> <span>Неделя:</span> <span>18</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 5. Функциональных механик <strong>Неделя:</strong> 18 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Научить передавать в функцию данные через параметры — «функция теперь может работать с РАЗНЫМИ входами». Ввести различие параметр/аргумент, роль порядка, передачу разных типов.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: что такое параметры и зачем они нужны; разницу между параметрами и аргументами; что значения передаются в параметры; что функция использует данные; роль позиции и порядка; что можно передавать числа, строки, списки; как передавать несколько аргументов. Ученик может: создавать функции с параметрами; вызывать функцию с разными аргументами; использовать параметры для вычислений и вывода; писать функции однотипных действий с разными данными; комбинировать с условиями и циклами.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, YandexGPT.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Стандарт.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие + разбор ДЗ (логотипы, карточка персонажа).</li>
+<li><strong>5–15.</strong> Теория. «Вчера функция <code>greet()</code> всегда здоровалась одинаково. А что если я хочу поздороваться с Аней, Борей, Витей — по-разному?». Демо:</li>
+</ul>
+<pre><code class="language-python">  def greet(name):
+      print(f"Привет, {name}!")
+
+  greet("Аня")
+  greet("Боря")
+  greet("Витя")</code></pre>
+<p>  Объясняю: <code>name</code> — параметр (в определении), <code>"Аня"</code> — аргумент (при вызове). Показываю функции с 2 и 3 параметрами: <code>def add(a, b): print(a + b)</code>.</p>
+<ul>
+<li><strong>15–45.</strong> Практика.</li>
+</ul>
+<p>  1. <code>def print_rectangle(width, height, symbol):</code> — печатает прямоугольник из <code>symbol</code> размера <code>width × height</code>. Вызвать 3 раза с разными параметрами.</p>
+<p>  2. <code>def describe_pet(name, age, species):</code> — печатает «Знакомьтесь: {name}, {species}, {age} лет». Вызвать для 3 зверей.</p>
+<p>  3. Переделать <code>show_map()</code> из прошлого урока: теперь <code>show_map(maze)</code> принимает карту как параметр. Так уходим от глобальных переменных.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Генератор квадратов ASCII». Функция <code>draw_square(size, fill, border)</code> рисует квадрат заданного размера с указанными символами границы и заливки. Ребёнок вызывает 5 раз с разными параметрами, получает «галерею».</li>
+<li><strong>55–60.</strong> Итог + ДЗ.</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Параметр — это имя, которое стоит в скобках при <code>def</code>. Аргумент — значение, которое ты туда кладёшь при вызове».</li>
+<li>«Параметры — это "входы" у функции. Как входные двери у дома».</li>
+<li>«Передавать можешь всё: число, строку, список, даже другую функцию. Но это попозже».</li>
+<li>«Порядок важен: <code>greet("Аня", "Боря")</code> — это не то же самое, что <code>greet("Боря", "Аня")</code>».</li>
+<li>«Называй параметры по смыслу: <code>width</code>, <code>name</code>, <code>pet_age</code> — не <code>a</code>, <code>b</code>, <code>c</code> в сложных функциях».</li>
+<li>«Одна функция — одно действие. Не пытайся впихнуть 5 задач в одну <code>do_everything()</code>».</li>
+<li>«Параметр живёт только внутри функции. Снаружи его нет».</li>
+<li>«f-строка с <code>{name}</code> — твой друг: динамический вывод».</li>
+<li>«Поняв параметры, ты можешь писать <code>show_map(maze1)</code>, <code>show_map(maze2)</code> — одна функция, два лабиринта».</li>
+<li>«Это шаг к чистому коду. Программы теперь будут короче и понятнее».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Генератор квадратов ASCII» — закрепляет 3 параметра, тип-строка, тип-число.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Функция <code>say_hi(name, times)</code> — печатает «Привет, {name}!» <code>times</code> раз (использует <code>for</code>).</li>
+<li>Функция <code>count_letter(text, letter)</code> — считает, сколько раз <code>letter</code> встречается в <code>text</code>, печатает число.</li>
+<li>Функция <code>show_card(hero)</code> принимает словарь-заглушку (дам пример <code>{"name": "Зорро", "hp": 100}</code>), печатает карточку. Это тизер урока 27.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок уверенно пишет функции с 1–3 параметрами, вызывает их с разными аргументами, объясняет разницу параметр/аргумент.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Путают параметр и аргумент.</strong> Аналогия: «параметр — почтовый ящик, аргумент — письмо, которое ты кидаешь».</li>
+<li><strong>При вызове забывают передать все аргументы.</strong> <code>TypeError: missing argument</code> — читаем вместе.</li>
+<li><strong>Передают в неправильном порядке.</strong> Показываю на <code>print_rectangle(3, "#", 5)</code> — некрасиво выводится, разбираем.</li>
+<li><strong>Изменяют параметр внутри функции, ожидая, что снаружи тоже изменится.</strong> Пока не углубляемся, говорю «это отдельная коробка, снаружи не видно».</li>
+<li><strong>Список в аргументах — а здесь сюрприз, он может меняться.</strong> Предупреждаю, подробнее на уроке 19.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Функция <code>draw_triangle(size)</code> — рисует прямой треугольник из <code><em></code>. Попробовать для <code>size=5</code> получить 5 строк: <code></em></code>, <code><strong></code>, …, <code></strong><em>*</em></code>. Потом — зеркальный вариант.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — для генерации «списка смешных зверей» к <code>describe_pet</code>: «Придумай 5 питомцев с именами, возрастом и видом, в формате Python-списка кортежей». Ребёнок копирует, циклом перебирает и вызывает <code>describe_pet(<em>pet)</code>. Тут же обсуждаем, что такое распаковка <code></em></code> — короткое знакомство.</p>
+<hr>
+</div>
+</body>
+</html>

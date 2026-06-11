@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 20 — Проект: «Морской бой» + генерация ASCII-графики / видео для игры | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 20</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Проект: «Морской бой» + генерация ASCII-графики / видео для игры</h2>
+  <div class="meta"><span>Отдел:</span> <span>5.</span> <span>Функциональных</span> <span>механик</span> <span>Неделя:</span> <span>20</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 5. Функциональных механик <strong>Неделя:</strong> 20 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Сделать самый сложный проект модуля: консольный «Морской бой» на двоих игроков. Применить ВСЁ из модулей 4–5: циклы, условия, списки (двумерные), функции с параметрами и <code>return</code>. Научить организовывать код через функции-блоки.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик может: создавать и инициализировать двумерные списки для поля; хранить и изменять координаты кораблей; считывать координаты от пользователя; отображать состояние поля; реализовать постановку кораблей для каждого игрока; обработку выстрелов с попаданиями и промахами; подсчёт оставшихся палуб и определение победителя; организацию игрового цикла с чередованием ходов; комбинацию функций, циклов, условий и списков в одной программе.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE (основной), Python 3.11, YandexGPT — для генерации ASCII-графики заставки и идей видео-тизера, Kandinsky / YandexArt — для обложки/промо-картинки.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Стандарт. Отдельно: подготовить шаблон с пустыми функциями (чтобы сэкономить время на печатание).</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие + разбор ДЗ (is_prime, average, roll_dice).</li>
+<li><strong>5–15.</strong> Теория-демо. Запускаю свой готовый «Морской бой» на 2 игроков — показываю всю игру за 90 секунд. Показываю структуру кода на экране:</li>
+</ul>
+<pre><code class="language-python">  def create_board(size): ...
+  def draw_board(board, hide_ships=True): ...
+  def place_ships(board, count): ...
+  def shoot(board, x, y): ...
+  def is_defeated(board): ...
+  def switch_player(current): ...</code></pre>
+<p>  «Каждая функция — одна ответственность. В этом сила».</p>
+<ul>
+<li><strong>15–45.</strong> Практика — собираем по блокам.</li>
+</ul>
+<p>  1. <code>create_board(5)</code> — возвращает двумерный список 5×5 из точек <code>.</code>.</p>
+<p>  2. <code>draw_board(board)</code> — печатает с заголовками колонок (A–E) и строк (1–5). С параметром <code>hide_ships</code> скрывает <code>S</code>, показывая <code>.</code>.</p>
+<p>  3. <code>place_ships(board, 3)</code> — ставит 3 корабля случайно через <code>random.randint</code>.</p>
+<p>  4. <code>shoot(board, x, y)</code> — возвращает <code>"hit"</code>, <code>"miss"</code> или <code>"repeat"</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект — игровой цикл. <code>while True</code> чередует игроков, вызывает <code>shoot</code>, проверяет <code>is_defeated</code>, поздравляет победителя. Запускаем тестовую партию.</li>
+<li><strong>55–60.</strong> Защита (2–3 мин): ребёнок демонстрирует, объясняет 3 функции. Бейдж «Функциональный герой». ИИ-бонус: генерация идеи видео-тизера (через YandexGPT — сценарий 15 сек).</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Первое правило сложных проектов: разбей на функции ДО того, как начнёшь писать код».</li>
+<li>«Двумерный список — это поле. <code>board[y][x]</code> — клетка».</li>
+<li>«Состояния клетки: <code>.</code> — вода, <code>S</code> — корабль, <code>X</code> — попадание, <code>O</code> — промах. Всё».</li>
+<li>«Функция <code>shoot</code> возвращает результат — это классика <code>return</code> из прошлого урока».</li>
+<li>«Координаты A1 превращаются в (y=0, x=0). Запоминай: буква — колонка, цифра — строка».</li>
+<li>«Чередование игроков — <code>current = 1 - current</code>. Было 0, стало 1, и обратно».</li>
+<li>«<code>hide_ships=True</code> при печати поля соперника — ты же не показываешь свои корабли ему».</li>
+<li>«Когда зависнешь — НЕ переписывай всё. Печатай <code>board</code> для отладки».</li>
+<li>«Это твой 5-й проект. Смотри, ты уже не боишься двумерных списков».</li>
+<li>«Защита — 3 минуты. Покажи игру, назови любимую функцию, расскажи, где было сложно».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>Весь урок = проект. Результат: рабочий «Морской бой» 5×5 на двоих с чередованием ходов, скрытием чужих кораблей, подсчётом попаданий и объявлением победителя. Код — в 6–8 функциях.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Увеличить поле до 7×7 и количество кораблей до 5.</li>
+<li>Добавить функцию <code>ascii_splash()</code>, которая печатает заставку «МОРСКОЙ БОЙ» из ASCII-арта (сгенерировать через Алису).</li>
+<li>Сценарий 15-секундного видео-тизера игры — написать от руки 5 кадров (для урока по ИИ дальше).</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Игра запускается, два игрока ходят по очереди, попадания отмечаются, программа корректно определяет победителя. Код разбит минимум на 5 функций. Ребёнок на защите уверенно показывает, какая функция за что отвечает.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Путают координаты (y, x) и (x, y).</strong> Всегда рисую оси на листе до кода.</li>
+<li><strong>Корабли ставятся на одну клетку.</strong> Добавляем проверку <code>if board[y][x] == "."</code> перед постановкой.</li>
+<li><strong>Игра не завершается — забыли <code>is_defeated</code>.</strong> Разбираем игровой цикл, добавляем вызов.</li>
+<li><strong>Ввод A1 → ошибка.</strong> Парсим: <code>letter = s[0].upper(); num = int(s[1:])</code>. Проверяем границы.</li>
+<li><strong>Функции слишком большие.</strong> Учу: «если функция длиннее 15 строк — разбей».</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Добавить режим «одиночная игра против бота» — второй игрок заменяется функцией <code>bot_shoot(board)</code>, которая стреляет случайно и помнит свои промахи.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p><strong>Активно.</strong> YandexGPT — генерация ASCII-баннера «МОРСКОЙ БОЙ», сценария видео-тизера. Kandinsky — генерация промо-арта (корабль в шторме). Обсуждаем: код ребёнка — игра, вклад ИИ — обложка/заставка/промо. <strong>Защищаем свой вклад отдельно от ИИ-вклада.</strong></p>
+<hr>
+</div>
+</body>
+</html>

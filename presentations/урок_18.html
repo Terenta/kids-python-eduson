@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 18 — Функции с параметрами | EdisonGames · Python и нейросети</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:100;}
+  .progress__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 300ms ease;box-shadow:0 0 12px rgba(124,58,237,0.6);}
+
+  .counter{position:fixed;top:18px;right:24px;z-index:90;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .counter b{color:var(--text)}
+
+  .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;font-size:11px;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;letter-spacing:0.03em;opacity:0.7;}
+  .hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--text);}
+
+  .deck{position:relative;z-index:1;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 80px;opacity:0;transform:translateY(30px);transition:opacity 300ms ease, transform 300ms ease;pointer-events:none;overflow:auto;}
+  .slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .slide.prev{transform:translateY(-30px);}
+
+  .slide__inner{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px;}
+
+  .slide--cover{padding:0;}
+  .cover-bubble{background:#fff;border-radius:28px;padding:38px 56px;max-width:580px;text-align:center;position:relative;z-index:2;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+  .cover-bubble--speech::after{content:'';position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:28px solid #fff;}
+
+  .game-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .game-icons svg{position:absolute;opacity:0.22;}
+
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .amber{color:var(--amber);font-weight:700;}
+
+  .badge-green{display:inline-block;background:var(--green);color:#fff;font-size:15px;font-weight:700;padding:7px 22px;border-radius:999px;margin-bottom:16px;}
+
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .card--glow::before{content:'';position:absolute;inset:-1px;border-radius:var(--radius);padding:1px;background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text);line-height:1.5;}
+  ul.clean li::before{content:'—';flex:0 0 auto;color:var(--amber);font-weight:700;}
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:15px;line-height:1.55;}
+  ol.steps li::before{content:counter(step);flex:0 0 28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--amber);font-weight:800;font-size:13px;color:#fff;margin-top:2px;}
+
+  .kv{display:flex;flex-direction:column;gap:12px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--card-border)}
+  .kv__item:last-child{border-bottom:none}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);flex:0 0 160px;font-weight:500}
+  .kv__val{font-size:15px;color:var(--text);line-height:1.45}
+
+  .timeline{display:flex;flex-direction:column;gap:10px}
+  .timeline__row{display:grid;grid-template-columns:130px 1fr;gap:18px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--cyan)}
+  .timeline__body h3{font-size:16px;margin-bottom:2px}
+  .timeline__body p{font-size:13px;color:var(--muted)}
+
+  pre[class*="language-"]{border-radius:14px!important;padding:18px 20px!important;font-size:15px!important;font-family:'JetBrains Mono',monospace!important;border:1px solid var(--card-border);box-shadow:var(--shadow);line-height:1.6!important;background:#1a1f2e!important;margin:0;}
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{background:rgba(124,58,237,0.15);color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+
+  .terminal{background:#050810;border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a7f3d0;position:relative;}
+  .terminal::before{content:'● ● ●';position:absolute;top:9px;left:13px;font-size:9px;color:#475569;letter-spacing:3px;}
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  .quote-block{background:rgba(245,158,11,0.09);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 20px;font-size:17px;font-weight:600;color:var(--text);line-height:1.5;}
+
+  .notes{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--card-border);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease;}
+  .notes.active{transform:translateY(0)}
+  .notes__header{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  .slide.active .card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .timeline__row{animation:reveal 500ms ease backwards;}
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1),.slide.active .timeline__row:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .timeline__row:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .timeline__row:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4),.slide.active .timeline__row:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5),.slide.active .timeline__row:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .timeline__row:nth-child(6){animation-delay:360ms}
+
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){.slide{padding:60px 24px 70px}}
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);}
+.compiler-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(124,58,237,0.08);border-bottom:1px solid rgba(255,255,255,0.06);}
+.compiler-header .lang-badge{display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.compiler-header .lang-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{padding:14px 18px;color:#E2E8F0;max-height:260px;overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{padding:5px 12px;border:0;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;color:#fff;}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:#050810;color:#86efac;font-size:12.5px;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){outEl.className='compiler-output show error';outEl.textContent='Skulpt загружается... обнови страницу.';return;}
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)throw "Файл не найден: "+f;return Sk.builtinFiles["files"][f];},
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">32</span></div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 1: Cover -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 18 — параметры делают функции по-настоящему мощными. Начни с вопроса: «Помнишь greet() из прошлого урока? Она всегда говорила одно и то же. Что если бы она умела здороваться по-разному с каждым?»">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px"><span class="badge-green">Урок №18</span></div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">Функции с параметрами</h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Разбор ДЗ — проверьте себя -->
+<section class="slide"
+  data-notes="Разбор домашнего задания урока 17. Сначала спроси учеников: «Кто написал print_logo()? Кто сделал ask_name()?» Дай 2–3 мин на само-проверку по пунктам, прежде чем показывать решение.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span></h2>
+    <p class="lead">Урок 17 — функции без return. Проверяем вместе</p>
+    <ol class="steps">
+      <li><div><strong>print_logo()</strong> — функция без параметров, печатает ASCII-лого EdisonGames. Проверь: вызывается без скобок? → <span style="color:#fca5a5">ошибка</span>. Вызывается с <code>()</code>? → <span style="color:#86efac">верно</span>.</div></li>
+      <li><div><strong>ask_name()</strong> — использует <code>input()</code> и <code>print()</code>. Проверь: переменная объявлена <em>внутри</em> функции? Хорошо. Попыталась <em>вернуть</em> значение через <code>return</code>? Отлично — прочитал вперёд!</div></li>
+      <li><div><strong>Рефакторинг</strong> — 10 строк кода превратились в 2 вызова функции. Есть ощущение «стало чище»? Именно за это любят функции.</div></li>
+      <li><div><strong>Типичная ошибка:** отступы. Всё тело функции должно быть сдвинуто на 4 пробела. Без этого — <span style="color:#fca5a5">IndentationError</span>.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 3: Разбор ДЗ — код в compiler -->
+<section class="slide"
+  data-notes="Покажи эталонное решение ДЗ. Пусть ученики сравнят со своим. Разбери вслух: «Почему функция лучше, чем просто print() несколько раз?» — ответ: один раз написал, используй много раз.">
+  <div class="slide__inner">
+    <h2>Эталонное решение <span class="accent">ДЗ урока 17</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def print_logo():
+    print("=== EdisonGames ===")
+    print("  Учим Python! ")
+    print("==================")
+
+def ask_name():
+    name = input("Как тебя зовут, стажёр? ")
+    print(f"Отлично, {name}! Добро пожаловать.")
+
+# Вызываем функции
+print_logo()
+# ask_name()  # раскомментируй для теста
+
+# Проверка: почему функция лучше?
+# Допиши ещё 3 вызова print_logo() — одна строка вместо 3!
+print_logo()
+print_logo()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Задание от EdisonGames -->
+<section class="slide"
+  data-notes="Нарратив: в EdisonGames дали задание написать функцию greet, которая умеет персонализировать приветствие. Без параметров это невозможно. Сравни две версии кода.">
+  <div class="slide__inner">
+    <h2>Задание от <span class="accent">EdisonGames</span></h2>
+    <p class="lead">Сегодня ты апгрейдишь функции — теперь они работают с <span style="color:#F59E0B;font-weight:700;">ДАННЫМИ</span></p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)">
+        <h3 style="color:#fca5a5">Урок 17: негибкая функция</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def greet():
+    print("Привет, игрок!")
+
+greet()  # всегда одно
+greet()  # и то же</code></pre>
+        <p style="margin-top:8px">Одно приветствие — для всех. Скучно.</p>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">Урок 18: параметры!</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def greet(name):
+    print(f"Привет, {name}!")
+
+greet("Аня")   # Привет, Аня!
+greet("Боря")  # Привет, Боря!</code></pre>
+        <p style="margin-top:8px">Одна функция — разные результаты.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: План на 60 минут -->
+<section class="slide"
+  data-notes="Сегодня: параметр/аргумент, несколько параметров, параметры по умолчанию и докстринги. Дай обзор всех блоков.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <div class="timeline" style="margin-top:10px">
+      <div class="timeline__row"><div class="timeline__time">0–10 мин</div><div class="timeline__body"><h3>Разбор ДЗ</h3><p>print_logo(), ask_name(), рефакторинг</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">10–25 мин</div><div class="timeline__body"><h3>Параметры и аргументы</h3><p>Что это, как передавать, scope, keyword args</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">25–40 мин</div><div class="timeline__body"><h3>Практика — 4 задания</h3><p>greet, draw_rectangle, прогрессия фигур, show_stats</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">40–52 мин</div><div class="timeline__body"><h3>Мини-проект «Карточка героя»</h3><p>show_hero() + функции-помощники</p></div></div>
+      <div class="timeline__row"><div class="timeline__time">52–60 мин</div><div class="timeline__body"><h3>Default, docstring, type hints</h3><p>Профессиональные привычки разработчика</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: Параметр vs Аргумент -->
+<section class="slide"
+  data-notes="Ключевое различие: параметр — имя в определении. Аргумент — значение при вызове. Метафора: параметр = почтовый ящик, аргумент = письмо.">
+  <div class="slide__inner">
+    <h2><span class="accent">Параметр</span> vs <span class="accent">Аргумент</span></h2>
+    <p class="lead">Похожие слова — разный смысл</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(124,58,237,0.35)">
+        <h3 style="color:#c4b5fd">Параметр — имя в определении</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def greet(name):
+    #       ^^^^
+    # name — это параметр
+    # пустой ящик с именем "name"
+    print(f"Привет, {name}!")</code></pre>
+        <p style="margin-top:8px">Параметр живёт <strong style="color:var(--text)">внутри def</strong> — пустой ящик с именем.</p>
+      </div>
+      <div class="card" style="border-color:rgba(6,182,212,0.35)">
+        <h3 style="color:var(--cyan)">Аргумент — значение при вызове</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">greet("Аня")
+#      ^^^^^
+# "Аня" — это аргумент
+# письмо, которое кладём в ящик</code></pre>
+        <p style="margin-top:8px">Аргумент — конкретное <strong style="color:var(--text)">значение</strong> при вызове.</p>
+      </div>
+    </div>
+    <div class="quote-block">Python кладёт аргумент <span style="color:var(--cyan)">"Аня"</span> в параметр <span style="color:#FBBF24">name</span> — и внутри функции <code>name == "Аня"</code></div>
+  </div>
+</section>
+
+<!-- SLIDE 7: Как Python передаёт аргументы — пошагово -->
+<section class="slide"
+  data-notes="Пошаговая трассировка вызова функции. Показывай медленно, слайд за слайдом в уме: 1) встречаем greet('Аня') 2) входим в def greet(name) 3) name = 'Аня' 4) выполняем тело 5) выходим. Нарисуй стрелку на доске.">
+  <div class="slide__inner">
+    <h2>Как Python <span class="accent">передаёт</span> аргументы</h2>
+    <p class="lead">Пошагово: что происходит при вызове <code>greet("Аня")</code></p>
+    <ol class="steps">
+      <li><div><strong>Встречает вызов</strong> <code>greet("Аня")</code> → находит функцию <code>greet</code> в памяти</div></li>
+      <li><div><strong>Входит</strong> в тело функции → создаёт локальную переменную <code>name</code></div></li>
+      <li><div><strong>Присваивает</strong>: <code>name = "Аня"</code> — аргумент попадает в параметр</div></li>
+      <li><div><strong>Выполняет</strong> тело: <code>print(f"Привет, {name}!")</code> → выводит «Привет, Аня!»</div></li>
+      <li><div><strong>Выходит</strong> из функции → переменная <code>name</code> исчезает (она локальная)</div></li>
+      <li><div><strong>Возвращается</strong> к следующей строке после вызова → продолжает программу</div></li>
+    </ol>
+    <div class="quote-block">Каждый вызов — новая «жизнь» параметра: создаётся → живёт → умирает</div>
+  </div>
+</section>
+
+<!-- SLIDE 8: Область видимости параметра (scope) -->
+<section class="slide"
+  data-notes="Scope — важная концепция. Параметр name виден только внутри функции. Снаружи — NameError. Попроси ученика запустить пример и получить ошибку — это важный опыт.">
+  <div class="slide__inner">
+    <h2>Область видимости <span class="accent">(scope)</span></h2>
+    <p class="lead">Параметр живёт <em>только внутри</em> своей функции</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def greet(name):
+    # name видна ТОЛЬКО здесь
+    print(f"Привет, {name}!")
+
+greet("Аня")
+
+# Попробуем обратиться к name снаружи:
+# print(name)  # раскомментируй -> NameError!
+
+# У каждого вызова своя name:
+def double_greet(a, b):
+    print(f"Привет, {a}!")
+    print(f"Привет, {b}!")
+    # a и b не пересекаются
+
+double_greet("Маша", "Саша")
+print("После функции: a и b больше не существуют")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:6px"><p><strong style="color:var(--amber)">Ключевой принцип:</strong> функция — изолированный «пузырь». Что внутри — снаружи не видно. Это защищает код от случайных конфликтов имён.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 9: Параметр в действии -->
+<section class="slide"
+  data-notes="Первый живой пример. Пусть ребёнок попробует разные имена. Спроси: что будет если вызвать greet() без аргумента — пусть попробует и увидит TypeError.">
+  <div class="slide__inner">
+    <h2>Параметр в <span class="accent">действии</span></h2>
+    <p class="lead">Одна функция — три разных приветствия</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def greet(name):
+    print(f"Привет, {name}! Добро пожаловать в EdisonGames!")
+
+# Вызываем с разными аргументами
+greet("Аня")
+greet("Боря")
+greet("Витя")
+
+# Попробуй своё имя!
+greet("Стажёр")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ul class="clean" style="margin-top:8px">
+      <li>Замени <code>"Стажёр"</code> на своё имя и запусти снова</li>
+      <li>Что будет если написать <code>greet()</code> без аргумента? Попробуй!</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 10: Несколько параметров -->
+<section class="slide"
+  data-notes="Несколько параметров. Порядок важен! greet('Аня', 10) ≠ greet(10, 'Аня'). Аналогия: ящики стоят в ряд слева направо, письма кладут в том же порядке.">
+  <div class="slide__inner">
+    <h2>Несколько <span class="accent">параметров</span></h2>
+    <p class="lead">Порядок важен — как ящики в почтовом отделении</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Функция с двумя параметрами
+def describe_hero(name, level):
+    print(f"Герой: {name} | Уровень: {level}")
+    print(f"Мощь: {'*' * level}")
+
+describe_hero("Зорро", 5)
+describe_hero("Тёмный рыцарь", 10)
+describe_hero("Новичок", 1)
+
+# Функция с тремя параметрами
+def show_stats(name, hp, attack):
+    print(f"\n=== {name} ===")
+    print(f"  HP: {hp}")
+    print(f"  Атака: {attack}")
+
+show_stats("Дракон", 1000, 150)
+show_stats("Гоблин", 50, 12)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: Именованные аргументы (keyword arguments) -->
+<section class="slide"
+  data-notes="Именованные аргументы — ключевое для читаемости. greet(level=5, name='Аня') работает! Порядок не важен, когда пишешь имя параметра явно. Показывай контраст с позиционными.">
+  <div class="slide__inner">
+    <h2>Именованные <span class="accent">аргументы</span></h2>
+    <p class="lead">Можно передавать аргументы по имени — порядок не важен</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def describe_hero(name, level, faction):
+    print(f"{name} | Ур.{level} | {faction}")
+
+# Позиционные — порядок строгий:
+describe_hero("Аня", 7, "EdisonGames")
+
+# Именованные — порядок свободный:
+describe_hero(faction="EdisonGames", name="Аня", level=7)
+
+# Смешанные — позиционные ПЕРЕД именованными:
+describe_hero("Боря", faction="Независимые", level=3)
+
+# Ошибка: именованный перед позиционным:
+# describe_hero(name="Витя", 5, "Синие")  # SyntaxError!</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">Именованные аргументы делают вызов функции <span style="color:#86efac">самодокументированным</span> — читаешь и сразу понимаешь, что куда идёт</div>
+  </div>
+</section>
+
+<!-- SLIDE 12: Позиционные vs именованные — сравнение -->
+<section class="slide"
+  data-notes="Когда использовать какой стиль? Правило большого пальца: до 2–3 параметров — позиционные ок. Больше или если параметры похожего типа — именованные. Приведи пример из реальной жизни: create_user(name='Аня', role='admin', active=True).">
+  <div class="slide__inner">
+    <h2>Когда использовать <span class="accent">какой стиль</span>?</h2>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3 style="color:#c4b5fd">Позиционные — коротко</h3>
+        <pre style="margin-top:10px;font-size:12px!important"><code class="language-python"># Хорошо: всего 2 параметра,
+# смысл очевиден
+draw_rectangle(10, 5)
+greet("Аня")
+print("Привет")</code></pre>
+        <p style="margin-top:8px">Идеально когда параметров мало и порядок интуитивен.</p>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">Именованные — явно</h3>
+        <pre style="margin-top:10px;font-size:12px!important"><code class="language-python"># Хорошо: много параметров,
+# сразу понятно что есть что
+create_hero(
+    name="Аня",
+    hp=100,
+    attack=45,
+    is_boss=False
+)</code></pre>
+        <p style="margin-top:8px">Идеально когда параметров 3+, или они одного типа (несколько int/bool).</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <p><strong style="color:var(--amber)">Правило Python:</strong> в вызове функции именованные аргументы всегда идут <em>после</em> позиционных. <code>f(1, 2, key=val)</code> ✓ / <code>f(key=val, 1, 2)</code> ✗</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: Практика — ASCII-прямоугольник -->
+<section class="slide"
+  data-notes="Практика с тремя параметрами. Хорошее упражнение на понимание вложенных циклов внутри функции.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">ASCII-прямоугольник</span></h2>
+    <p class="lead">Функция с тремя параметрами — ширина, высота, символ</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def draw_rectangle(width, height, symbol):
+    for row in range(height):
+        print(symbol * width)
+
+print("=== Прямоугольник 1 ===")
+draw_rectangle(10, 3, "#")
+
+print("\n=== Прямоугольник 2 ===")
+draw_rectangle(15, 2, "*")
+
+print("\n=== Прямоугольник 3 ===")
+draw_rectangle(8, 5, "O")
+
+# Попробуй своё!
+# draw_rectangle(?, ?, "?")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:6px"><p><strong style="color:var(--amber)">Задание-бонус:</strong> сделай функцию <code>draw_frame(width, height)</code> — только рамка: первая и последняя строки из <code>#</code>, средние — <code>#</code> по краям и пробелы внутри.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 14: Прогрессия задач — line → triangle → diamond -->
+<section class="slide"
+  data-notes="Прогрессия: от простого к сложному. draw_line — 1 параметр. draw_triangle — 2. draw_diamond — 2. Пусть ученик сам напишет draw_triangle и draw_diamond, опираясь на draw_line. Это тренирует декомпозицию.">
+  <div class="slide__inner">
+    <h2>Прогрессия: <span class="accent">line → triangle → diamond</span></h2>
+    <p class="lead">Каждая следующая функция использует предыдущую</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def draw_line(width, sym="#"):
+    print(sym * width)
+
+def draw_triangle(height, sym="*"):
+    for i in range(1, height + 1):
+        print(sym * i)
+
+def draw_diamond(size, sym="*"):
+    # Верхняя половина
+    for i in range(1, size + 1):
+        print(" " * (size - i) + sym * (2 * i - 1))
+    # Нижняя половина
+    for i in range(size - 1, 0, -1):
+        print(" " * (size - i) + sym * (2 * i - 1))
+
+draw_line(15)
+draw_triangle(5)
+print()
+draw_diamond(4)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: Проверьте себя -->
+<section class="slide"
+  data-notes="Пауза для самопроверки. Дай 3 минуты — пусть каждый ответит письменно или устно. Не оценивай, просто проверь понимание перед следующим блоком.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <p class="lead">5 вопросов — ответь не подглядывая</p>
+    <ol class="steps">
+      <li><div>Чем <strong>параметр</strong> отличается от <strong>аргумента</strong>? (Подсказка: где каждый из них появляется — в <code>def</code> или при вызове?)</div></li>
+      <li><div>Что произойдёт если передать <strong>слишком много аргументов</strong>? Напиши пример и предскажи ошибку.</div></li>
+      <li><div>Можно ли обратиться к параметру функции <strong>снаружи</strong> функции? Почему?</div></li>
+      <li><div>Как называется аргумент вида <code>greet(name="Аня")</code>? Когда он удобнее позиционного?</div></li>
+      <li><div>Напиши объявление функции <code>print_player</code> с тремя параметрами: имя, счёт и уровень.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 16: Green cover — вопрос -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Разминочный вопрос перед параметрами по умолчанию. 1–2 минуты, пусть ученики выскажутся.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">Что если параметр<br>не обязательный?</h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 17: Параметры по умолчанию -->
+<section class="slide"
+  data-notes="Параметры по умолчанию — очень удобная штука. Если аргумент не передан — используется значение по умолчанию. Важно: параметры с default всегда ПОСЛЕ обязательных.">
+  <div class="slide__inner">
+    <h2>Параметры <span class="accent">по умолчанию</span></h2>
+    <p class="lead">Если забыл передать — Python использует готовое значение</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># level=1 — значение по умолчанию
+def greet_hero(name, level=1, faction="Независимый"):
+    print(f"Герой: {name}")
+    print(f"Уровень: {level} | Фракция: {faction}")
+    print("---")
+
+# Все параметры
+greet_hero("Зорро", 10, "EdisonGames")
+
+# Без faction — будет "Независимый"
+greet_hero("Аня", 5)
+
+# Только имя — level=1, faction="Независимый"
+greet_hero("Новичок")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:6px"><p><strong style="color:var(--amber)">Правило:</strong> параметры с default (<code>level=1</code>) всегда ПОСЛЕ обязательных (<code>name</code>). Иначе — <span style="color:#fca5a5">SyntaxError</span>.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 18: Default в стандартных функциях Python -->
+<section class="slide"
+  data-notes="Покажи, что default-аргументы уже повсюду в стандартном Python. print(end='\\n'), range(start=0, stop, step=1), sorted(reverse=False). Это откроет глаза: ученик уже пользовался default args, просто не знал.">
+  <div class="slide__inner">
+    <h2>Default уже везде в <span class="accent">Python</span></h2>
+    <p class="lead">Стандартные функции тоже используют параметры по умолчанию</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># print(value, end='\n', sep=' ')
+print("Один")           # end='\n' — новая строка
+print("Два", end=" | ") # переопределяем end
+print("Три", end="\n")
+
+print("---")
+
+# range(start=0, stop, step=1)
+print(list(range(5)))       # start=0, step=1
+print(list(range(2, 8)))    # start=2
+print(list(range(0, 10, 2))) # step=2
+
+print("---")
+
+# sorted(iterable, reverse=False)
+nums = [5, 2, 8, 1, 9]
+print(sorted(nums))           # по возрастанию
+print(sorted(nums, reverse=True))  # по убыванию</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">Ты уже пользовался default args — просто не знал об этом</div>
+  </div>
+</section>
+
+<!-- SLIDE 19: Осторожно — изменяемый default (list gotcha) -->
+<section class="slide"
+  data-notes="Классическая ловушка Python: mutable default argument. def f(lst=[]) — список создаётся ОДИН РАЗ при определении функции, а не при каждом вызове. Это реальный баг, который встречается даже у опытных разработчиков. Покажи через compiler.">
+  <div class="slide__inner">
+    <h2><span style="color:#fca5a5">Осторожно!</span> Изменяемый default</h2>
+    <p class="lead">Использовать список/словарь как default — опасная ловушка</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># ПЛОХО: список создаётся один раз!
+def add_score_bad(score, history=[]):
+    history.append(score)
+    return history
+
+print(add_score_bad(10))  # [10]
+print(add_score_bad(20))  # [10, 20] ???
+print(add_score_bad(30))  # [10, 20, 30] ???!
+
+print("---")
+
+# ХОРОШО: используй None как default
+def add_score_good(score, history=None):
+    if history is None:
+        history = []
+    history.append(score)
+    return history
+
+print(add_score_good(10))  # [10]
+print(add_score_good(20))  # [20]
+print(add_score_good(30))  # [30]</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card"><p><strong style="color:var(--amber)">Правило:</strong> если нужен изменяемый default (list, dict, set) — используй <code>None</code> и создавай внутри функции.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 20: Мини-проект «Карточки героев» -->
+<section class="slide"
+  data-notes="Мини-проект: карточка героя. Функция show_hero() с 5 параметрами. Пусть ребёнок добавит своего героя — придумает имя, hp, attack.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span class="accent">«Карточки героев»</span></h2>
+    <p class="lead">show_hero() + несколько вызовов = галерея персонажей EdisonGames</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def show_hero(name, hp, attack, defense=10, rank="Новобранец"):
+    bar = "#" * (hp // 20) + "." * (5 - hp // 20)
+    print("+-------------------------+")
+    print(f"| {name:<23} |")
+    print(f"| Ранг: {rank:<17} |")
+    print(f"| HP [{bar}] {hp:<4}       |")
+    print(f"| Атака:  {attack:<15} |")
+    print(f"| Защита: {defense:<15} |")
+    print("+-------------------------+")
+
+show_hero("Зорро", 100, 45, 20, "Ветеран")
+show_hero("Тёмный маг", 60, 90, 5, "Мастер")
+show_hero("Новичок", 80, 15)  # defense=10, rank="Новобранец"</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 21: Функции + цикл — show_all_heroes() -->
+<section class="slide"
+  data-notes="Мощная комбинация: цикл по списку словарей + функция. Данные отделены от логики — это важный принцип. Спроси: что надо изменить, чтобы добавить нового героя? Только данные в списке, функцию трогать не нужно.">
+  <div class="slide__inner">
+    <h2>Функции + <span class="accent">цикл</span></h2>
+    <p class="lead">Данные отдельно — функция отдельно</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def print_hero_card(hero):
+    name = hero["name"]
+    hp   = hero["hp"]
+    atk  = hero["attack"]
+    print(f"[ {name} ] HP:{hp} ATK:{atk}")
+
+# Данные — отдельно от логики
+heroes = [
+    {"name": "Зорро",      "hp": 100, "attack": 45},
+    {"name": "Тёмный маг", "hp": 60,  "attack": 90},
+    {"name": "Гоблин",     "hp": 30,  "attack": 12},
+    {"name": "Новичок",    "hp": 80,  "attack": 15},
+]
+
+print("=== Галерея героев EdisonGames ===")
+for hero in heroes:
+    print_hero_card(hero)
+
+# Добавь своего героя в список heroes!</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">Добавить героя = одна строка в список. Функцию трогать не нужно</div>
+  </div>
+</section>
+
+<!-- SLIDE 22: Функция вызывает функцию -->
+<section class="slide"
+  data-notes="Декомпозиция: большая задача разбивается на маленькие функции, каждая из которых вызывает другую. Это называется function composition. Аналогия: цепочка рабочих на конвейере.">
+  <div class="slide__inner">
+    <h2>Функция вызывает <span class="accent">функцию</span></h2>
+    <p class="lead">Декомпозиция — разбить большую задачу на маленькие функции</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def print_separator(width=25):
+    print("-" * width)
+
+def print_name(name, rank="Стажёр"):
+    print(f"  {rank}: {name}")
+
+def print_stats(hp, attack):
+    bar = "#" * (hp // 10)
+    print(f"  HP: {bar} ({hp})")
+    print(f"  ATK: {attack}")
+
+def show_full_card(name, hp, attack, rank="Стажёр"):
+    print_separator()
+    print_name(name, rank)
+    print_stats(hp, attack)
+    print_separator()
+
+# Используем скомпозированную функцию
+show_full_card("Аня", 100, 45, "Ветеран")
+show_full_card("Боря", 60, 30)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 23: Докстринги -->
+<section class="slide"
+  data-notes="Документирование функций через docstrings. Тройные кавычки сразу после def. Профессиональная привычка — команда EdisonGames так делает.">
+  <div class="slide__inner">
+    <h2>Докстринги: <span class="accent">документация</span> функции</h2>
+    <p class="lead">Тройные кавычки сразу после <code>def</code> — объясняют что делает функция</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def calc_score(hits, misses, bonus=0):
+    """
+    Подсчитывает очки игрока.
+
+    hits   -- количество попаданий (10 очков каждое)
+    misses -- количество промахов (-3 очка каждый)
+    bonus  -- бонусные очки (по умолчанию 0)
+    """
+    score = hits * 10 - misses * 3 + bonus
+    return score
+
+# Читаем документацию
+print(calc_score.__doc__)
+
+# Используем функцию
+result = calc_score(8, 3, 50)
+print(f"Итоговый счёт: {result}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card"><p><strong style="color:var(--amber)">Стандарт EdisonGames:</strong> каждая публичная функция должна иметь докстринг. Это помогает команде понять код без лишних объяснений.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 24: Аннотации типов (type hints) -->
+<section class="slide"
+  data-notes="Type hints — не обязательны для Python, но делают код читаемее. Показывают что ожидает функция и что возвращает. В Python 3.5+. IDE и линтеры используют их для проверки. Это профессиональный стандарт.">
+  <div class="slide__inner">
+    <h2>Аннотации типов <span class="accent">(type hints)</span></h2>
+    <p class="lead">Необязательно, но профессионально — IDE помогает, код читается как документация</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Без аннотаций — что за name? str? int?
+def greet(name, level, active):
+    pass
+
+# С аннотациями — всё ясно сразу
+def greet_typed(name: str, level: int = 1, active: bool = True) -> None:
+    """Приветствует героя если он активен."""
+    if active:
+        print(f"[Ур.{level}] Привет, {name}!")
+    else:
+        print(f"{name} сейчас недоступен")
+
+def calc_damage(base: int, multiplier: float = 1.0) -> int:
+    """Вычисляет урон с множителем."""
+    return int(base * multiplier)
+
+greet_typed("Аня", 7)
+greet_typed("Боря", 3, active=False)
+print(f"Урон: {calc_damage(50, 1.5)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">Аннотации не изменяют поведение Python — они для людей и инструментов, не для интерпретатора</div>
+  </div>
+</section>
+
+<!-- SLIDE 25: Типичные ошибки с параметрами -->
+<section class="slide"
+  data-notes="Типичные ошибки с параметрами. TypeError — самая частая. Разберите каждую ошибку вслух, попросите ребёнка объяснить почему она возникает.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> с параметрами</h2>
+    <p class="lead">Встретишь — не пугайся, читай сообщение об ошибке</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(239,68,68,0.25)">
+        <h3 style="color:#fca5a5">Не передал аргумент</h3>
+        <pre style="margin-top:8px;font-size:12px!important"><code class="language-python">def greet(name):
+    print(f"Привет, {name}!")
+
+greet()  # TypeError!
+# missing 1 required argument</code></pre>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.25)">
+        <h3 style="color:#fca5a5">Неправильный порядок</h3>
+        <pre style="margin-top:8px;font-size:12px!important"><code class="language-python">def info(name, age):
+    print(f"{name}, {age} лет")
+
+info(10, "Аня")  # 10, Аня лет?
+# Нужно: info("Аня", 10)</code></pre>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.25)">
+        <h3 style="color:#fca5a5">default перед обязательным</h3>
+        <pre style="margin-top:8px;font-size:12px!important"><code class="language-python">def greet(level=1, name):  # SyntaxError!
+    pass
+# Нужно: def greet(name, level=1):</code></pre>
+      </div>
+      <div class="card" style="border-color:rgba(239,68,68,0.25)">
+        <h3 style="color:#fca5a5">Слишком много аргументов</h3>
+        <pre style="margin-top:8px;font-size:12px!important"><code class="language-python">def add(a, b):
+    return a + b
+
+add(1, 2, 3)  # TypeError!
+# takes 2 positional arguments</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 26: Как читать traceback -->
+<section class="slide"
+  data-notes="Traceback — лучший друг разработчика. Учи читать снизу вверх: последняя строка = тип ошибки + описание. Предпоследние строки = где именно в коде. Это навык, который экономит часы.">
+  <div class="slide__inner">
+    <h2>Как читать <span class="accent">traceback</span></h2>
+    <p class="lead">Читай снизу вверх — там самое важное</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3>Пример ошибки</h3>
+        <div class="terminal" style="margin-top:10px">
+          <div class="terminal__body" style="font-size:11px;line-height:1.7">
+            Traceback (most recent call last):<br>
+            &nbsp;&nbsp;File "game.py", <span style="color:#F59E0B">line 10</span>, in &lt;module&gt;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">greet()</span><br>
+            &nbsp;&nbsp;File "game.py", <span style="color:#F59E0B">line 2</span>, in greet<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F59E0B">print(f"Привет, {name}!")</span><br>
+            <span style="color:#fca5a5">TypeError: greet() missing 1 required positional argument: 'name'</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Расшифровка</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li><span style="color:#fca5a5">Последняя строка</span> — тип ошибки и её описание. Читай первой.</li>
+          <li><span style="color:#F59E0B">line 10</span> — здесь произошёл вызов, приведший к ошибке</li>
+          <li><span style="color:#F59E0B">line 2</span> — здесь ошибка внутри функции</li>
+          <li><code>missing 1 required positional argument</code> → забыл передать <code>name</code></li>
+        </ul>
+        <div class="quote-block" style="margin-top:12px;font-size:14px">Исправление: <code>greet("Аня")</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 27: Словарь урока -->
+<section class="slide"
+  data-notes="Словарик урока. Попроси ребёнка объяснить каждый термин своими словами прежде чем показывать определение.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 18</span></h2>
+    <div class="kv" style="margin-top:10px">
+      <div class="kv__item"><div class="kv__key">параметр</div><div class="kv__val">Имя-заполнитель в определении функции: <code>def greet(name)</code> — <code>name</code> это параметр. Как пустой ящик.</div></div>
+      <div class="kv__item"><div class="kv__key">аргумент</div><div class="kv__val">Конкретное значение при вызове: <code>greet("Аня")</code> — <code>"Аня"</code> это аргумент. Письмо в ящик.</div></div>
+      <div class="kv__item"><div class="kv__key">default</div><div class="kv__val">Значение по умолчанию: <code>def f(x=10)</code> — если <code>x</code> не передан, будет <span style="color:#F59E0B;font-weight:700;">10</span>.</div></div>
+      <div class="kv__item"><div class="kv__key">keyword arg</div><div class="kv__val">Именованный аргумент: <code>greet(name="Аня")</code> — передаём по имени, порядок не важен.</div></div>
+      <div class="kv__item"><div class="kv__key">scope</div><div class="kv__val">Область видимости: параметр виден только внутри своей функции, снаружи — <span style="color:#fca5a5">NameError</span>.</div></div>
+      <div class="kv__item"><div class="kv__key">docstring</div><div class="kv__val">Документация функции в тройных кавычках <code>"""..."""</code> сразу после <code>def</code>. Читается через <code>.__doc__</code>.</div></div>
+      <div class="kv__item"><div class="kv__key">type hint</div><div class="kv__val">Аннотация типа: <code>def f(name: str) -> None</code>. Не влияет на выполнение, помогает IDE и людям.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 28: Самопроверка — терминология -->
+<section class="slide"
+  data-notes="Финальная самопроверка перед домашним заданием. Пусть ученики отвечают устно или письменно. Цель — убедиться, что ключевые понятия усвоены.">
+  <div class="slide__inner">
+    <h2>Самопроверка: <span class="accent">термины</span></h2>
+    <p class="lead">Назови термин по описанию — без подглядывания</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3 style="color:#c4b5fd">Назови термин</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>«Значение, которое передаётся в функцию при вызове» → <span style="color:var(--amber)">?</span></li>
+          <li>«Имя-заполнитель в объявлении функции» → <span style="color:var(--amber)">?</span></li>
+          <li>«Значение, которое используется если аргумент не передан» → <span style="color:var(--amber)">?</span></li>
+          <li>«Передача аргумента по имени параметра» → <span style="color:var(--amber)">?</span></li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">Ответы</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li><span style="color:#86efac">аргумент</span></li>
+          <li><span style="color:#86efac">параметр</span></li>
+          <li><span style="color:#86efac">default (значение по умолчанию)</span></li>
+          <li><span style="color:#86efac">keyword argument (именованный аргумент)</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:6px"><p><strong style="color:var(--amber)">Бонус-вопрос:</strong> почему нельзя писать <code>def f(x=1, y)</code>? Что произойдёт и как исправить?</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 29: Домашнее задание -->
+<section class="slide"
+  data-notes="ДЗ — три задачи. say_hi с двумя параметрами, count_letter, show_card. Напомни: завтра разберём на уроке.">
+  <div class="slide__inner">
+    <h2>Домашнее задание</h2>
+    <p class="lead">Три задачи · 20–30 минут</p>
+    <ol class="steps">
+      <li><div><strong>say_hi(name, times)</strong> — печатает <code>«Привет, {name}!»</code> ровно <code>times</code> раз через цикл <code>for</code>.<pre style="margin-top:6px;font-size:13px!important"><code class="language-python">say_hi("Аня", 3)  # Привет, Аня! x3</code></pre></div></li>
+      <li><div><strong>count_letter(text, letter)</strong> — считает сколько раз <code>letter</code> встречается в <code>text</code> и выводит число. Используй цикл по символам строки.</div></li>
+      <li><div><strong>show_card(hero)</strong> — принимает словарь вида <code>{"name": "Зорро", "hp": 100, "attack": 45}</code> и красиво выводит карточку персонажа.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 30: Расширенное ДЗ — звёздочки -->
+<section class="slide"
+  data-notes="Дополнительные задания для тех, кто хочет больше. Не обязательные, но очень полезные. Задания 4 и 5 — продвинутый уровень.">
+  <div class="slide__inner">
+    <h2>Расширенное ДЗ <span style="color:#F59E0B">★★</span></h2>
+    <p class="lead">Для тех, кто хочет больше — необязательно, но полезно</p>
+    <ol class="steps">
+      <li><div><strong>★ draw_table(rows, cols, cell_width=8)</strong> — рисует ASCII-таблицу заданного размера с параметром ширины ячейки по умолчанию.</div></li>
+      <li><div><strong>★ greet_all(names, greeting="Привет")</strong> — принимает список имён и печатает приветствие для каждого. Добавь параметр по умолчанию <code>greeting</code>.</div></li>
+      <li><div><strong>★★ battle(hero1, hero2, rounds=3)</strong> — принимает два словаря-героя и симулирует бой на <code>rounds</code> раундов. Каждый раунд герой с большей атакой наносит урон hp противника. Выводи состояние после каждого раунда.</div></li>
+    </ol>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Начни с задания 1 или 2
+def greet_all(names, greeting="Привет"):
+    for name in names:
+        print(f"{greeting}, {name}!")
+
+greet_all(["Аня", "Боря", "Витя"])
+print()
+greet_all(["Маша", "Саша"], greeting="Добро пожаловать")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 31: Превью — следующий урок: return -->
+<section class="slide"
+  data-notes="Анонс урока 19: return. Сейчас функции только что-то делают (print). Скоро они смогут что-то ВОЗВРАЩАТЬ — и это откроет мир математики, вычислений, игровой логики. Заинтригуй!">
+  <div class="slide__inner">
+    <h2>Следующий урок: <span class="accent">return</span></h2>
+    <p class="lead">Функция перестаёт просто «делать» — она начинает «отдавать»</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)">
+        <h3 style="color:#fca5a5">Сейчас (урок 18)</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def greet(name):
+    print(f"Привет, {name}!")
+    # функция что-то ДЕЛАЕТ
+
+greet("Аня")
+# Результат нигде не сохранить!</code></pre>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">Урок 19: return</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def calc_damage(base, mult=1.0):
+    return int(base * mult)  # ВОЗВРАЩАЕТ
+
+dmg = calc_damage(50, 1.5)
+print(f"Урон: {dmg}")  # 75
+# Результат можно сохранить!</code></pre>
+      </div>
+    </div>
+    <div class="quote-block">Функции с <code>return</code> — строительные блоки любой игровой механики: подсчёт очков, расчёт урона, проверка условий победы</div>
+  </div>
+</section>
+
+<!-- SLIDE 32: Финал -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Закрытие урока. Поздравь с получением бейджа. Анонс: урок 19 — return. Теперь ты умеешь делать функции гибкими — это первый шаг к настоящей игровой механике.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px"><span class="badge-green">Бейдж «Мастер параметров»</span></div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">Параметры покорены!<br><span style="font-size:0.7em;font-weight:600;">Урок 19 → return</span></h1>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N': e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

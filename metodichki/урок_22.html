@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 22 — Как работать с файлами. Часть 1 | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 22</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с файлами. Часть 1</h2>
+  <div class="meta"><span>Отдел:</span> <span>6.</span> <span>Интеграции</span> <span>Неделя:</span> <span>22</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 6. Интеграции <strong>Неделя:</strong> 22 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Впервые выйти за пределы оперативной памяти программы. Научить открывать файл, читать, писать, дописывать, использовать <code>with</code> для безопасного закрытия.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: зачем нужны файлы и чем отличаются от переменных; что такое режимы <code>r</code>, <code>w</code>, <code>a</code>; что <code>w</code> удаляет, <code>a</code> дописывает; как использовать <code>open()</code>, <code>read()</code>, <code>write()</code>, <code>close()</code>; роль <code>with</code>; что файл можно читать построчно или целиком. Ученик может: открывать и закрывать файлы; читать и выводить текст; записывать; дописывать; использовать <code>with</code>; создавать программы с сохранением данных.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, YandexGPT (для генерации начального текста).</p>
+<h2>⚙️ Техтребования</h2>
+<p>Стандарт + отдельная рабочая папка <code>lesson_22</code> на рабочем столе. Объяснить, где физически создаются файлы.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие + разбор ДЗ (секретное слово, time.sleep, math).</li>
+<li><strong>5–15.</strong> Теория. «Когда ты закрываешь программу, ВСЕ данные в переменных исчезают. Файлы — это способ сохранить что-то навсегда. Это как тетрадка — закрыл и положил в портфель, завтра откроешь». Демо:</li>
+</ul>
+<pre><code class="language-python">  # Чтение
+  with open("notes.txt", "r", encoding="utf-8") as f:
+      content = f.read()
+      print(content)
+
+  # Запись (перезаписывает!)
+  with open("notes.txt", "w", encoding="utf-8") as f:
+      f.write("Первая строка\n")
+
+  # Дописывание
+  with open("notes.txt", "a", encoding="utf-8") as f:
+      f.write("Вторая строка\n")</code></pre>
+<p>  Важно: <code>encoding="utf-8"</code> — чтобы кириллица не билась. Объясняю разницу <code>r</code> / <code>w</code> / <code>a</code>.</p>
+<ul>
+<li><strong>15–45.</strong> Практика.</li>
+</ul>
+<p>  1. Создать <code>notes.txt</code> через код, записать 3 заметки через <code>a</code>.</p>
+<p>  2. Прочитать и вывести на экран через <code>read()</code>.</p>
+<p>  3. Прочитать построчно через <code>for line in f: print(line.strip())</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Дневник 2.0». Программа в цикле спрашивает: 1) добавить запись (<code>a</code>), 2) показать все записи (<code>r</code>), 3) очистить (<code>w</code> с пустой строкой), 4) выйти. Всё сохраняется в <code>diary.txt</code>.</li>
+<li><strong>55–60.</strong> Итог + ДЗ. Предупреждение: «Если откроешь с <code>w</code>, старое удалится. Это классическая детская ошибка».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Файл — это тетрадка. Переменная — это запоминалка в голове».</li>
+<li>«<code>with open(...) as f:</code> — золотой стандарт. Открывается, делается, автоматически закрывается».</li>
+<li>«<code>r</code> — read — читать. <code>w</code> — write — писать с нуля. <code>a</code> — append — дописывать».</li>
+<li>«<code>w</code> — это бульдозер. Старое содержимое сносится».</li>
+<li>«<code>encoding="utf-8"</code> — ставь ВСЕГДА, иначе кириллица сломается».</li>
+<li>«<code>f.write</code> не добавляет <code>\n</code> сам. Пиши его руками».</li>
+<li>«<code>f.read()</code> читает всё. <code>f.readline()</code> — одну строку. Цикл <code>for line in f</code> — по строкам».</li>
+<li>«<code>line.strip()</code> убирает <code>\n</code> в конце. Иначе выводится лишний пробел».</li>
+<li>«Открыл — должен закрыть. <code>with</code> делает это за тебя».</li>
+<li>«Файл физически лежит в папке рядом с твоим <code>.py</code>. Проверь в проводнике».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Дневник 2.0» (описан выше) — закрепляет <code>r/w/a</code> в одной программе, возвращает к дневнику из урока 8, но теперь с ПОСТОЯННЫМ хранением.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Создать файл <code>todo.txt</code>, через программу добавить 5 задач (через <code>a</code>).</li>
+<li>Прочитать файл, посчитать, сколько в нём строк.</li>
+<li>Прочитать <code>todo.txt</code>, вывести задачи с номерами: «1. Купить хлеб» и т.д.</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок открывает файл в трёх режимах, уверенно использует <code>with</code>, понимает разницу <code>w</code> и <code>a</code>, делает <code>encoding="utf-8"</code>.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Открыли <code>w</code>, потеряли данные.</strong> Важно проговорить: <code>w</code> удаляет! Учимся к <code>a</code>.</li>
+<li><strong>Забыли <code>encoding</code> → кракозябры.</strong> Всегда <code>utf-8</code>, это правило.</li>
+<li><strong>Не понимают, где лежит файл.</strong> Показываю в проводнике рядом с <code>.py</code>. Обсуждаем абсолютный vs относительный путь.</li>
+<li><strong>Пишут без <code>\n</code> — всё в одну строку.</strong> Учим добавлять <code>\n</code> в конце.</li>
+<li><strong><code>FileNotFoundError</code> при <code>r</code>.</strong> Учим: сначала проверь, что файл существует; либо <code>try/except</code> (на уроке 23).</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Программа-парсер: читает <code>notes.txt</code>, считает количество слов (через <code>.split()</code>), выводит топ-5 самых длинных слов.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT — генератор стартовых заметок для дневника: «Напиши 5 коротких заметок школьника о сегодняшнем дне, в формате списка строк на Python». Ребёнок копирует, сохраняет через <code>w</code>, затем играет в «Дневник». Это связка «ИИ = генератор данных, код = пользователь».</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 16 — Проект: Лабиринт | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Link button */
+  a.btn-link{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(6,182,212,0.1);
+    border:1px solid rgba(6,182,212,0.3);
+    color:var(--cyan);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  a.btn-link:hover{background:rgba(6,182,212,0.2)}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">43</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (violet)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Слайд обложки. Поприветствуй учеников. Сегодня — финальный урок Отдела автоматизации: они создадут настоящую консольную игру «Лабиринт» с управлением WASD, отрисовкой поля и условием победы. Также научатся генерировать ASCII-графику через нейросети.">
+  <div class="game-icons">
+    <!-- Gamepad SVG -->
+    <svg width="120" height="120" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="10" y="22" width="60" height="36" rx="18" fill="white"/>
+      <rect x="18" y="36" width="6" height="8" rx="1" fill="#7C3AED"/>
+      <rect x="15" y="39" width="12" height="2" rx="1" fill="#7C3AED"/>
+      <circle cx="54" cy="34" r="3" fill="#7C3AED"/>
+      <circle cx="62" cy="38" r="3" fill="#7C3AED"/>
+      <circle cx="54" cy="42" r="3" fill="#7C3AED"/>
+      <circle cx="46" cy="38" r="3" fill="#7C3AED"/>
+      <rect x="32" y="29" width="4" height="4" rx="1" fill="#7C3AED"/>
+      <rect x="44" y="29" width="4" height="4" rx="1" fill="#7C3AED"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">W</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">D</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">S</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №16</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Проект: «Лабиринт»<br>+ генерация ASCII-графики
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Домашнее задание — код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор домашнего задания — Магический сканер кодов. Попроси кого-нибудь показать своё решение. Обрати внимание на while-цикл и инициализацию флага. Следующие два слайда — продолжение кода.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">print("=== МАГИЧЕСКИЙ СКАНЕР КОДОВ ===")
+
+# 1. Запросите число–код
+code = int(input("Введите число-код: "))
+
+# 2. Флаг: найдена ли цифра 7
+has_seven = False
+
+# 3. Сохраните исходный код для вывода
+original_code = code
+
+# 4. Цикл, пока в числе остались цифры
+while code > 0:
+    pass  # продолжение на следующем слайде</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Домашнее задание — код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Продолжение кода. Обрати внимание на операторы % (остаток) и //= (целочисленное деление с присвоением). Объясни continue — пропуск оставшегося тела цикла и break — немедленный выход. Это ключевые конструкции урока 15.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    # 5. Извлеките последнюю цифру
+    digit = code % 10
+    # 6 и 7. Проверьте цифру 0
+    if digit == 0:
+        # Уберите последнюю цифру и переходите к следующей итерации
+        code //= 10
+        continue
+    # 8 и 9. Проверьте цифру 7
+    if digit == 7:
+        # Удача! Ставим флаг и прервите цикл
+        has_seven = True
+        break
+    # 10. Уберите обработанную цифру
+    code //= 10</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Домашнее задание — код часть 3
+     ============================ -->
+<section class="slide"
+  data-notes="Блок else у цикла while — редкая, но полезная конструкция. Он выполняется только если цикл завершился без break. Спроси: когда выполнится else в этой программе? Правильный ответ: когда 7 не найдена.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">        # 10. Уберите обработанную цифру
+        code //= 10
+
+# 11. Блок else выполняется, если цикл не прерывался через break
+else:
+    print(f"Код {original_code} обычный: цифра 7 не найдена.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Проверьте себя
+     ============================ -->
+<section class="slide"
+  data-notes="Быстрая проверка знаний. Вопрос 1: while — когда не знаем число итераций. Вопрос 2: continue — пропустить остаток тела, перейти к следующей итерации. Вопрос 3: счётчик с условием остановки или флаг/break.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <ol class="steps">
+      <li>В какой ситуации лучше использовать цикл <code>while</code> вместо цикла <code>for</code>?</li>
+      <li>Для чего нужен оператор <code>continue</code>?</li>
+      <li>Назовите два способа, как избежать бесконечного цикла при использовании <code>while</code>?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: На этом уроке вы узнаете
+     ============================ -->
+<section class="slide"
+  data-notes="Объяви цели урока. Три главных результата: вложенные циклы, ASCII-генерация через нейросети, и полноценная игра Лабиринт. Это финальный проект Отдела автоматизации — серьёзное достижение!">
+  <div class="slide__inner">
+    <h2>На этом уроке вы <span class="accent">узнаете</span></h2>
+    <ol class="steps">
+      <li>Как применять вложенные циклы для работы с двумерными списками.</li>
+      <li>Как использовать нейросети, чтобы сгенерировать ASCII-графику и игровые уровни.</li>
+      <li>
+        Как создать пошаговую игру «Лабиринт», в которой будет:
+        <ul class="clean" style="margin-top:8px">
+          <li>отрисовка поля;</li>
+          <li>управление <span style="color:var(--amber);font-weight:700;">WASD</span>;</li>
+          <li>проверка столкновений и условие победы.</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Задача с подготовкой лабиринта (условие)
+     ============================ -->
+<section class="slide"
+  data-notes="Разминочная задача. Работаем со строкой как с одной строкой лабиринта. Разбери символы: # — стена, @ — игрок, пробел — проход, $ — выход. Спроси: как превратить строку в список? (функция list())">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <div class="card">
+      <p>Перед созданием настоящего лабиринта потренируемся работать со строками и списками. Дана строка, изображающая одну строку лабиринта <code>"####@ $"</code>:</p>
+    </div>
+    <ul class="clean">
+      <li><code>#</code> — стена;</li>
+      <li><code>@</code> — игрок;</li>
+      <li>пробелы — проход;</li>
+      <li><code>$</code> — выход.</li>
+    </ul>
+    <pre style="font-family:monospace;color:var(--cyan);background:#1a1f2e;border:1px solid var(--card-border);border-radius:14px;padding:16px 20px;font-size:18px;letter-spacing:2px;">####@ $</pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Задача с подготовкой лабиринта (шаги)
+     ============================ -->
+<section class="slide"
+  data-notes="Четыре шага задания. Шаг 1: list() превращает строку в список символов. Шаг 2: найти индекс @ и заменить на точку. Шаг 3: join() собирает список обратно в строку. Шаг 4: count() — встроенный метод строки или цикл for.">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <ol class="steps">
+      <li>Преобразуйте строку в список символов с помощью <code>list()</code>.</li>
+      <li>Замените символ игрока <code>'@'</code> на символ пройденного пути <code>'.'</code>.</li>
+      <li>Превратите список обратно в строку методом <code>join()</code> и выведите результат.</li>
+      <li>Подсчитайте количество стен <code>'#'</code> в строке с помощью метода <code>count()</code> у строки или цикла <code>for</code> по списку.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Задача — код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Первая часть решения. Метод index() находит позицию первого вхождения символа. Обрати внимание: мы работаем со списком, не со строкой — потому что строку нельзя изменить напрямую (строки иммутабельны в Python).">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Исходная строка — один ряд лабиринта
+row_str = "####@  $"
+
+# Превратите строку в список символов
+row_list = list(row_str)
+print("Список символов:", row_list)
+
+# Найдите позицию игрока через индекс символа @
+player_index = row_list.index('@')
+# Замените игрока на точку — отметку пройденного пути
+row_list[player_index] = '.'</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Задача — код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Метод join(). Синтаксис: разделитель.join(список). Пустая строка '' означает «без разделителя». Метод count() считает вхождения подстроки — очень удобно для анализа лабиринта.">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Превратите список обратно в строку
+new_row_str = ''.join(row_list)
+print("После прохода:", new_row_str)
+
+# Посчитайте количество стен # двумя способами
+# Способ 1: метод строки count()
+walls_count = row_str.count('#')
+print("Количество стен (метод строки):", walls_count)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Задача — код часть 3
+     ============================ -->
+<section class="slide"
+  data-notes="Способ 2 — цикл for по списку. Сравни со способом 1: оба дают одинаковый результат, но цикл более гибкий — можно добавить дополнительные условия. Спроси: какой способ проще? Для чего подходит каждый?">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Способ 2: цикл for по списку
+walls_count_list = 0
+for ch in row_list:
+    if ch == '#':
+        walls_count_list += 1
+print("Количество стен (цикл for):", walls_count_list)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Задача с ошибками (условие)
+     ============================ -->
+<section class="slide"
+  data-notes="Задание на поиск ошибок. Тестировщик прислал «сломанный» код. Главные ошибки: пропущены двоеточия в for. Попроси учеников найти ошибки самостоятельно до показа следующего слайда.">
+  <div class="slide__inner">
+    <h2>Решите задачу с <span class="accent">подготовкой лабиринта</span></h2>
+    <div class="card">
+      <p>Тестировщик прислал код, чтобы отрисовать маленький лабиринт, но в нём есть ошибки. Нужно их исправить.</p>
+    </div>
+    <ol class="steps">
+      <li>Найдите синтаксические ошибки в циклах <code>for</code>.</li>
+      <li>Убедитесь, что переменная <code>line</code> правильно обновляется внутри вложенного цикла.</li>
+      <li>Исправьте код и добейтесь корректного вывода.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Код с ошибками
+     ============================ -->
+<section class="slide"
+  data-notes="Ошибочный код. Пропущены двоеточия после for i in range(3) и for j in range(3). Это SyntaxError. Попроси учеников запустить код в браузере — Python сам покажет ошибку. Потом исправить.">
+  <div class="slide__inner">
+    <h2>Изучите код с <span class="accent">ошибками</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — найди ошибки!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Ошибочный код
+maze = [ ["#","#","#"], ["#","@","#"], ["#"," ","#"] ]
+for i in range(3)
+    line = ""
+    for j in range(3)
+        line = line + maze[i][j]
+    print(line)
+
+# Ожидаемый вывод:
+# ###
+# #@#
+# # #</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Правильный код
+     ============================ -->
+<section class="slide"
+  data-notes="Исправленный код. Добавлены двоеточия. Объясни вложенные циклы: внешний перебирает строки (i), внутренний — столбцы (j). line сбрасывается для каждой строки. Это базовый паттерн работы с двумерными списками.">
+  <div class="slide__inner">
+    <h2>Изучите <span class="accent">правильный код</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [ ["#","#","#"], ["#","@","#"], ["#"," ","#"] ]
+
+# добавлено двоеточие
+for i in range(3):
+    # сброс строки для каждого ряда
+    line = ""
+    # добавлено двоеточие
+    for j in range(3):
+        # конкатенация символов
+        line = line + maze[i][j]
+    print(line)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: ASCII-графика и нейросети
+     ============================ -->
+<section class="slide"
+  data-notes="Введение в ASCII-арт. Покажи пример: символы # @ E и пробелы создают визуальный лабиринт. Скажи: нейросети умеют генерировать такие структуры по описанию. Сейчас научимся составлять грамотный промпт.">
+  <div class="slide__inner">
+    <h2>Создайте <span class="accent">ASCII-графику</span> с помощью нейросетей</h2>
+    <p>В этом проекте вы будете работать с <span style="color:var(--cyan);">ASCII-графикой</span> — изображениями, которые составлены из букв, цифр и специальных символов. Такая графика часто используется в текстовых играх, консольных приложениях и для стилизации интерфейсов. Например, лабиринт из символов <code>#</code>, <code>@</code> и <code>E</code> — это тоже ASCII-арт.</p>
+    <p>Современные нейросети, например, ChatGPT, YandexGPT, GigaChat и другие умеют генерировать не только тексты, но и ASCII-рисунки по описанию. Вы научитесь составлять промпты, чтобы нейросеть выдала готовый лабиринт.</p>
+    <pre style="font-family:monospace;color:var(--cyan);background:#1a1f2e;border:1px solid var(--card-border);border-radius:14px;padding:16px 20px;font-size:16px;line-height:1.6;">######
+#@   #
+# ## #
+#  E #
+######</pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Условия проекта «Лабиринт»
+     ============================ -->
+<section class="slide"
+  data-notes="Контекст проекта. Это не просто задача, а продолжение истории разработки игры. Лабиринт — первая локация с препятствиями. ASCII-графика позволяет сосредоточиться на логике, не тратя время на графический движок.">
+  <div class="slide__inner">
+    <h2>Изучите условия проекта <span class="accent">«Лабиринт»</span></h2>
+    <div class="card">
+      <p style="font-size:16px;color:var(--text);">Вы продолжаете разработку своей игры. Герой уже умеет взаимодействовать с предметами и получать урон, но пока не может перемещаться по сложным локациям. <strong style="color:var(--amber);">Лабиринт</strong> — это первая локация с препятствиями, стенами и скрытым выходом.</p>
+    </div>
+    <p>Именно здесь игрок учится управлять персонажем с клавиатуры, а программа — отслеживать его позицию и проверять, столкнулся ли игрок со стеной. ASCII-графика рисует уровень без сложных графических движков и позволяет сосредоточиться на логике игры.</p>
+    <ul class="clean">
+      <li><code>#</code> — стена (непреодолимое препятствие);</li>
+      <li><code>@</code> — позиция игрока;</li>
+      <li>пробел — свободный проход;</li>
+      <li><code>E</code> — выход (цель игрока).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Как составить промпт
+     ============================ -->
+<section class="slide"
+  data-notes="Структура промпта: 4 блока. Роль — кем представляется нейросеть. Задача — что нужно. Контекст — детали. Формат — форма ответа. Это универсальная формула для любых промптов, не только для ASCII.">
+  <div class="slide__inner">
+    <h2>Как составить промпт для генерации <span class="accent">ASCII-лабиринта</span></h2>
+    <p>Составьте запрос с помощью промпта, в котором есть четыре блока.</p>
+    <ol class="steps">
+      <li><strong style="color:var(--amber);">Роль</strong> — кем нейросеть должна себя представить. Например, «Ты — конструктор ASCII-лабиринтов».</li>
+      <li><strong style="color:var(--amber);">Задача</strong> — что именно нужно сделать. Например, «Нарисуй лабиринт размером 6×6 символов».</li>
+      <li><strong style="color:var(--amber);">Контекст</strong> — дополнительные детали. Например, «Стены обозначаются #, проходы — пробелами, вход — @, выход — E».</li>
+      <li><strong style="color:var(--amber);">Формат</strong> — как должен выглядеть ответ. Например, «Выведи лабиринт в виде кода Python: список списков».</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Пример промпта
+     ============================ -->
+<section class="slide"
+  data-notes="Готовый промпт для копирования. Попроси учеников скопировать его и вставить в YandexGPT или GigaChat прямо сейчас. Обрати внимание: формат просит именно Python-код, двумерный список — это важно для следующего этапа.">
+  <div class="slide__inner">
+    <h2>Изучите <span class="accent">пример промпта</span></h2>
+    <div class="card" style="background:rgba(124,58,237,0.07);border-color:rgba(124,58,237,0.3);">
+      <p style="font-size:15px;color:var(--text);line-height:1.8;">
+        <strong style="color:var(--amber);">Роль:</strong> Ты — генератор ASCII-лабиринтов для Python-игр.<br><br>
+        <strong style="color:var(--amber);">Задача:</strong> Создай лабиринт размером 6 на 6 символов.<br><br>
+        <strong style="color:var(--amber);">Контекст:</strong> Стены — <code>'#'</code>, проходы — пробелы <code>' '</code>, стартовая позиция игрока — <code>'@'</code>, выход — <code>'E'</code>. Лабиринт должен иметь внешние стены и внутренние перегородки, чтобы был один путь от старта до выхода.<br><br>
+        <strong style="color:var(--amber);">Формат:</strong> Выведи лабиринт как код на Python — двумерный список из строк. Только код, без лишних пояснений.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Если нейросеть ошибается
+     ============================ -->
+<section class="slide"
+  data-notes="Советы по работе с нейросетью. Нейросети иногда дают несимметричные лабиринты или лабиринты без пути. Простой совет: попробовать другую нейросеть. ChatGPT обычно лучше справляется с ASCII, чем YandexGPT.">
+  <div class="slide__inner">
+    <h2>Как создать ASCII-лабиринт, если нейросеть <span class="accent">ошибается</span></h2>
+    <ol class="steps">
+      <li><span style="color:var(--cyan);font-weight:700;">Упростите промпт.</span> Уберите лишние детали, оставьте только «что» и «в каком стиле».</li>
+      <li><span style="color:var(--cyan);font-weight:700;">Покажите пример.</span> Дайте нейросети готовый образец ASCII-лабиринта.</li>
+      <li><span style="color:var(--cyan);font-weight:700;">Разбейте на шаги.</span> Сначала попросите создать схему словами, потом превратить в символы.</li>
+      <li><span style="color:var(--cyan);font-weight:700;">Смените модель.</span> Не получается в одной нейросети — попробуйте другую. Разные нейросети рисуют по-разному.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Сгенерируйте лабиринт для проекта
+     ============================ -->
+<section class="slide"
+  data-notes="Практическое задание: сгенерировать свой лабиринт. Дай 5–7 минут. Пусть каждый откроет нейросеть, вставит промпт, получит код. Результат понадобится на следующих слайдах — переменная maze.">
+  <div class="slide__inner">
+    <h2>Сгенерируйте лабиринт <span class="accent">для проекта</span></h2>
+    <ol class="steps">
+      <li>Откройте любую нейросеть, например, <span style="color:var(--amber);font-weight:700;">YandexGPT</span> или <span style="color:var(--amber);font-weight:700;">GigaChat</span>.</li>
+      <li>Скопируйте промпт из примера.</li>
+      <li>Получите сгенерированный код лабиринта в виде двумерного списка.</li>
+      <li>Скопируйте его в буфер обмена.</li>
+      <li>Вставьте в свою программу на этапе инициализации переменной <code>maze</code> — дальше всё будет объяснено.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21: Пример лабиринта от нейросети
+     ============================ -->
+<section class="slide"
+  data-notes="Показываем пример того, что должна выдать нейросеть. Двумерный список Python — список списков. @ в позиции [1][1], E в [4][4]. Объясни: каждый внутренний список — строка лабиринта. Индекс [строка][столбец].">
+  <div class="slide__inner">
+    <h2>Изучите пример лабиринта <span class="accent">от нейросети</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [
+    ['#','#','#','#','#','#'],
+    ['#','@',' ','#',' ','#'],
+    ['#',' ','#','#',' ','#'],
+    ['#',' ',' ',' ',' ','#'],
+    ['#',' ','#',' ','E','#'],
+    ['#','#','#','#','#','#']
+]
+for row in maze:
+    print(''.join(row))</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 22: Найдите начальную позицию игрока (шаги)
+     ============================ -->
+<section class="slide"
+  data-notes="Алгоритм поиска @ в двумерном списке. Ключевой момент: как выйти из ОБОИХ вложенных циклов. В Python нет встроенного break для внешнего цикла, поэтому используем проверку флага после break внутреннего. Это важный паттерн!">
+  <div class="slide__inner">
+    <h2>Найдите начальную <span class="accent">позицию игрока</span></h2>
+    <ol class="steps">
+      <li>Создайте переменные <code>player_row = -1</code> и <code>player_col = -1</code>. Отрицательное значение покажет, что позиция ещё не найдена.</li>
+      <li>Организуйте вложенный цикл <code>for i in range(len(maze)):</code> чтобы перебрать строки и <code>for j in range(len(maze[i])):</code> чтобы перебрать столбцы.</li>
+      <li>Внутри циклов проверьте условие: если <code>maze[i][j] == '@'</code>, сохраните индексы <code>i</code> и <code>j</code> в <code>player_row</code> и <code>player_col</code> и выйдите из циклов с помощью <code>break</code>.</li>
+      <li>Для выхода из внешнего цикла после нахождения используйте проверку: <code>if player_row != -1: break</code>.</li>
+      <li>Выведите координаты игрока с помощью f-строк или конкатенации.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 23: Поиск начальной позиции — код
+     ============================ -->
+<section class="slide"
+  data-notes="Код поиска позиции игрока. Обрати внимание: len(maze) — число строк, len(maze[i]) — число столбцов в строке i. Паттерн двойного break через флаг — запомни, он будет использоваться часто.">
+  <div class="slide__inner">
+    <h2>Найдите начальную <span class="accent">позицию игрока</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [
+    ['#','#','#','#','#','#'],
+    ['#','@',' ','#',' ','#'],
+    ['#',' ','#','#',' ','#'],
+    ['#',' ',' ',' ',' ','#'],
+    ['#',' ','#',' ','E','#'],
+    ['#','#','#','#','#','#']
+]
+
+# Поиск начальной позиции игрока
+player_row = -1
+player_col = -1
+for i in range(len(maze)):
+    for j in range(len(maze[i])):
+        if maze[i][j] == '@':
+            player_row = i
+            player_col = j
+            break
+    if player_row != -1:
+        break
+
+print(f"Игрок находится в строке {player_row}, столбце {player_col}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 24: Отрисовка лабиринта (шаги)
+     ============================ -->
+<section class="slide"
+  data-notes="Функция draw_maze. Объясни: мы выносим логику отрисовки в отдельную функцию, чтобы не повторять один и тот же код каждый раз. Это принцип DRY (Don't Repeat Yourself).">
+  <div class="slide__inner">
+    <h2>Создайте <span class="accent">отрисовку лабиринта</span></h2>
+    <ol class="steps">
+      <li>Напишите функцию <code>draw_maze(maze)</code>, которая принимает двумерный список и печатает его на экран.</li>
+      <li>Внутри функции с помощью вложенного цикла <code>for</code> объедините символы каждой строки в одну строку и выведите её.</li>
+      <li>Вызовите функцию, чтобы отобразить лабиринт.</li>
+    </ol>
+    <div class="card">
+      <p>Вместо <code>for j in range(len(row)): line += row[j]</code> удобнее использовать <code>''.join(row)</code> — это более «питоновский» способ собрать список символов в строку.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 25: Отрисовка лабиринта — код
+     ============================ -->
+<section class="slide"
+  data-notes="Функция draw_maze с join. Цикл for row in maze перебирает строки напрямую, без индексов — это проще и читабельнее, чем for i in range(len(maze)). Объясни разницу.">
+  <div class="slide__inner">
+    <h2>Создайте <span class="accent">отрисовку лабиринта</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [
+    ['#','#','#','#','#','#'],
+    ['#','@',' ','#',' ','#'],
+    ['#',' ','#','#',' ','#'],
+    ['#',' ',' ',' ',' ','#'],
+    ['#',' ','#',' ','E','#'],
+    ['#','#','#','#','#','#']
+]
+
+def draw_maze(maze):
+    """Выводит лабиринт на экран"""
+    for row in maze:
+        # Объедините символы строки без пробелов
+        line = ''.join(row)
+        print(line)
+
+print("СТАРТОВЫЙ ЛАБИРИНТ")
+draw_maze(maze)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 26: Игровой цикл и управление (шаги 1–4)
+     ============================ -->
+<section class="slide"
+  data-notes="Ядро игры — while-цикл. game_over — флаг завершения. Цикл работает пока game_over == False. input() считывает WASD. Обрати внимание: .strip().upper() убирает пробелы и делает букву заглавной — это защита от опечаток пользователя.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <ol class="steps">
+      <li>Создайте переменную <code>game_over = False</code>.</li>
+      <li>Запустите цикл <code>while not game_over</code>; внутри которого выведите текущее состояние лабиринта через <code>draw_maze(maze)</code>.</li>
+      <li>Запросите направление движения с помощью <code>input()</code>: <span style="color:var(--amber);font-weight:700;">W</span> — вверх, <span style="color:var(--amber);font-weight:700;">S</span> — вниз, <span style="color:var(--amber);font-weight:700;">A</span> — влево, <span style="color:var(--amber);font-weight:700;">D</span> — вправо — вычисляются новые координаты игрока.</li>
+      <li>Проверьте столкновения со стенами: если клетка с новыми координатами не является <code>'#'</code>, то игрок может переместиться.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 27: Игровой цикл и управление (шаги 4–5)
+     ============================ -->
+<section class="slide"
+  data-notes="Логика перемещения и победа. При движении: сначала очищаем старую клетку (ставим пробел), потом ставим @ в новую. Порядок важен! Если ставить @ первым, потом стирать — можно стереть игрока. При достижении E — победа.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <ol class="steps" style="counter-reset:step 3">
+      <li>Если игрок двигается, то замените старую позицию игрока на пустую клетку, обновите координаты <code>player_row</code>, <code>player_col</code>, поместите символ <code>'@'</code> в новую позицию.</li>
+      <li>Если игрок попадает на клетку с <code>'E'</code>, выведите поздравление и установите <code>game_over = True</code>.</li>
+    </ol>
+    <div class="card">
+      <p>Счётчик <code>steps</code> считает каждый успешный ход игрока. В конце игры выводим его для статистики.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 28: Игровой цикл — код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Начало игрового цикла. steps — счётчик шагов. new_row и new_col изначально равны текущей позиции игрока. Потом изменяем в зависимости от ввода. Это стандартный паттерн 'проверь перед движением'.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">game_over = False
+steps = 0  # счётчик шагов
+
+while not game_over:
+    draw_maze(maze)
+    move = input("Куда идти? (W/A/S/D): ").strip().upper()
+
+    # Вычислите новые координаты по умолчанию равными старым
+    new_row = player_row
+    new_col = player_col
+
+    # ... (продолжение на следующих слайдах)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 29: Игровой цикл — код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Обработка WASD. W уменьшает строку (вверх), S увеличивает (вниз), A уменьшает столбец (влево), D увеличивает (вправо). В текстовой матрице строки идут сверху вниз, поэтому W = row - 1. continue после else — не выполнять дальнейшую проверку при неверном вводе.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    if move == 'W':
+        new_row -= 1
+    elif move == 'S':
+        new_row += 1
+    elif move == 'A':
+        new_col -= 1
+    elif move == 'D':
+        new_col += 1
+    else:
+        print("Неизвестная команда. Используй W, A, S, D.")
+        continue</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 30: Игровой цикл — код часть 3
+     ============================ -->
+<section class="slide"
+  data-notes="Проверка границ и стен. Сначала проверяем, не вышли ли за пределы массива (иначе IndexError). Потом смотрим на содержимое клетки. Порядок проверок важен: сначала границы, потом содержимое.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    # Проверьте, не выходит ли игрок за границы лабиринта
+    if new_row < 0 or new_row >= len(maze) or new_col < 0 or new_col >= len(maze[0]):
+        print("Там стена! (край лабиринта)")
+        continue
+
+    # Получите содержимое клетки, куда хочет пойти игрок
+    target_cell = maze[new_row][new_col]
+
+    if target_cell == '#':
+        print("Там стена!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 31: Игровой цикл — код часть 4 (победа)
+     ============================ -->
+<section class="slide"
+  data-notes="Условие победы. Когда игрок движется на клетку E: увеличиваем steps, перемещаем @ на E, перерисовываем лабиринт, выводим поздравление и устанавливаем game_over = True. Цикл while завершится на следующей итерации.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    elif target_cell == 'E':
+        steps += 1
+
+        maze[player_row][player_col] = ' '
+        maze[new_row][new_col] = '@'
+        player_row, player_col = new_row, new_col
+
+        draw_maze(maze)
+        print(f"Поздравляем! Вы нашли выход за {steps} шагов!")
+        game_over = True</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 32: Игровой цикл — код часть 5 (движение)
+     ============================ -->
+<section class="slide"
+  data-notes="Обычное перемещение. Три операции: очистить старую позицию (пробел), поставить @ в новую, обновить координаты. Множественное присваивание player_row, player_col = new_row, new_col — красивый питоновский приём.">
+  <div class="slide__inner">
+    <h2>Настройте <span class="accent">игровой цикл и управление</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    else:
+        # Переместите игрока в свободную клетку
+        steps += 1
+        maze[player_row][player_col] = ' '
+        maze[new_row][new_col] = '@'
+        player_row, player_col = new_row, new_col
+        print(f"Шаг {steps}. Текущая позиция: ({player_row}, {player_col})")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 33: Подсчёт пройденных клеток (шаги)
+     ============================ -->
+<section class="slide"
+  data-notes="Расширение игры — счётчик уникальных клеток. visited_count считает, сколько пустых клеток игрок посетил впервые (до того, как ступил на них). Это не steps — steps считает все ходы, включая возвраты.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <ol class="steps">
+      <li>Создайте переменную <code>collected = 0</code>, чтобы подсчитать, сколько пройдено, если добавите точки.</li>
+      <li>Внутри перемещения проверьте, была ли клетка ранее пустой (<code>' '</code>). Увеличивайте счётчик.</li>
+      <li>Выведите статистику после каждого хода.</li>
+    </ol>
+    <div class="card">
+      <p>Переменную <code>visited_count</code> увеличиваем только когда <code>target == ' '</code> — то есть клетка была пустой до нашего прихода. Если клетка уже помечена иначе, это возврат по старому пути.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 34: Полный код — инициализация
+     ============================ -->
+<section class="slide"
+  data-notes="Улучшенная версия лабиринта — больше проходов для исследования. Обрати внимание: в строке 1 три пустых клетки подряд, что даёт больше вариантов пути. Этот лабиринт будем использовать до конца.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Инициализация
+maze = [
+    ['#','#','#','#','#','#'],
+    ['#','@',' ',' ',' ','#'],
+    ['#',' ','#','#',' ','#'],
+    ['#',' ','#',' ',' ','#'],
+    ['#',' ',' ',' ','E','#'],
+    ['#','#','#','#','#','#']
+]
+
+def draw_maze(maze):
+    for row in maze:
+        print(''.join(row))</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 35: Полный код — игровой цикл начало
+     ============================ -->
+<section class="slide"
+  data-notes="Инициализация переменных и начало цикла. player_row, player_col = 1, 1 — прямое указание стартовой позиции (@ в maze[1][1]). visited_count = 0 — счётчик уникальных клеток. Приветственное сообщение задаёт тон игры.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Можно искать автоматически
+player_row, player_col = 1, 1
+steps = 0
+visited_count = 0
+game_over = False
+
+print("Добро пожаловать в Лабиринт!")
+print("Используй W/A/S/D для движения. Дойди до 'E'.")
+while not game_over:
+    draw_maze(maze)
+    print(f"Сделано шагов: {steps}")
+    move = input("Твой ход: ").strip().upper()
+    # ... продолжение на следующих слайдах</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 36: Полный код — обработка ввода и границы
+     ============================ -->
+<section class="slide"
+  data-notes="Компактный стиль обработки WASD — всё в одну строку. Это допустимо в Python для коротких операторов. Проверка границ: более pythonic — not (0 <= new_row < len(maze) and 0 <= new_col < len(maze[0])). Объясни chained comparison.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    new_row, new_col = player_row, player_col
+    if move == 'W': new_row -= 1
+    elif move == 'S': new_row += 1
+    elif move == 'A': new_col -= 1
+    elif move == 'D': new_col += 1
+    else:
+        print("Введи W, A, S или D.")
+        continue
+    # Проверьте границы
+    if not (0 <= new_row < len(maze) and 0 <= new_col < len(maze[0])):
+        print("Край лабиринта — стена!")
+        continue</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 37: Полный код — условие победы
+     ============================ -->
+<section class="slide"
+  data-notes="Обработка стены и победы. target = maze[new_row][new_col] — получаем содержимое целевой клетки. При E: перемещаем игрока, перерисовываем, выводим победное сообщение с количеством шагов.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    target = maze[new_row][new_col]
+
+    if target == '#':
+        print("Врезался в стену!")
+    elif target == 'E':
+        steps += 1
+        maze[player_row][player_col] = ' '
+        maze[new_row][new_col] = '@'
+        draw_maze(maze)
+        print(f"УРА! Ты выбрался из лабиринта за {steps} шагов!")
+        game_over = True</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 38: Полный код — счётчик посещённых клеток
+     ============================ -->
+<section class="slide"
+  data-notes="Финальный кусок кода — перемещение с подсчётом уникальных клеток. if target == ' ': visited_count += 1 — увеличиваем только для пустых клеток. После перемещения клетка становится '@', поэтому при возврате она уже не будет ' '.">
+  <div class="slide__inner">
+    <h2>Добавьте подсчёт <span class="accent">пройденных клеток</span> и проверку условия победы</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">    else:
+        steps += 1
+        if target == ' ':
+            visited_count += 1
+        maze[player_row][player_col] = ' '
+        maze[new_row][new_col] = '@'
+        player_row, player_col = new_row, new_col</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 39: Завершение игры и вывод статистики (текст)
+     ============================ -->
+<section class="slide"
+  data-notes="После выхода из цикла — итоговый экран. Это важный UX-момент: игрок должен видеть свой результат. steps — общее число ходов, visited_count — сколько новых клеток исследовано. Спроси: в чём разница между этими двумя числами?">
+  <div class="slide__inner">
+    <h2>Завершение игры и <span class="accent">вывод статистики</span></h2>
+    <div class="card">
+      <p style="font-size:17px;color:var(--text);">После выхода из цикла выведите итоговое сообщение с количеством шагов и посещённых уникальных клеток.</p>
+    </div>
+    <ul class="clean">
+      <li><code>steps</code> — общее количество ходов (включая возвраты);</li>
+      <li><code>visited_count</code> — количество уникальных пустых клеток, на которые ступил игрок;</li>
+      <li>Разделитель <code>"=" * 30</code> создаёт визуальную рамку из 30 знаков равенства.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 40: Завершение игры — код
+     ============================ -->
+<section class="slide"
+  data-notes="Итоговый вывод. print('=' * 30) — умножение строки. Это создаёт 30 знаков = подряд. Красивый способ нарисовать разделитель без цикла. Попроси учеников добавить это в свой код.">
+  <div class="slide__inner">
+    <h2>Завершение игры и <span class="accent">вывод статистики</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">steps = 7
+visited_count = 4
+
+print("=" * 30)
+print("ИГРА ОКОНЧЕНА")
+print(f"Всего шагов: {steps}")
+print(f"Уникальных пустых клеток посещено: {visited_count}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 41: Домашнее задание (условие)
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание — аналитика лабиринта. Не нужно делать игру — только анализировать. Входные данные: готовый двумерный список maze. Задача: написать программу-аналитик, которая выдаёт статистику по лабиринту.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <div class="card">
+      <p style="font-size:17px;color:var(--text);">Вам прислали готовый лабиринт в виде двумерного списка. Ваша задача — написать программу, которая анализирует этот лабиринт и выводит статистику: количество стен, количество пустых клеток, позицию игрока и отвечает, есть ли выход.</p>
+    </div>
+    <div class="card">
+      <p>Пример ожидаемого вывода:</p>
+      <pre style="font-family:monospace;color:var(--cyan);font-size:14px;margin-top:8px;">Стен: 22
+Пустых клеток: 9
+Игрок на позиции: (1, 1)
+Выход есть: True</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 42: Домашнее задание (шаги)
+     ============================ -->
+<section class="slide"
+  data-notes="Пять шагов домашнего задания. Все четыре задачи решаются вложенными циклами. Для каждой — отдельный счётчик или переменная. True/False — результат переменной has_exit, изначально False, становится True когда находим 'E'.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <ol class="steps">
+      <li>Скопируйте готовый лабиринт в свою программу.</li>
+      <li>С помощью вложенных циклов подсчитайте количество стен <code>'#'</code>.</li>
+      <li>С помощью вложенных циклов подсчитайте количество пустых проходов.</li>
+      <li>С помощью вложенных циклов найдите координаты: строка, столбец игрока <code>'@'</code>.</li>
+      <li>С помощью вложенных циклов проверьте, есть ли в лабиринте выход <code>'E'</code>, и выведите <code>True</code> или <code>False</code>.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 43: Cover green — финал + лабиринт ДЗ
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Финальный слайд. Лабиринт для домашнего задания. Ученики копируют его в Google Colab или PyCharm и пишут программу-аналитик. Напомни: сделать скриншот результата и отправить на проверку. Поздравь всех с завершением Отдела автоматизации — они написали настоящую игру!">
+  <div class="game-icons">
+    <!-- Trophy SVG -->
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="bottom:50px;right:60px" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">E</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">@</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">#</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px;">
+    <div class="cover-bubble" style="max-width:680px;padding:28px 40px;">
+      <h1 style="color:#1a1a2e;font-size:clamp(16px,2vw,24px);font-weight:800;line-height:1.3;margin-bottom:16px;">
+        Скопируйте готовый лабиринт
+      </h1>
+      <div style="text-align:left;font-family:'JetBrains Mono',monospace;font-size:clamp(11px,1.2vw,14px);color:#1a1a2e;background:rgba(0,0,0,0.06);border-radius:10px;padding:14px 16px;line-height:1.7;">
+maze = [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','#','#','#','#','#'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','@','&nbsp;','&nbsp;','&nbsp;','#'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','&nbsp;','#','#','&nbsp;','#'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','&nbsp;','#','&nbsp;','&nbsp;','#'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','&nbsp;','&nbsp;','&nbsp;','E','#'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;['#','#','#','#','#','#']<br>
+]
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

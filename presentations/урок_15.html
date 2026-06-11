@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 15 — break, continue, else | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* btn-link */
+  a.btn-link{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(6,182,212,0.1);
+    border:1px solid rgba(6,182,212,0.3);
+    color:var(--cyan);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  a.btn-link:hover{background:rgba(6,182,212,0.2)}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">35</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (violet)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Первый слайд. Поприветствуй учеников. Сегодня — урок №15, посвящённый операторам break, continue и блоку else в циклах. Это мощные инструменты, которые делают циклы умнее. Скажи, что к концу урока они напишут программу с логикой угадывания числа.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="10" y="22" width="60" height="36" rx="18" fill="white"/>
+      <rect x="18" y="36" width="4" height="10" rx="2" fill="#7C3AED"/>
+      <rect x="14" y="40" width="12" height="4" rx="2" fill="#7C3AED"/>
+      <circle cx="54" cy="36" r="3" fill="#7C3AED"/>
+      <circle cx="62" cy="42" r="3" fill="#7C3AED"/>
+      <circle cx="54" cy="48" r="3" fill="#7C3AED"/>
+      <circle cx="46" cy="42" r="3" fill="#7C3AED"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №15</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Как работать с операторами<br><span style="color:#7C3AED">continue</span>, <strong>break</strong>, <strong>else</strong>
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Сравните свой код с эталоном (часть 1)
+     ============================ -->
+<section class="slide"
+  data-notes="Проверка домашнего задания — тренировка героя. Разбери первый блок: инициализация переменных strength, stamina, action_count. Спроси учеников, какие значения они поставили. Сравните с эталоном.">
+  <div class="slide__inner">
+    <h2>Сравните свой код с <span class="accent">эталоном</span></h2>
+    <pre><code class="language-python">print("=== ТРЕНИРОВКА ГЕРОЯ ===")
+
+# Начальная сила героя — 0
+strength = 0
+
+# Начальная выносливость — 100 единиц
+stamina = 100
+
+# Счётчик выполненных подходов
+action_count = 0
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Сравните свой код с эталоном (часть 2)
+     ============================ -->
+<section class="slide"
+  data-notes="Продолжение эталонного кода — цикл while. Обрати внимание на счётчики: action_count растёт на 1, strength на 5, stamina убывает на 2. Спроси: почему используют while, а не for?">
+  <div class="slide__inner">
+    <h2>Сравните свой код с <span class="accent">эталоном</span></h2>
+    <pre><code class="language-python">...
+# Пока у героя есть выносливость, тренировка продолжается
+while stamina > 0:
+    # Увеличьте счётчик подходов на 1
+    action_count += 1
+
+    # Сила растёт на 5 очков за подход
+    strength += 5
+
+    # Выносливость падает на 2 единицы за подход
+    stamina -= 2
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Сравните свой код с эталоном (часть 3)
+     ============================ -->
+<section class="slide"
+  data-notes="Финальная часть эталонного кода — вывод итогов и проверка if/else. Запусти код в компиляторе и покажи вывод. Сколько подходов сделает герой? (50 подходов, сила 250, что больше 50 — Супергерой!)">
+  <div class="slide__inner">
+    <h2>Сравните свой код с <span class="accent">эталоном</span></h2>
+    <pre><code class="language-python">...
+    # Выведите прогресс после каждого подхода
+    print(f"Подход #{action_count}: сила +5 (всего {strength}), выносливость осталось {stamina}")
+
+# Когда выносливость упала до 0 или ниже, цикл завершается
+# Выведите итоги тренировки
+print(f"\nТренировка завершена! Выполнено подходов: {action_count}")
+print(f"Итоговая сила героя: {strength}")
+
+# Проверьте, стал ли герой суперсильным
+if strength > 50:
+    print("Супергерой! Враги трепещут!")
+else:
+    print("Герой готов к бою!")</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Проверьте себя
+     ============================ -->
+<section class="slide"
+  data-notes="Разминочные вопросы по прошлому материалу. Вопрос 1: цикл for — используют, когда количество шагов известно заранее. Вопрос 2: итерация — одно выполнение тела цикла. Дай ученикам 1–2 минуты ответить.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span></h2>
+    <ol class="steps">
+      <li>Какой цикл используют, когда известно количество шагов?</li>
+      <li>Что такое итерация в цикле?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: На этом уроке вы узнаете
+     ============================ -->
+<section class="slide"
+  data-notes="Цели урока. Три темы: break — прерывает цикл; continue — пропускает итерацию; else — блок после цикла, если break не сработал. Объяви, что все три оператора разберём на примерах из игры.">
+  <div class="slide__inner">
+    <h2>На этом уроке вы <span class="accent">узнаете</span></h2>
+    <ol class="steps">
+      <li>Что такое оператор <code>break</code> и как он прерывает выполнение цикла.</li>
+      <li>Что такое оператор <code>continue</code> и как он пропускает оставшуюся часть тела цикла.</li>
+      <li>Как работает блок <code>else</code> после циклов <code>for</code> и <code>while</code>.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Как использовать оператор break (теория)
+     ============================ -->
+<section class="slide"
+  data-notes="Вводим break. Ключевые моменты: 1) останавливает ближайший цикл for или while; 2) часто используют с флагом-переменной. Пример из игры: магический сундук открывается только простым числом. Спроси: что такое простое число?">
+  <div class="slide__inner">
+    <h2>Как использовать оператор <span class="accent">break</span></h2>
+    <div class="card">
+      <p>Оператор <code>break</code> используют, чтобы немедленно прервать цикл. Он останавливает ближайший цикл <code>for</code> или <code>while</code>, и выполняется команда, которая идёт после цикла. <code>break</code> часто используют вместе с флагами — переменными-метками вида <code>flag = False</code> / <code>True</code>.</p>
+    </div>
+    <div class="card">
+      <p>Представьте, что вы разрабатываете игру. В ней есть закрытый магический сундук, который открывается только паролем. Пароль — это число. <span style="color:#F59E0B;font-weight:700;">Простое число</span> — это число, которое делится без остатка только на 1 и на само себя. Например: 2, 3, 5, 7, 11.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: break — код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Задача: проверить, является ли введённый пароль простым числом. Флаг is_prime = True — мы считаем число простым, пока не докажем обратное. Если найдём делитель — сразу break, дальше проверять нет смысла.">
+  <div class="slide__inner">
+    <h2>Как использовать оператор <span class="accent">break</span></h2>
+    <p>Герой вводит пароль, программа проверяет, есть ли у этого числа «делитель-ловушка» — делится ли оно на что-то кроме 1 и самого себя. Если такой делитель найден, проверка сразу прекращается.</p>
+    <pre><code class="language-python"># Герой вводит пароль — число
+num = int(input("Введите пароль (число): "))
+
+# Флаг: условие, что число простое, пока не доказано обратное
+is_prime = True
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: break — код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Цикл for перебирает делители от 2 до num-1. Если находится делитель (num % i == 0), флаг is_prime = False и break. После break Python выходит из цикла и идёт дальше. Подчеркни: break прерывает цикл немедленно.">
+  <div class="slide__inner">
+    <h2>Как использовать оператор <span class="accent">break</span></h2>
+    <pre><code class="language-python">...
+# Переберите возможные делители от 2 до num - 1
+# Если num меньше 2, цикл не выполнится ни разу
+for i in range(2, num):
+    # Если число делится на i без остатка,
+    # значит, найден делитель помимо 1 и самого себя
+    if num % i == 0:
+        # Число не простое — в замке есть лазейка
+        is_prime = False
+        # Прервите цикл, дальше проверять бессмысленно
+        break
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: break — код часть 3 (вывод)
+     ============================ -->
+<section class="slide"
+  data-notes="Вывод результата: проверяем флаг is_prime. Если True — пароль простое число, замок открывается. Если False — число не простое, ловушка. Попроси учеников проверить: 7 — простое? 9 — нет (делится на 3).">
+  <div class="slide__inner">
+    <h2>Как использовать оператор <span class="accent">break</span></h2>
+    <pre><code class="language-python">...
+
+# Вывод результата
+if is_prime:
+    print("Пароль — простое число. Замок открывается без ловушки.")
+else:
+    print("Пароль — не простое число. Опасность! Ловушка активирована.")</code></pre>
+    <div class="compiler" data-lang="python" style="margin-top:10px">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — попробуй прямо здесь!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#x21BB; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#x25B6; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">num = int(input("Введите пароль (число): "))
+is_prime = True
+for i in range(2, num):
+    if num % i == 0:
+        is_prime = False
+        break
+if is_prime:
+    print("Пароль — простое число. Замок открывается без ловушки.")
+else:
+    print("Пароль — не простое число. Опасность! Ловушка активирована.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: break с бесконечными циклами (теория)
+     ============================ -->
+<section class="slide"
+  data-notes="Бесконечный цикл while True. Такой цикл не остановится сам — только break прервёт его. Применение: ожидание ввода, обработка команд, серверные процессы. Пример из игры: страж-программа, которая ждёт команд от игрока.">
+  <div class="slide__inner">
+    <h2>Как оператор <span class="accent">break</span> работает с бесконечными циклами</h2>
+    <div class="card">
+      <p>В Python можно создать бесконечный цикл <code>while True:</code>. Такой цикл продолжается, пока его не прервут. Оператор <code>break</code> ставят внутри тела цикла при выполнении какого-либо условия — например, ввод команды <code>exit</code> или обнаружение ошибки.</p>
+    </div>
+    <div class="card">
+      <p>Представьте, что в вашей игре есть <span style="color:#F59E0B;font-weight:700;">страж-программа</span>. Она круглые сутки ждёт команд от игрока. Страж обрабатывает запрос и снова ждёт следующего. Если игрок вводит команду <code>exit</code>, страж прекращает работу с помощью <code>break</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: break + while True — код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Первая часть кода вечного стража. while True — бесконечный цикл. input() получает команду от игрока. Если команда 'exit' — начинаем выход. Покажи: без break эта программа будет работать вечно.">
+  <div class="slide__inner">
+    <h2>Как оператор <span class="accent">break</span> работает с бесконечными циклами</h2>
+    <pre><code class="language-python">print("=== ВЕЧНЫЙ СТРАЖ ===")
+print("Вводите команды. Для выхода введите 'exit'.\n")
+
+# Страж работает в бесконечном цикле
+while True:
+    # Получите запрос от игрока вводом с клавиатуры
+    query = input("Введите команду: ")
+
+    # Если игрок хочет выйти из игры, он вводит 'exit'
+    if query == "exit":
+        print("Страж завершает работу.")
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: break + while True — код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Завершение кода стража. break прерывает while True. После break — строка 'Игра завершена.' Попроси учеников самостоятельно добавить команды: 'атаковать', 'осмотреться'. Что страж должен ответить?">
+  <div class="slide__inner">
+    <h2>Как оператор <span class="accent">break</span> работает с бесконечными циклами</h2>
+    <pre><code class="language-python">...
+        # Прервите бесконечный цикл
+        break
+
+    # Иначе страж обрабатывает запрос
+    print(f"Страж обработал команду: {query}")
+
+# Сюда программа попадёт только после break
+print("Игра завершена.")</code></pre>
+    <div class="quote-block" style="margin-top:8px">
+      Код после цикла выполнится только тогда, когда сработает <code>break</code> — иначе цикл никогда не закончится.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: continue — теория
+     ============================ -->
+<section class="slide"
+  data-notes="Вводим continue. Отличие от break: continue не выходит из цикла, а пропускает текущую итерацию и переходит к следующей. Пример: герой идёт по коридору с 100 дверями. Некоторые закрыты — он просто идёт мимо.">
+  <div class="slide__inner">
+    <h2>Как работать с оператором <span class="accent">continue</span></h2>
+    <div class="card">
+      <p>Оператор <code>continue</code> позволяет перейти к следующей итерации цикла <code>for</code> или <code>while</code>, не выполняя оставшийся код внутри тела цикла. Его используют, когда нужно <span style="color:#F59E0B;font-weight:700;">пропустить определённые значения</span> и продолжить обработку остальных.</p>
+    </div>
+    <div class="card">
+      <p>В игре герой идёт по коридору с сотней дверей. Некоторые двери заперты — для них нужен более высокий уровень. Список закрытых комнат: <span style="color:var(--cyan)">7, 17, 29, 78</span>. Если герой видит закрытую дверь, он просто проходит мимо и идёт дальше.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: continue — код
+     ============================ -->
+<section class="slide"
+  data-notes="Код с continue. Для закрытых комнат (7, 17, 29, 78) — continue, и строка с print не выполняется. Для всех остальных комнат — герой заходит. Спроси: сколько всего комнат посетит герой? (100 минус 4 = 96)">
+  <div class="slide__inner">
+    <h2>Как работать с оператором <span class="accent">continue</span></h2>
+    <pre><code class="language-python"># Герой проходит мимо ста дверей
+for room_number in range(1, 101):
+    # Если дверь закрыта, т.е. номер в списке недоступных
+    if room_number == 7 or room_number == 17 or room_number == 29 or room_number == 78:
+        # Герой проходит мимо, не заходит
+        continue
+
+    # Эта строка выполнится только для доступных комнат
+    print(f"Герой зашёл в комнату №{room_number}")
+
+print("Герой прошёл весь коридор.")</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: else после цикла — теория
+     ============================ -->
+<section class="slide"
+  data-notes="Блок else после цикла — необычная особенность Python. Важно: else выполняется только если цикл НЕ был прерван через break. Если break сработал — else не выполняется. Это отличается от if/else! Пример: герой ищет ловушку в комнатах.">
+  <div class="slide__inner">
+    <h2>Как работать с оператором <span class="accent">else</span></h2>
+    <div class="card">
+      <p>После цикла <code>for</code> или <code>while</code> в Python можно написать блок <code>else</code>. В циклах <code>else</code> работает по-другому: он выполняется, <span style="color:#F59E0B;font-weight:700;">только если цикл не был прерван командой</span> <code>break</code>.</p>
+    </div>
+    <div class="card">
+      <p>Герой проходит коридор из трёх комнат. В одной может быть ловушка. Если герой найдёт ловушку — он пострадает и награду не получит. Если осмотрел все комнаты и ловушки нет — испытание пройдено, герой получает награду.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: else — ловушка есть, break срабатывает (часть 1)
+     ============================ -->
+<section class="slide"
+  data-notes="Случай 1: ловушка есть. Цикл проверяет комнаты 1, 2, 3. В комнате 2 — ловушка, срабатывает break. Обрати внимание: блок else НЕ выполнится, потому что цикл прерван.">
+  <div class="slide__inner">
+    <h2><span class="accent">Ловушка есть</span> — срабатывает break, блок else не выполняется</h2>
+    <p>Блок <code>else</code> не выполнился, потому что цикл был прерван оператором <code>break</code>.</p>
+    <pre><code class="language-python"># Герой проходит три комнаты. Ловушка находится во второй комнате.
+for room in range(1, 4):
+    print(f"Герой входит в комнату {room}")
+
+    # Условие: если комната номер 2, то в ней ловушка
+    if room == 2:
+        print("Ловушка! Герой покидает испытание.")
+        # Прервите цикл, дальше комнаты не проверяем
+        break
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: else — ловушка есть (часть 2, вывод)
+     ============================ -->
+<section class="slide"
+  data-notes="Завершение кода с ловушкой. Обрати внимание на вывод в консоли: else не выполнился, 'Испытание пройдено' не появилось. Только 'Конец программы.' Это ключевой момент урока — else пропускается при break.">
+  <div class="slide__inner">
+    <h2><span class="accent">Ловушка есть</span> — срабатывает break, блок else не выполняется</h2>
+    <pre><code class="language-python">...
+else:
+    # Этот блок выполнится, только если break не сработал
+    print("Испытание пройдено. Герой получает награду!")
+
+print("Конец программы.")
+
+# Консоль выведет:
+# Герой входит в комнату 1
+# Герой входит в комнату 2
+# Ловушка! Герой покидает испытание.
+# Конец программы.</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: else — ловушки нет, цикл завершается сам
+     ============================ -->
+<section class="slide"
+  data-notes="Случай 2: ловушек нет. Цикл обходит все три комнаты без break. После цикла срабатывает else — 'Испытание пройдено'. Попроси учеников объяснить своими словами: когда else выполняется, а когда нет?">
+  <div class="slide__inner">
+    <h2><span class="accent">Ловушки нет</span> — цикл завершается сам, блок else выполняется</h2>
+    <p>Теперь блок <code>else</code> сработал, так как цикл <code>for</code> отработал все три итерации без прерывания.</p>
+    <pre><code class="language-python"># Герой проходит три комнаты. Ловушек нет.
+for room in range(1, 4):
+    print(f"Герой входит в комнату {room}")
+    # Здесь нет проверки на ловушку, цикл идёт до конца
+else:
+    # Этот блок выполнится, потому что break не прерывал цикл
+    print("Испытание пройдено. Герой получает награду!")
+
+print("Конец программы.")</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Практическое задание — условие
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Практическое задание — артефакт-сумматор. Прочитай условие вместе с учениками. Ключевые правила: до 7 кодов; отрицательный — стоп (break); ноль — пропустить (continue); все 7 без отрицательных — поздравление (else). Скажи, что сейчас разберём шаги.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="10" y="22" width="60" height="36" rx="18" fill="white"/>
+      <rect x="18" y="36" width="4" height="10" rx="2" fill="#22c55e"/>
+      <rect x="14" y="40" width="12" height="4" rx="2" fill="#22c55e"/>
+      <circle cx="54" cy="36" r="3" fill="#22c55e"/>
+      <circle cx="62" cy="42" r="3" fill="#22c55e"/>
+      <circle cx="54" cy="48" r="3" fill="#22c55e"/>
+      <circle cx="46" cy="42" r="3" fill="#22c55e"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech" style="max-width:640px;">
+      <h1 style="color:#1a1a2e;font-size:clamp(18px,2.2vw,28px);line-height:1.3;font-weight:800;">
+        Выполните практическое задание
+      </h1>
+      <p style="color:#1a1a2e;margin-top:14px;font-size:clamp(13px,1.1vw,16px);text-align:left;line-height:1.6;">
+        Герой находит в лаборатории <strong>артефакт-сумматор</strong>. Правила:<br>
+        — герой может ввести <strong>до 7</strong> чисел-кодов;<br>
+        — отрицательный код — артефакт <strong>не работает</strong>;<br>
+        — ноль — артефакт <strong>пропускает</strong> этот код;<br>
+        — все 7 кодов без отрицательных — артефакт <strong>поздравляет</strong>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21: Практика — шаги 1–7
+     ============================ -->
+<section class="slide"
+  data-notes="Первые семь шагов задания. Ключевое: шаг 6 — break при отрицательном коде; шаг 7 — проверка на ноль (continue на следующем слайде). Дай ученикам попробовать написать сначала шаги 1–5.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <ol class="steps">
+      <li>Посчитайте магический уровень артефакта и установите начальное значение 0.</li>
+      <li>Создайте счётчик введённых кодов, отсчитайте 7 шагов.</li>
+      <li>Запустите цикл <code>for</code> на 7 шагов и сымитируйте 7 попыток ввода кода.</li>
+      <li>Внутри цикла запрашивайте у героя код и сохраняйте его в переменную.</li>
+      <li>Проверьте, является ли код отрицательным.</li>
+      <li>Если код отрицательный, используйте <code>break</code>, чтобы артефакт прекратил работу.</li>
+      <li>Проверьте, является ли код нулём.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 22: Практика — шаги 8–10
+     ============================ -->
+<section class="slide"
+  data-notes="Завершающие шаги задания: continue для нуля, накопление суммы, else после цикла. Обрати внимание на шаг 10: else выполнится только если цикл прошёл все 7 итераций без break. Дай ученикам написать полный код.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <ol class="steps" style="counter-reset:step 7">
+      <li>Если код равен нулю, используйте <code>continue</code>, чтобы не добавлять его к магическому уровню.</li>
+      <li>Во всех остальных случаях добавьте код к магическому уровню и выведите текущее значение.</li>
+      <li>После цикла, если он дошёл до конца без <code>break</code>, используйте <code>else</code> и выведите, что магический уровень собран и дверь откроется.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 23: Практика — эталонный код часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Первая часть эталонного кода артефакта. result = 0 — накопитель. for i in range(7) — 7 попыток. Если num < 0 — break. Если num == 0 — continue. Разбери каждую ветку с учениками.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python"># в эту переменную будет накапливаться магический уровень
+result = 0
+# герой может ввести до 7 кодов
+for i in range(7):
+    # вводим очередной код
+    num = int(input("Введите код: "))
+    # если код отрицательный
+    if num &lt; 0:
+        # артефакт сразу закрывается, цикл прерывается
+        break
+    # если код = 0
+    if num == 0:
+        # артефакт пропускает этот код, не добавляет к магии
+        continue
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 24: Практика — эталонный код часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Вторая часть кода: накопление result и блок else. Обрати внимание: else на одном уровне с for, не с if. Этот else выполнится только если все 7 итераций прошли без break. Запусти код в компиляторе.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python">...
+    # иначе добавляем код к общему магическому уровню.
+    result += num
+    print("Код", num, "принят. Текущий магический уровень:", result)
+
+else:
+    # этот блок выполняется только если цикл прошёл все 7 итераций
+    # и ни разу не сработал break, то есть не было отрицательных кодов.
+    print("Магический уровень собран! Дверь откроется.")
+    print("Итоговый магический уровень:", result)</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 25: Практика 2 — угадай число (условие)
+     ============================ -->
+<section class="slide"
+  data-notes="Второе практическое задание — угадай число. Дух загадывает число от 1 до 20, у героя 5 попыток. Логика: угадал — break; попытки кончились — else сообщает о проигрыше. Подсказки: больше или меньше. Упражнение на while + break + else.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <div class="card">
+      <p>Герой встречает <span style="color:#F59E0B;font-weight:700;">древнего духа</span>, который загадывает число от 1 до 20. У героя есть только 5 попыток. После каждой попытки дух подсказывает: «Загаданное число больше» или «Загаданное число меньше».</p>
+    </div>
+    <div class="card">
+      <p>Если герой угадывает раньше, чем закончатся попытки, дух признаёт победу — цикл прерывается через <code>break</code>. Если попытки исчерпаны — блок <code>else</code> сообщает о проигрыше. В коде используются <code>while</code> + <code>break</code> + <code>else</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 26: Практика 2 — шаги 1–7
+     ============================ -->
+<section class="slide"
+  data-notes="Шаги для задания с угадыванием числа (1–7). Ключевые моменты: secret = 13 (загаданное число), max_attempts = 5, attempt начинается с 1. Цикл while работает пока attempt <= max_attempts. При угадывании — break.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <ol class="steps">
+      <li>Задайте загаданное число. Используйте значение, например <code>secret = 13</code>.</li>
+      <li>Задайте максимальное количество попыток, например <code>max_attempts = 5</code>.</li>
+      <li>Создайте счётчик потраченных попыток с цифры 1.</li>
+      <li>Запустите цикл <code>while</code>, который работает, пока счётчик попыток меньше или равен <code>max_attempts</code>.</li>
+      <li>Внутри цикла запросите у игрока число.</li>
+      <li>Сравните введённое число с загаданным.</li>
+      <li>Если числа равны, выведите поздравление и используйте <code>break</code>, чтобы выйти из цикла.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 27: Практика 2 — шаги 8–12
+     ============================ -->
+<section class="slide"
+  data-notes="Завершающие шаги: подсказки, увеличение счётчика, блок else. Подчеркни шаг 11: else после while выполнится только если цикл завершился по условию (попытки кончились), а не по break. Это классический паттерн Python.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <ol class="steps" style="counter-reset:step 7">
+      <li>Если введённое число меньше загаданного, выведите подсказку «Загаданное число больше».</li>
+      <li>Если введённое число больше загаданного, выведите подсказку «Загаданное число меньше».</li>
+      <li>Увеличьте счётчик попыток на 1.</li>
+      <li>После цикла используйте блок <code>else</code>. Он выполнится, если цикл завершился по условию, а не по <code>break</code>. Внутри <code>else</code> сообщите, что попытки кончились и герой проиграл.</li>
+      <li>В конце программы выведите итоговое сообщение.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 28: Практика 2 — эталон часть 1
+     ============================ -->
+<section class="slide"
+  data-notes="Первая часть эталонного кода: инициализация переменных. secret = 13, max_attempts = 5, attempt = 1. Скажи ученикам: они могут изменить secret на любое число от 1 до 20 и протестировать программу.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python">print("=== УГАДАЙ ЧИСЛО ===")
+print("Страж загадал число от 1 до 20. У вас 5 попыток.\n")
+
+# 1. Загаданное число
+secret = 13
+
+# 2. Максимальное число попыток
+max_attempts = 5
+
+# 3. Счётчик попыток
+attempt = 1
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 29: Практика 2 — эталон часть 2
+     ============================ -->
+<section class="slide"
+  data-notes="Цикл while и логика угадывания. while attempt <= max_attempts — цикл идёт пока есть попытки. Если guess == secret — поздравление и break. Обрати внимание: attempt увеличивается в конце цикла.">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python">...
+# 4. Цикл, пока есть попытки
+while attempt &lt;= max_attempts:
+    print(f"Попытка {attempt} из {max_attempts}")
+
+    # 5. Ввод числа от игрока
+    guess = int(input("Ваше число: "))
+
+    # 6. Проверка на угадывание
+    if guess == secret:
+        # 7. Угадал — победа и выход из цикла
+        print(f"Верно! Вы угадали число {secret} с попытки {attempt}!")
+        break
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 30: Практика 2 — эталон часть 3
+     ============================ -->
+<section class="slide"
+  data-notes="Подсказки и увеличение счётчика. elif guess < secret — больше; else — меньше. attempt += 1 в конце каждой итерации. Напомни: если не увеличивать attempt, цикл станет бесконечным!">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python">...
+    # 8 и 9. Подсказки
+    elif guess &lt; secret:
+        print("Загаданное число больше.")
+    else:
+        print("Загаданное число меньше.")
+
+    # 10. Увеличиваем счётчик попыток
+    attempt += 1
+
+...</code></pre>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 31: Практика 2 — эталон часть 4 (финал + компилятор)
+     ============================ -->
+<section class="slide"
+  data-notes="Финальная часть: блок else и завершение. else выполнится только если while завершился по условию (attempt > max_attempts), то есть попытки закончились. Запусти в компиляторе с числом 13 — дай ученикам угадывать!">
+  <div class="slide__inner">
+    <h2>Выполните практическое <span class="accent">задание</span></h2>
+    <pre><code class="language-python">...
+# 11. Блок else сработает, если цикл не прерван break, потому что попытки кончились
+else:
+    print(f"\nПопытки закончились. Вы не угадали. Загаданное число было {secret}.")
+
+# 12. Завершение
+print("Страж исчезает.")</code></pre>
+    <div class="compiler" data-lang="python" style="margin-top:10px">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — угадай число!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#x21BB; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#x25B6; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">secret = 13
+max_attempts = 5
+attempt = 1
+while attempt <= max_attempts:
+    guess = int(input(f"Попытка {attempt} из {max_attempts}. Ваше число: "))
+    if guess == secret:
+        print(f"Верно! Угадали с попытки {attempt}!")
+        break
+    elif guess < secret:
+        print("Загаданное число больше.")
+    else:
+        print("Загаданное число меньше.")
+    attempt += 1
+else:
+    print(f"Попытки закончились. Число было {secret}.")
+print("Страж исчезает.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 32: Домашнее задание — условие (часть 1)
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание — артефакт-сканер кодов. Задача: найти цифру 7 в числе. Семёрка — символ удачи. Алгоритм: разобрать число на цифры с помощью % 10 и //= 10. Если нашли 7 — break. Нуль — continue.">
+  <div class="slide__inner">
+    <h2>Выполните домашнее <span class="accent">задание</span></h2>
+    <div class="card">
+      <p>В игре герой находит <span style="color:#F59E0B;font-weight:700;">артефакт-сканер кодов</span>. Артефакт умеет определять, есть ли в коде цифра семь. Семёрка — символ удачи.</p>
+      <p style="margin-top:8px">Если артефакт находит в коде хотя бы одну семёрку, он сразу объявляет об удаче и прекращает проверку. Нуль артефакт пропускает, потому что они не несут магического смысла.</p>
+    </div>
+    <ul class="clean">
+      <li>разбирает число на отдельные цифры;</li>
+      <li>пропускает цифры 0 — <code>continue</code>;</li>
+      <li>ищет цифру 7 — при нахождении <code>break</code>;</li>
+      <li>если цифра 7 не найдена — блок <code>else</code> сообщает, что код обычный.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 33: Домашнее задание — условие (часть 2)
+     ============================ -->
+<section class="slide"
+  data-notes="Уточнение условия: как разбирать число на цифры. Последняя цифра числа — num % 10. Убрать последнюю цифру — num //= 10. Цикл while работает пока число > 0. Подсказка: число 1234 — цифры 4, 3, 2, 1 (в обратном порядке).">
+  <div class="slide__inner">
+    <h2>Выполните домашнее <span class="accent">задание</span></h2>
+    <p>Герой вводит число-код, а артефакт:</p>
+    <ul class="clean">
+      <li>разбирает число на отдельные цифры;</li>
+      <li>пропускает цифры 0;</li>
+      <li>ищет цифру 7;</li>
+      <li>если цифра 7 найдена, выводит сообщение об удаче и немедленно прекращает проверку;</li>
+      <li>если проверены все цифры и семёрка не найдена, сообщает, что код обычный.</li>
+    </ul>
+    <div class="quote-block">
+      Подсказка: <code>num % 10</code> — последняя цифра числа; <code>num //= 10</code> — убрать последнюю цифру.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 34: Домашнее задание — шаги 1–6
+     ============================ -->
+<section class="slide"
+  data-notes="Первые шесть шагов домашнего задания. Флаг has_seven = False — пока семёрки нет. original_code сохраняем для вывода. Цикл while работает пока num > 0. digit = num % 10 — текущая цифра. Шаг 6: проверить, равна ли цифра 0.">
+  <div class="slide__inner">
+    <h2>Выполните домашнее <span class="accent">задание</span></h2>
+    <ol class="steps">
+      <li>Запросите у пользователя число-код и сохраните его в переменную.</li>
+      <li>Создайте переменную-флаг <code>has_seven = False</code>, чтобы отметить, найдена ли цифра 7.</li>
+      <li>Сохраните исходное значение кода в переменную <code>original_code</code>, чтобы вывести последний результат.</li>
+      <li>Запустите цикл <code>while</code>, который работает, пока число больше нуля.</li>
+      <li>Внутри цикла извлеките последнюю цифру числа с помощью <code>% 10</code>.</li>
+      <li>Проверьте, равна ли цифра 0.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 35: Домашнее задание — шаги 7–12
+     ============================ -->
+<section class="slide"
+  data-notes="Завершающие шаги. Если цифра 0 — num //= 10, continue. Если цифра 7 — has_seven = True, break. После цикла: else (без break) — 'код обычный'. Проверить флаг has_seven и вывести итог. Дай ученикам написать полный код самостоятельно. Проверь: число 1234 — обычный; 1274 — удача.">
+  <div class="slide__inner">
+    <h2>Выполните домашнее <span class="accent">задание</span></h2>
+    <ol class="steps" style="counter-reset:step 6">
+      <li>Если цифра равна нулю, уберите последнюю цифру из числа с помощью <code>//= 10</code> и используйте <code>continue</code>, чтобы не обрабатывать.</li>
+      <li>Проверьте, равна ли цифра 7.</li>
+      <li>Если цифра равна 7, установите <code>has_seven = True</code> и используйте <code>break</code>, чтобы сразу выйти из цикла — удача найдена.</li>
+      <li>Уберите последнюю цифру из числа.</li>
+      <li>Используйте блок <code>else</code> после цикла. Он выполнится, если цикл завершился без <code>break</code>. Внутри <code>else</code> выведите сообщение, что код обычный.</li>
+      <li>После цикла проверьте значение флага <code>has_seven</code> и выведите итоговое сообщение: содержит ли код магическую цифру 7.</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>&#x2190;</kbd><kbd>&#x2192;</kbd> слайды &nbsp;&middot;&nbsp; <kbd>N</kbd> заметки &nbsp;&middot;&nbsp; <kbd>F</kbd> полный экран &nbsp;&middot;&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

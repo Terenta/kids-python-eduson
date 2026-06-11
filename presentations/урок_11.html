@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 11 — Вложенные условия | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .btn-link{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(124,58,237,0.12);
+    border:1px solid rgba(124,58,237,0.35);
+    color:#c4b5fd;font-size:13px;font-weight:600;
+    padding:6px 16px;border-radius:999px;
+    text-decoration:none;transition:background 0.15s;
+  }
+  .btn-link:hover{background:rgba(124,58,237,0.22)}
+
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">31</span></div>
+
+<main class="deck" id="deck">
+
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 11. Тема — вложенные и каскадные условия. Поприветствуй учеников. Скажи: к концу урока они напишут систему проверки заказа в приложении доставки еды, используя elif и вложенные if на трёх уровнях.">
+  <div class="game-icons">
+    <svg width="110" height="110" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="12" y="24" width="56" height="34" rx="14" fill="white"/>
+      <rect x="22" y="34" width="4" height="14" rx="2" fill="#7C3AED"/>
+      <rect x="16" y="40" width="16" height="4" rx="2" fill="#7C3AED"/>
+      <circle cx="52" cy="35" r="3" fill="#7C3AED"/>
+      <circle cx="60" cy="35" r="3" fill="#7C3AED"/>
+      <circle cx="56" cy="41" r="3" fill="#7C3AED"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px"><span class="badge-green">Урок &#8470;11</span></div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Как работают вложенные<br>и каскадные условия
+      </h1>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Проверка ДЗ. Первый блок: покупка билета. Скобки при and/or критичны — они задают порядок вычислений. Попроси нескольких учеников показать свой код.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">домашнее задание</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — покупка билета</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># ——— Покупка билета ———
+age = 20
+balance = 400
+# есть согласие родителей?
+parent_consent = False
+# (старше 18 ИЛИ есть согласие родителей) И достаточно денег
+if (age >= 18 or parent_consent) and balance &gt; 300:
+    print("Билет куплен!")
+else:
+    print("Покупка невозможна")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Второй блок ДЗ — VIP и вход в зал. Разбери логику or для VIP. Спроси: почему используем not adult_film в следующем блоке?">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">домашнее задание</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — VIP и вход в зал</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">balance = 400
+has_vip_card = False
+# достаточно одного из двух условий
+if has_vip_card or balance &gt; 1000:
+    print("VIP-место забронировано!")
+else:
+    print("VIP-место недоступно")
+# ——— Вход в зал ———
+ticket_bought = True
+is_adult_film = True</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Третий блок ДЗ: вход в зал с пояснением причины отказа. Внутри else — дополнительные if без else. Это уже первый шаг к вложенным условиям.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">домашнее задание</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — вход в зал</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">name = "Иван"
+ticket_bought = True
+adult_film = True
+# билет есть И фильм не для взрослых
+if ticket_bought and not adult_film:
+    print(name + ": Добро пожаловать в зал!")
+else:
+    print(name + ": Вход в зал запрещён!")
+    if not ticket_bought:
+        print("— Нет билета.")
+    if adult_film:
+        print("— Фильм 18+.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Объяви цели урока. Три навыка: elif, цепочка if/elif/else, вложенные условия. Скажи: к концу урока они напишут систему проверки заказа доставки еды — настоящая задача из реальной разработки.">
+  <div class="slide__inner">
+    <h2>На уроке вы <span class="accent">узнаете</span></h2>
+    <ol class="steps">
+      <li><div>Что такое оператор <span style="color:var(--violet);font-weight:700;">elif</span> и для чего он нужен.</div></li>
+      <li><div>Как написать цепочку <span style="color:var(--violet);font-weight:700;">if / elif / else</span>.</div></li>
+      <li><div>Как написать вложенные условия, чтобы проверить код пошагово.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вводим elif. Конструкция if/else даёт только два варианта. elif добавляет третий, четвёртый и т.д. Покажи структуру: if → elif → else. Это одна связанная цепочка, не несколько отдельных блоков.">
+  <div class="slide__inner">
+    <h2>Свяжите несколько условий через <span style="color:var(--violet);">elif</span></h2>
+    <div class="card">
+      <p>Конструкция <code>if/else</code> проверяет только одно условие. А если условий больше? Используйте <code>elif</code> между <code>if</code> и <code>else</code>.</p>
+    </div>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — структура elif</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Первый вариант
+if условие_1:
+        ...
+# Второй вариант
+elif условие_2:
+        ...
+# Всё остальное
+else:
+        ...</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Три правила elif. Первое — звучит как иначе если. Второе — выполняется только первая подошедшая ветка. Третье — условия проверяются сверху вниз. Попроси учеников повторить правила своими словами.">
+  <div class="slide__inner">
+    <h2>Запомните правила, которые помогут использовать <span style="color:var(--violet);">elif</span></h2>
+    <p>Изучите три правила, которые важно запомнить.</p>
+    <ol class="steps">
+      <li><div><span style="color:var(--violet);font-weight:700;">elif</span> — звучит «иначе если»: нужен, когда условий больше двух.</div></li>
+      <li><div>Выполняется только первая подошедшая ветка — остальные пропускаются.</div></li>
+      <li><div>Условия проверяются сверху вниз.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Контекст задачи для elif. Умный будильник приветствует по-разному в зависимости от времени суток. Спроси: сколько вариантов нужно? Ночь, утро, день, вечер — четыре. if/else не хватит.">
+  <div class="slide__inner">
+    <h2>Изучите как применить <span style="color:var(--violet);">elif</span></h2>
+    <div class="card">
+      <p>Представьте, вы пишете программу умного будильника. Он приветствует пользователя в зависимости от времени суток.</p>
+    </div>
+    <ul class="clean">
+      <li>До 6:00 — <span style="color:var(--amber);font-weight:700;">ночь</span></li>
+      <li>До 12:00 — <span style="color:var(--amber);font-weight:700;">утро</span></li>
+      <li>До 18:00 — <span style="color:var(--amber);font-weight:700;">день</span></li>
+      <li>Всё остальное — <span style="color:var(--amber);font-weight:700;">вечер</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Код будильника. Прочитай вслух. hour=14 попадёт в elif hour &lt; 18 — выведет День. Попроси изменить hour на 3, 8, 20 и предсказать результат до запуска.">
+  <div class="slide__inner">
+    <h2>Изучите как применить <span style="color:var(--violet);">elif</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — умный будильник</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Текущий час
+hour = 14
+# Если меньше 6 — ночь
+if hour &lt; 6:
+    print("Ночь")
+# Если меньше 12 — утро
+elif hour &lt; 12:
+    print("Утро")
+# Если меньше 18 — день
+elif hour &lt; 18:
+    print("День")
+# Во всех остальных случаях — вечер
+else:
+    print("Вечер")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Первая ошибка: заменить elif несколькими if. При hour=10 оба условия верны — выведется и День и Утро. Запусти и покажи. Это и есть проблема.">
+  <div class="slide__inner">
+    <h2>Разберите типичные ошибки в работе с <span style="color:var(--violet);">elif</span></h2>
+    <div class="card">
+      <p>Нельзя заменить <code>elif</code> на два отдельных <code>if</code>. Если написать несколько <code>if</code> — программа выведет несколько сообщений сразу.</p>
+    </div>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — ошибка: два if</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Текущий час
+hour = 10
+# Ошибка: два отдельных if — оба проверятся
+if hour &lt; 18:
+    print("День")
+if hour &lt; 12:
+    print("Утро")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вторая ошибка: неправильный порядок. При hour=10 первый if уже срабатывает — выводит День. До elif < 12 программа не дойдёт. Порядок условий в elif-цепочке имеет значение!">
+  <div class="slide__inner">
+    <h2>Разберите типичные ошибки в работе с <span style="color:var(--violet);">elif</span></h2>
+    <div class="card">
+      <p>Неправильный порядок условий. При <code>hour = 10</code> сработает <code>hour &lt; 18</code> — выведет «День», хотя должно быть «Утро». Пишите от самого узкого к самому широкому.</p>
+    </div>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — ошибка: порядок условий</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Текущий час
+hour = 10
+# Ошибка: hour < 18 стоит первым — сюда попадёт утро
+if hour &lt; 18:
+    print("День")
+elif hour &lt; 12:
+    print("Утро")
+elif hour &lt; 6:
+    print("Ночь")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов после блока про elif. Проверочные вопросы: что такое elif? Сколько elif можно добавить? Что будет, если написать несколько if вместо elif?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;">Пришло время<br>задавать вопросы</h1>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Обсуждение. Правильные ответы: elif не проверяется, если предыдущее условие уже сработало; elif нужен когда варианты взаимоисключающие.">
+  <div class="slide__inner" style="justify-content:center;align-items:flex-start;padding-top:40px">
+    <p class="discussion-text">Чем <span style="color:var(--violet);">elif</span> отличается<br>от второго <span style="color:var(--violet);">if</span>?</p>
+    <p class="discussion-text" style="margin-top:24px;font-size:clamp(20px,3vw,40px);color:var(--muted);">Для чего применяется <span style="color:var(--violet);">elif</span>?</p>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вводим сравнение трёх подходов: несколько if, цепочка elif, вложенный if. Контекст: Вася написал контрольную на 95 баллов. Спроси: сколько сообщений должна вывести программа — одно или несколько?">
+  <div class="slide__inner">
+    <h2>Проверьте условие с помощью нескольких <span style="color:var(--violet);">if</span></h2>
+    <div class="card">
+      <p>Разберитесь, чем различаются разные варианты условий и когда использовать каждый из них.</p>
+      <p style="margin-top:10px">Представьте, Вася написал контрольную и получил <span style="color:var(--amber);font-weight:700;">95 баллов</span>. Программа анализирует результат и выводит оценку. Для каждого условия срабатывает свой <code>if</code> — на экран может вывестись сразу несколько сообщений.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Несколько независимых if. Запусти — выведется и Сдал и Отлично, оба условия верны для score=95. Обрати внимание: второй if с отступом внутри первого — это уже начало вложенности.">
+  <div class="slide__inner">
+    <h2>Примените отдельный <span style="color:var(--violet);">if</span> для каждой отдельной проверки</h2>
+    <div class="card">
+      <p>Каждый <code>if</code> проводит независимую проверку. Программа пройдёт через все условия сверху вниз и выполнит все подходящие. Здесь выведется сразу два сообщения.</p>
+    </div>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — несколько if</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Баллы Васи
+score = 95
+
+# Сработает, если набрал хотя бы 50 баллов
+if score &gt;= 50:
+    print("Сдал")
+
+    # Дополнительная проверка внутри первой
+    if score &gt;= 90:
+        print("Отлично")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Когда нужен if/elif/else. Ключевая мысль: используй эту конструкцию, когда нужно выбрать ровно один вариант из нескольких. Варианты взаимоисключающие.">
+  <div class="slide__inner">
+    <h2>Выберите один вариант с помощью <span style="color:var(--violet);">if, elif, else</span></h2>
+    <div class="card">
+      <p>Вернитесь к кейсу с контрольной. Теперь нужно выдать <strong>одну оценку</strong>. Программа проверяет условия сверху вниз и останавливается на первом подходящем.</p>
+      <p style="margin-top:10px">Используйте этот метод, когда нужно выбрать один вариант из нескольких и варианты <strong>не зависят друг от друга</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Код с elif для оценок. При score=95 сработает только первое условие — выведет Отлично. Попроси изменить score на 70 и 30.">
+  <div class="slide__inner">
+    <h2>Изучите пример применения <span style="color:var(--violet);">elif</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — оценка с elif</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Баллы ученика
+score = 95
+# Проверяем первое условие, если оно верно — программа остановится
+if score &gt;= 90:
+    print("Отлично")
+# Это условие не выполнится, если первое было верным
+elif score &gt;= 50:
+    print("Хорошо")
+# Выполнится, если ни одно условие не подошло
+else:
+    print("Неудовлетворительно")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Когда использовать and/or. Пропуск на концерт: возраст И билет — оба обязательны. Разбивать на уровни не нужно, потому что причину отказа не поясняем. Просто одна проверка двух условий вместе.">
+  <div class="slide__inner">
+    <h2>Объедините проверки в одну строку с помощью <span style="color:var(--violet);">and</span> и <span style="color:var(--violet);">or</span></h2>
+    <div class="card">
+      <p>Представьте, вы пишете программу для пропуска зрителей на концерт. Охранник проверяет: <strong>возраст</strong> и <strong>наличие билета</strong>.</p>
+      <p style="margin-top:10px">Оба условия одинаково важны. Отдельных сообщений для каждого случая нет — разбивать на уровни не имеет смысла.</p>
+      <p style="margin-top:10px">Используйте этот метод, если нужно проверить несколько условий и они <strong>связаны друг с другом</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Расширенная цепочка elif для четырёх оценок. При score=75 сработает elif score &lt;= 89. Попроси проверить: 45, 65, 75, 95.">
+  <div class="slide__inner">
+    <h2>Изучите, как применить <span style="color:var(--violet);">elif</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — четыре оценки</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Баллы студента
+score = 75
+# Оценка неудовлетворительно: менее 50 баллов
+if score &lt; 50:
+    print("Не сдал экзамен.")
+# Оценка удовлетворительно: от 50 до 69
+elif score &lt;= 69:
+    print("Оценка удовлетворительная.")
+# Оценка хорошо: от 70 до 89
+elif score &lt;= 89:
+    print("Оценка хорошая.")
+# Оценка отлично: 90 и больше
+else:
+    print("Оценка отличная!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вводим вложенные условия. Возвращаемся к задаче с концертом, но нужно объяснить причину отказа. Проверки надо разбить на уровни: сначала возраст, и только если подошёл — проверить билет.">
+  <div class="slide__inner">
+    <h2>Разбейте проверки на уровни через вложенный <span style="color:var(--violet);">if</span></h2>
+    <div class="card">
+      <p>Вернитесь к задаче допуска на концерт. Теперь программа должна объяснить <strong>причину отказа</strong>.</p>
+      <p style="margin-top:10px">Два разных сообщения: не тот возраст — одно, нет билета — другое. Проверки нужно <strong>разбить на уровни</strong>: сначала возраст, и только если он подошёл — проверить билет.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Код с вложенными условиями для концерта. Попроси проверить: возраст 16 (отказ), возраст 20 + нет билета (отказ), возраст 20 + да (вход).">
+  <div class="slide__inner">
+    <h2>Изучите пример применения вложенных условий</h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — допуск на концерт</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Данные посетителя (меняй значения и проверяй!)
+age = 20
+ticket_available = "да"
+# Основная проверка возраста
+if age &lt; 18:
+    print("Вам отказано: вам меньше 18 лет.")
+# Дополнительная проверка наличия билета
+elif ticket_available != "да":
+    print("Вам отказано: у вас нет билета.")
+# Иначе — проход разрешён
+else:
+    print("Добро пожаловать на концерт!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов после блока про вложенные условия. В чём разница между вложенным if и двумя if подряд? Когда нужны вложенные условия? Когда достаточно elif?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;">Пришло время<br>задавать вопросы</h1>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Обсуждение. Вложенный if внутри if выполняется только если внешнее условие верно. Два if подряд — оба проверяются всегда независимо. Несколько if нужны когда проверки независимы.">
+  <div class="slide__inner" style="justify-content:center;align-items:flex-start;padding-top:30px">
+    <p class="discussion-text">В чём разница между вложенными <span style="color:var(--violet);">if</span><br>и двумя <span style="color:var(--violet);">if</span>, которые идут друг за другом?</p>
+    <p class="discussion-text" style="margin-top:24px;font-size:clamp(18px,2.5vw,34px);color:var(--muted);">В каком случае необходимо применить несколько <span style="color:var(--violet);">if</span>?</p>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Практическое задание. Мобильное приложение доставки еды. Три проверки: ресторан открыт, денег хватает, расстояние. Если что-то не так — понятное сообщение. Если всё ок — выбрать способ доставки.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">практическое задание</span></h2>
+    <div class="card">
+      <p>Ваша команда делает мобильное приложение доставки еды. Задача — написать код, который проверяет заказ перед отправкой.</p>
+      <p style="margin-top:10px">Приложение проверяет три вещи: <span style="color:var(--amber);font-weight:700;">открыт ли ресторан</span>, <span style="color:var(--amber);font-weight:700;">хватает ли денег</span> и <span style="color:var(--amber);font-weight:700;">как далеко везти заказ</span>. Если проверка не прошла — понятное сообщение. Если все пройдены — определить способ доставки по расстоянию.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Первая часть инструкции. Объяви переменные, внешний if is_open, внутри if balance >= price, внутри if distance &lt;= 2 и цепочку elif. Напомни про отступы: каждый уровень вложенности — плюс 4 пробела.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">практическое задание</span></h2>
+    <ol class="steps">
+      <li><div>Объявите переменные <code>is_open</code>, <code>balance</code>, <code>price</code>, <code>distance</code> и задайте стартовые значения.</div></li>
+      <li><div>Напишите <code>if is_open:</code> — первая проверка.</div></li>
+      <li><div>Внутри с отступом 4 пробела напишите <code>if balance &gt;= price:</code>.</div></li>
+      <li><div>Внутри с отступом 8 пробелов напишите <code>if distance &lt;= 2:</code> — первый вариант доставки.</div></li>
+      <li><div>Продолжите цепочку: добавьте <code>elif distance &lt;= 5:</code> и <code>elif distance &lt;= 10:</code> с теми же 8 пробелами.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вторая часть инструкции. Закрыть цепочку расстояний через else, добавить else для нехватки денег и else для закрытого ресторана. Уровни отступов — ключ к правильной логике. Дай 5–7 минут.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">практическое задание</span></h2>
+    <ol class="steps" style="counter-reset:step 5">
+      <li><div>Закройте цепочку через <code>else:</code> — случай, когда расстояние больше 10 км.</div></li>
+      <li><div>Вернитесь на уровень 4 пробела и добавьте <code>else:</code> к <strong>balance</strong> — сообщение про нехватку денег.</div></li>
+      <li><div>Вернитесь на уровень 0 пробелов и добавьте <code>else:</code> к <strong>is_open</strong> — сообщение про закрытый ресторан.</div></li>
+      <li><div>Запустите код со стартовыми значениями и проверьте результат.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Эталон часть 1. Разбери объявление переменных. is_open=True, balance=500 &gt; price=350, distance=3. Попроси учеников предсказать результат до показа полного кода.">
+  <div class="slide__inner">
+    <h2>Сравните свой код с <span class="accent">эталоном</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — доставка еды (часть 1)</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># открыт ли ресторан
+is_open = True
+# деньги на счёте в рублях
+balance = 500
+# цена заказа в рублях
+price = 350
+# расстояние до адреса в км
+distance = 3
+# Этап 1 — Проверка: открыт ли ресторан
+if is_open:
+    print("Ресторан открыт — проверяем заказ...")
+else:
+    print("Ресторан закрыт. Попробуй позже")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Полный эталонный код. Запусти — Доставка на велосипеде — 30 минут. Попроси изменить: distance=1 (пешком), distance=8 (машина), distance=15 (самовывоз), balance=100 (нет денег), is_open=False (закрыт).">
+  <div class="slide__inner">
+    <h2>Сравните свой код с <span class="accent">эталоном</span></h2>
+
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — доставка еды (полный код)</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">is_open = True
+balance = 500
+price = 350
+distance = 3
+
+if is_open:
+    if balance &gt;= price:
+        # Этап 2 — Выбор способа доставки
+        if distance &lt;= 2:
+            print("Доставка пешим курьером — 15 минут")
+        elif distance &lt;= 5:
+            print("Доставка на велосипеде — 30 минут")
+        elif distance &lt;= 10:
+            print("Доставка на машине — 45 минут")
+        else:
+            print("Слишком далеко. Самовывоз")
+    else:
+        print("Недостаточно средств. Пополни счёт")
+else:
+    print("Ресторан закрыт. Попробуй позже")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Домашнее задание — мобильная игра-раннер. Три проверки: интернет, аккаунт, заряд. Если все прошли — определить режим игры по рейтингу (4 варианта). Полная система вложенных и каскадных условий на трёх уровнях.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <div class="card">
+      <p>Вы — разработчик мобильной игры-раннера. Задача — написать код, который проверяет игрока перед запуском и подбирает режим игры.</p>
+      <p style="margin-top:10px">Три проверки: <span style="color:var(--amber);font-weight:700;">есть ли интернет</span>, <span style="color:var(--amber);font-weight:700;">вошёл ли игрок в аккаунт</span> и <span style="color:var(--amber);font-weight:700;">достаточно ли заряда батареи</span>. Если проверка не прошла — сообщение.</p>
+      <p style="margin-top:10px">Если все пройдены — режим по рейтингу: от 1000 — <strong>Эксперт</strong>, от 500 — <strong>Опытный</strong>, от 100 — <strong>Новичок</strong>, ниже 100 — <strong>Обучение</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Первая часть инструкции к ДЗ. Три уровня вложенности: internet → logged_in → battery &gt; 20 → рейтинг. Напомни: рейтинговые условия на глубине 12 пробелов. Все четыре варианта режима через if/elif/elif/else.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <ol class="steps">
+      <li><div>Объявите четыре переменные: <code>internet</code>, <code>logged_in</code>, <code>battery</code>, <code>rating</code> — задайте стартовые значения.</div></li>
+      <li><div>Напишите внешний <code>if internet:</code> — первая проверка доступа.</div></li>
+      <li><div>Внутри с отступом 4 пробела напишите <code>if logged_in:</code> — вторая проверка.</div></li>
+      <li><div>Внутри с отступом 8 пробелов напишите <code>if battery &gt; 20:</code> — третья проверка.</div></li>
+      <li><div>Внутри с отступом 12 пробелов напишите <code>if / elif / elif / else</code> для рейтинга — все четыре варианта режима.</div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide"
+  data-notes="Вторая часть ДЗ. Добавить else для каждого уровня: low battery, нет аккаунта, нет интернета. Каждый else закрывает свой if на том же уровне отступов. Попроси прислать скриншот с результатом на платформу.">
+  <div class="slide__inner">
+    <h2>Выполните <span class="accent">домашнее задание</span></h2>
+    <ol class="steps" style="counter-reset:step 5">
+      <li><div>Вернитесь к <code>battery</code> и добавьте <code>else:</code> на уровне 8 пробелов — сообщение про низкий заряд.</div></li>
+      <li><div>Вернитесь к <code>logged_in</code> и добавьте <code>else:</code> на уровне 4 пробелов — сообщение про вход в аккаунт.</div></li>
+      <li><div>Вернитесь к <code>internet</code> и добавьте <code>else:</code> на уровне 0 пробелов — сообщение про отсутствие сети.</div></li>
+      <li><div>Запустите и проверьте результат. Сделайте скриншот и прикрепите на платформе!</div></li>
+    </ol>
+
+    <div class="compiler" data-lang="python" style="margin-top:6px">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — игра-раннер (эталон)</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">&#8635; Сбросить</button>
+          <button class="compiler-btn run" type="button">&#9654; Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">internet = True
+logged_in = True
+battery = 75
+rating = 750
+
+if internet:
+    if logged_in:
+        if battery &gt; 20:
+            if rating &gt;= 1000:
+                print("Режим: Эксперт")
+            elif rating &gt;= 500:
+                print("Режим: Опытный")
+            elif rating &gt;= 100:
+                print("Режим: Новичок")
+            else:
+                print("Режим: Обучение")
+        else:
+            print("Низкий заряд. Подключи зарядку!")
+    else:
+        print("Войди в аккаунт, чтобы играть.")
+else:
+    print("Нет интернета. Проверь подключение.")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

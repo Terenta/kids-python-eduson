@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 17 — Что такое функции | EdisonGames · Python и нейросети</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  .grid--4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3,.grid--4{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+  .card__icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.25));margin-bottom:14px;font-size:22px}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* KV table */
+  .kv{display:flex;flex-direction:column;gap:14px}
+  .kv__item{display:flex;gap:16px;align-items:baseline;padding:12px 0;border-bottom:1px dashed var(--card-border)}
+  .kv__item:last-child{border-bottom:none}
+  .kv__key{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--cyan);flex:0 0 160px;font-weight:500}
+  .kv__val{font-size:16px;color:var(--text);line-height:1.45}
+
+  /* Timeline */
+  .timeline{display:flex;flex-direction:column;gap:12px}
+  .timeline__row{display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:flex-start;padding:14px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px}
+  .timeline__time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--cyan)}
+  .timeline__body h3{font-size:17px;margin-bottom:4px}
+  .timeline__body p{font-size:14px;color:var(--muted)}
+
+  /* Quote */
+  .quote{font-size:clamp(18px,2vw,26px);font-weight:600;line-height:1.3;color:var(--text);border-left:4px solid transparent;border-image:linear-gradient(180deg,var(--violet),var(--cyan)) 1;padding-left:24px}
+
+  /* Misc */
+  .emo{font-size:48px;line-height:1}
+  .badges{display:flex;flex-wrap:wrap;gap:10px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;color:var(--text)}
+  .badge--violet{border-color:rgba(124,58,237,0.4);background:rgba(124,58,237,0.1)}
+  .badge--cyan{border-color:rgba(6,182,212,0.4);background:rgba(6,182,212,0.1)}
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Download buttons */
+  .btn-link{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .btn-link:hover{background:rgba(245,158,11,0.2)}
+  .btn-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal animations */
+  .slide.active .card,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li,
+  .slide.active .timeline__row{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1),.slide.active .timeline__row:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .timeline__row:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .timeline__row:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4),.slide.active .timeline__row:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5),.slide.active .timeline__row:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .timeline__row:nth-child(6){animation-delay:360ms}
+  .slide.active .card:nth-child(7),.slide.active ul.clean li:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">33</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 17 открывает Модуль 5 — Отдел функциональных механик. Это переход от 'я знаю циклы' к 'я пишу профессиональный структурированный код'. Функции — самая важная концепция курса. Начни с демонстрации проблемы: покажи код с дублированием и скажи 'сейчас мы это починим'.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №17</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Что такое функции
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2 (NEW): Разбор ДЗ урок 16
+     ============================ -->
+<section class="slide"
+  data-notes="Начни урок с разбора домашнего задания урок 16 (циклы и лабиринт). Пусть ребёнок покажет своё решение — так мы плавно переходим к теме: 'В лабиринте карта печатается 3 раза. Видишь дублирование? Сейчас научимся это убирать'.">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span> — Урок 16</h2>
+    <p class="lead">Лабиринт из ASCII-символов + цикл. Нашёл дублирование?</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [
+    ["#","#","#","#","#"],
+    ["#"," "," "," ","#"],
+    ["#"," ","#"," ","#"],
+    ["#"," "," "," ","#"],
+    ["#","#","#","#","#"],
+]
+
+# Эту карту мы печатаем несколько раз...
+print("=== ХОД 1 ===")
+for row in maze:
+    print("".join(row))
+
+print("=== ХОД 2 ===")
+for row in maze:
+    print("".join(row))
+
+print("=== КОНЕЦ ===")
+for row in maze:
+    print("".join(row))
+
+# Видишь повторяющийся код? Сегодня мы его исправим!</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p><b class="accent">Вопрос к ребёнку:</b> что именно повторяется? Сколько раз? Что случится, если нужно изменить формат вывода?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Добро пожаловать в отдел
+     ============================ -->
+<section class="slide"
+  data-notes="Поддерживай нарратив стажировки. В EdisonGames каждый отдел — это новый навык. Функциональные механики — отдел, который строит переиспользуемые детали игр. Ребёнок — стажёр, которого взяли в этот отдел.">
+  <div class="slide__inner">
+    <h2>Добро пожаловать в <span class="accent">Отдел функциональных механик</span></h2>
+    <p class="lead">EdisonGames · Стажировка · Неделя 17 из 32</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card card--glow">
+        <div class="card__icon">🏢</div>
+        <h3>Твоя история в EdisonGames</h3>
+        <p>Ты прошёл Модули 1–4: написал переменные, условия, циклы, сделал ASCII-лабиринт. Тебя переводят в новый отдел — <b style="color:var(--cyan)">Функциональные механики</b>.</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">⚙️</div>
+        <h3>Задача отдела</h3>
+        <p>Инженеры этого отдела создают <b style="color:var(--violet)">переиспользуемые блоки кода</b>: кнопку запуска игры, подсчёт очков, рендер экрана. Нажал — работает. Нажал снова — работает снова.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <p>💡 <b class="accent">Твой первый проект в отделе:</b> переписать лабиринт из Модуля 4 так, чтобы каждый повторяющийся кусок кода стал функцией. Это называется <b>рефакторинг</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4 (NEW): Что ты уже умеешь
+     ============================ -->
+<section class="slide"
+  data-notes="Покажи ребёнку его путь. Он прошёл 4 модуля — это огромный путь. Сейчас он входит в Модуль 5. Это мотивационный слайд: 'Посмотри, что ты уже знаешь!'">
+  <div class="slide__inner">
+    <h2>Что ты уже умеешь <span class="accent">к уроку 17</span></h2>
+    <p class="lead">Модули 1–4 позади — ты уже настоящий стажёр EdisonGames</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3>📦 Модуль 1 — Данные</h3>
+        <ul class="clean">
+          <li>Переменные: числа, строки, булевы</li>
+          <li>Ввод/вывод: <code>input()</code>, <code>print()</code></li>
+          <li>Арифметика и операции со строками</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🔀 Модуль 2 — Логика</h3>
+        <ul class="clean">
+          <li>Условия: <code>if / elif / else</code></li>
+          <li>Сравнение и логические операторы</li>
+          <li>Вложенные условия</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🔁 Модуль 3 — Циклы</h3>
+        <ul class="clean">
+          <li><code>for</code> и <code>while</code> циклы</li>
+          <li><code>break</code>, <code>continue</code>, <code>range()</code></li>
+          <li>Вложенные циклы</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📋 Модуль 4 — Структуры</h3>
+        <ul class="clean">
+          <li>Списки и индексы</li>
+          <li>Словари и пары ключ–значение</li>
+          <li>Лабиринт + ASCII-арт проект</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card--glow" style="margin-top:4px">
+      <p>🚀 <b class="accent">Модуль 5 — Функции</b> превратит всё это в красивый, профессиональный код. Готов?</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Plan
+     ============================ -->
+<section class="slide"
+  data-notes="Покажи план урока. Убедись, что ребёнок видит финал — меню игры с 4 функциями. Это реальный результат.">
+  <div class="slide__inner">
+    <h2>План на <span class="accent">60 минут</span></h2>
+    <p class="lead">От «зачем функции» до рабочего меню видеоигры</p>
+    <div class="timeline" style="margin-top:8px">
+      <div class="timeline__row">
+        <div class="timeline__time">0 – 10 мин</div>
+        <div class="timeline__body"><h3>Проблема копипасты</h3><p>Смотрим на код лабиринта — что дублируется? Зачем это плохо?</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">10 – 25 мин</div>
+        <div class="timeline__body"><h3>Анатомия функции</h3><p>def, имя, скобки, двоеточие, тело, вызов — разбираем каждую часть</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">25 – 45 мин</div>
+        <div class="timeline__body"><h3>Практика — 3 задания</h3><p>print_menu(), draw_line(), refactor show_map()</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">45 – 55 мин</div>
+        <div class="timeline__body"><h3>Мини-проект «Меню игры»</h3><p>4 функции + цикл = настоящее интерактивное меню</p></div>
+      </div>
+      <div class="timeline__row">
+        <div class="timeline__time">55 – 60 мин</div>
+        <div class="timeline__body"><h3>Бейдж «Мастер функций»</h3><p>Чек-лист + домашнее задание</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6 (NEW): Проверьте себя
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивный старт: 3 вопроса для обсуждения. Не нужно проверять — просто разговор. Цель: активировать мышление перед новой темой.">
+  <div class="slide__inner">
+    <h2>Проверьте себя: <span class="accent">3 вопроса</span></h2>
+    <p class="lead">Подумай сам, потом обсудим вместе</p>
+    <ol class="steps" style="margin-top:8px">
+      <li>
+        <div>
+          <b>Что такое «дублирование кода»?</b> Почему это плохо для программиста?
+          <div class="card" style="margin-top:6px;padding:10px 16px"><p style="color:var(--muted);font-size:14px">Подсказка: подумай о ситуации, когда нужно исправить ошибку в одном месте, а она встречается ещё в 10 местах...</p></div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Ты видел слово <code>def</code> в Python?</b> Как ты думаешь, что оно означает?
+          <div class="card" style="margin-top:6px;padding:10px 16px"><p style="color:var(--muted);font-size:14px">Подсказка: <code>def</code> — сокращение от английского слова «define» = определить, объявить.</p></div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Как думаешь, что выведет этот код?</b>
+          <pre style="margin-top:8px;font-size:14px!important"><code class="language-python">def say_hi():
+    print("Привет!")
+
+say_hi()
+say_hi()</code></pre>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Hook — problem (green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Мотивационный крючок: покажи ребёнку код лабиринта, где print карты дублируется 3 раза. Скажи: 'Что если нужно поменять формат — придётся менять в трёх местах'. Это боль.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Что если нужно поменять<br>формат карты в 3 местах?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Копипаста vs функция
+     ============================ -->
+<section class="slide"
+  data-notes="Показываем конкретную боль: дублирование кода. Потом сразу решение — функция. Дай ребёнку сформулировать правило инженера самому.">
+  <div class="slide__inner">
+    <h2>Проблема: <span class="accent">копипаста убивает код</span></h2>
+    <p class="lead">Что если нужно поменять формат карты? Придётся менять в 3 местах...</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)">
+        <h3 style="color:#fca5a5">❌ До: дублирование</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python"># Ход 1 — печать карты
+for row in maze:
+    print("".join(row))
+
+# После выстрела — снова!
+for row in maze:
+    print("".join(row))
+
+# В конце — ещё раз!
+for row in maze:
+    print("".join(row))</code></pre>
+      </div>
+      <div class="card card--glow" style="border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)">
+        <h3 style="color:#86efac">✅ После: функция</h3>
+        <pre style="margin-top:10px;font-size:13px!important"><code class="language-python">def show_map():
+    for row in maze:
+        print("".join(row))
+
+# Ход 1
+show_map()
+
+# После выстрела
+show_map()
+
+# В конце
+show_map()</code></pre>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <p><b class="accent">Правило инженера EdisonGames:</b> если ты скопировал код второй раз — это сигнал написать функцию. Копипаста = баги в 3 местах вместо 1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Анатомия функции
+     ============================ -->
+<section class="slide"
+  data-notes="Разбираем анатомию функции. Каждая часть имеет имя. Рисуй на доске параллельно с объяснением диаграммы.">
+  <div class="slide__inner">
+    <h2>Анатомия <span class="accent">функции</span></h2>
+    <p class="lead">Пять частей — каждая важна</p>
+    <svg viewBox="0 0 900 310" style="width:100%;max-width:900px;margin:16px auto;display:block">
+      <defs>
+        <linearGradient id="ag" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/></marker>
+      </defs>
+      <rect x="20" y="40" width="860" height="60" rx="12" fill="rgba(124,58,237,0.08)" stroke="rgba(124,58,237,0.3)" stroke-width="1.5"/>
+      <text x="40" y="80" font-family="JetBrains Mono" font-size="26" font-weight="600">
+        <tspan fill="url(#ag)">def</tspan>
+        <tspan fill="#F1F5F9"> </tspan>
+        <tspan fill="#FBBF24">greet</tspan>
+        <tspan fill="#F1F5F9">(</tspan>
+        <tspan fill="#86efac">name</tspan>
+        <tspan fill="#F1F5F9">):</tspan>
+      </text>
+      <rect x="20" y="120" width="860" height="50" rx="12" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.2)" stroke-width="1.5"/>
+      <text x="80" y="153" font-family="JetBrains Mono" font-size="22" fill="#94A3B8">    <tspan fill="#F1F5F9">print(</tspan><tspan fill="#c4b5fd">f"Привет, {</tspan><tspan fill="#86efac">name</tspan><tspan fill="#c4b5fd">}!"</tspan><tspan fill="#F1F5F9">)</tspan></text>
+      <g font-family="Inter" font-size="14" fill="#94A3B8">
+        <line x1="50" y1="110" x2="50" y2="210" stroke="url(#ag)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="30" y="230" fill="url(#ag)" font-weight="700" font-size="13">def</text>
+        <text x="10" y="248" font-size="12">ключевое слово</text>
+
+        <line x1="170" y1="42" x2="170" y2="240" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="145" y="258" fill="#FBBF24" font-weight="700" font-size="13">greet</text>
+        <text x="130" y="276" font-size="12">имя функции</text>
+
+        <line x1="310" y1="42" x2="310" y2="240" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="285" y="258" fill="#86efac" font-weight="700" font-size="13">name</text>
+        <text x="268" y="276" font-size="12">параметр</text>
+
+        <line x1="430" y1="42" x2="430" y2="240" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="415" y="258" fill="#F1F5F9" font-weight="700" font-size="13">( )</text>
+        <text x="400" y="276" font-size="12">скобки</text>
+
+        <line x1="490" y1="42" x2="490" y2="240" stroke="#F472B6" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="476" y="258" fill="#F472B6" font-weight="700" font-size="13">:</text>
+        <text x="460" y="276" font-size="12">двоеточие!</text>
+
+        <line x1="100" y1="145" x2="100" y2="295" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="60" y="308" fill="#06B6D4" font-weight="700" font-size="13">    тело</text>
+        <text x="50" y="322" font-size="12" dy="0">отступ 4 пробела</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Рецепт vs приготовление
+     ============================ -->
+<section class="slide"
+  data-notes="Ключевое различие: объявление НЕ выполняет код. Функция — это рецепт. Вызов — это 'приготовь по рецепту'. Без вызова — рецепт просто лежит на полке.">
+  <div class="slide__inner">
+    <h2>Рецепт vs <span class="accent">Приготовление</span></h2>
+    <p class="lead">def создаёт рецепт. Вызов <code>greet()</code> — готовит по нему</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <div class="card__icon">📝</div>
+        <h3>Объявление = рецепт</h3>
+        <p style="margin-bottom:10px">Код в теле функции <b style="color:var(--cyan)">НЕ выполняется</b> сразу. Он просто записывается.</p>
+        <pre style="font-size:13px!important"><code class="language-python">def greet():
+    print("Привет!")
+    print("Как дела?")
+# ← здесь ничего не выведется</code></pre>
+      </div>
+      <div class="card">
+        <div class="card__icon">🍳</div>
+        <h3>Вызов = готовим</h3>
+        <p style="margin-bottom:10px">Только когда пишешь <code>greet()</code> — функция <b style="color:var(--cyan)">выполняется</b>.</p>
+        <pre style="font-size:13px!important"><code class="language-python">greet()   # Привет! Как дела?
+greet()   # Привет! Как дела?
+greet()   # Привет! Как дела?
+# 3 раза по рецепту!</code></pre>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <p><b class="accent">Мнемоника:</b> <code>def greet:</code> — "Я записал рецепт". <code>greet()</code> — "Приготовь по этому рецепту!". Скобки <code>()</code> — это команда "пошёл!". Без скобок функция не запускается.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11 (NEW): Алгоритм написания функции
+     ============================ -->
+<section class="slide"
+  data-notes="5 шагов написания любой функции — алгоритм на всю жизнь. Распечатай и повесь на стену! Пусть ребёнок использует этот алгоритм при написании каждой следующей функции.">
+  <div class="slide__inner">
+    <h2>Алгоритм: <span class="accent">5 шагов</span> написания функции</h2>
+    <p class="lead">Каждый раз, когда нужно написать функцию — иди по шагам</p>
+    <ol class="steps" style="margin-top:8px">
+      <li>
+        <div><b>Назови задачу</b> — что функция должна делать? Одно действие = одна функция. Например: «напечатать меню».</div>
+      </li>
+      <li>
+        <div><b>Придумай глагол-имя</b> — <code>print_menu</code>, <code>show_score</code>, <code>draw_board</code>. snake_case, маленькие буквы.</div>
+      </li>
+      <li>
+        <div><b>Напиши заголовок</b> — <code>def имя():</code> Не забудь двоеточие! Пока без параметров — просто пустые скобки.</div>
+      </li>
+      <li>
+        <div><b>Напиши тело</b> — с отступом 4 пробела. Тело — это всё, что функция делает. Можно начать с одного <code>print()</code>.</div>
+      </li>
+      <li>
+        <div><b>Вызови и проверь</b> — напиши <code>имя()</code> ниже тела. Запусти. Работает? Вызови ещё раз!</div>
+      </li>
+    </ol>
+    <div class="card card--glow" style="margin-top:4px">
+      <p>⚡ <b class="accent">Совет инженера:</b> если функция делает больше одного дела — разбей на две. Функция должна быть маленькой и понятной.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Первая функция — запусти!
+     ============================ -->
+<section class="slide"
+  data-notes="Первый живой компилятор. Пусть ребёнок запустит код и увидит вывод 3 раза. Потом предложи изменить текст внутри функции.">
+  <div class="slide__inner">
+    <h2>Первая <span class="accent">функция</span> — запусти!</h2>
+    <p class="lead">Объяви функцию, вызови её три раза — и посмотри на магию</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Объявляем функцию
+def greet():
+    print("Привет от EdisonGames!")
+    print("Добро пожаловать в стажировку!")
+
+# Вызываем 3 раза
+greet()
+greet()
+greet()
+print("--- Конец ---")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ul class="clean" style="margin-top:8px">
+      <li>Попробуй изменить текст внутри <code>greet()</code> — изменятся все три вызова сразу</li>
+      <li>Добавь четвёртый вызов <code>greet()</code> — вывод появится автоматически</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13 (NEW): Исследуй сам
+     ============================ -->
+<section class="slide"
+  data-notes="Свободное исследование: 5 экспериментов с одной функцией. Ребёнок учится через пробы — это лучший метод. Дай 5 минут на самостоятельную работу.">
+  <div class="slide__inner">
+    <h2>Исследуй сам: <span class="accent">эксперименты</span></h2>
+    <p class="lead">5 опытов — 5 открытий. Запускай и наблюдай!</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def greet():
+    print("Привет, стажёр!")
+
+greet()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ol class="steps" style="margin-top:8px">
+      <li><b>Вызови <code>greet()</code> 10 раз подряд</b> — что происходит? Одинаковый вывод каждый раз?</li>
+      <li><b>Добавь ещё один print внутри</b> функции — меняется ли вывод при каждом вызове?</li>
+      <li><b>Напиши <code>greet</code> без скобок</b> (без <code>()</code>) — что выведет Python? Это ошибка?</li>
+      <li><b>Объяви функцию после вызова</b> — <code>greet()</code> сначала, потом <code>def greet()</code>. Что случится?</li>
+      <li><b>Создай функцию внутри функции</b> — можно ли? Попробуй!</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Как называть функции
+     ============================ -->
+<section class="slide"
+  data-notes="Правила именования функций — важны для стиля. Python-конвенция: snake_case, глаголы. Пример: show_map, draw_line, start_game — не ShowMap, не startgame.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">называть</span> функции</h2>
+    <p class="lead">Хорошее имя = понятный код без комментариев</p>
+    <div class="kv" style="margin-top:8px">
+      <div class="kv__item">
+        <div class="kv__key">snake_case</div>
+        <div class="kv__val">Слова разделяются подчёркиванием: <code>show_menu</code>, <code>draw_board</code>, <code>calc_score</code></div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">глагол</div>
+        <div class="kv__val">Функция что-то <em>делает</em>, поэтому имя — действие: <code>show_</code>, <code>draw_</code>, <code>print_</code>, <code>get_</code>, <code>calc_</code></div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">строчные</div>
+        <div class="kv__val">Только маленькие буквы. <code>show_map</code> ✅ · <code>ShowMap</code> ❌ (это стиль классов) · <code>SHOWMAP</code> ❌</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">по смыслу</div>
+        <div class="kv__val"><code>f()</code> — плохо. <code>do_stuff()</code> — плохо. <code>render_game_screen()</code> — отлично.</div>
+      </div>
+    </div>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <h3 style="color:#fca5a5">❌ Плохо</h3>
+        <p><code>def f():</code><br><code>def doStuff():</code><br><code>def MENU():</code></p>
+      </div>
+      <div class="card card--glow">
+        <h3 style="color:#86efac">✅ Хорошо</h3>
+        <p><code>def print_menu():</code><br><code>def show_score():</code><br><code>def start_new_game():</code></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Практика 1 — print_menu()
+     ============================ -->
+<section class="slide"
+  data-notes="Первое практическое задание. Ребёнок пишет print_menu() самостоятельно. Если застрял — напомни: сначала def, потом имя, скобки, двоеточие, тело с отступом.">
+  <div class="slide__inner">
+    <h2>Практика 1: <span class="accent">print_menu()</span></h2>
+    <p class="lead">Меню видеоигры — 3 пункта, 2 вызова</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Задание: объяви функцию print_menu()
+# Она должна напечатать 3 пункта меню
+def print_menu():
+    print("=" * 30)
+    print("  1. Начать игру")
+    print("  2. Правила")
+    print("  3. Выход")
+    print("=" * 30)
+
+# Вызови дважды (например, до и после игры)
+print("--- Главное меню ---")
+print_menu()
+print("--- Снова ---")
+print_menu()</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Практика 2 — Функции-помощники
+     ============================ -->
+<section class="slide"
+  data-notes="Второе задание: draw_line() — простая функция-разделитель. Покажи, как её использовать в 3 разных местах для красивого форматирования.">
+  <div class="slide__inner">
+    <h2>Практика 2: <span class="accent">Функции-помощники</span></h2>
+    <p class="lead">Маленькие функции делают код красивым</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def draw_line():
+    print("-" * 40)
+
+def print_title():
+    draw_line()
+    print("   🎮 EDISONGAMES — СТАЖИРОВКА 🎮")
+    draw_line()
+
+def print_score():
+    draw_line()
+    print("   Очки: 1500  |  Уровень: 3")
+    draw_line()
+
+# Используем все три
+print_title()
+print("Загрузка игры...")
+print_score()
+print("Игра продолжается!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17 (NEW): Функции вызывают функции
+     ============================ -->
+<section class="slide"
+  data-notes="Ключевое открытие: функции могут вызывать другие функции! Это начало архитектурного мышления. show_game_screen вызывает show_header, которая вызывает draw_border. Как матрёшка.">
+  <div class="slide__inner">
+    <h2>Функции <span class="accent">вызывают</span> функции</h2>
+    <p class="lead">Большие функции строятся из маленьких — как конструктор LEGO</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def draw_border():
+    print("=" * 35)
+
+def show_header():
+    draw_border()
+    print("   🎮 EDISONGAMES — СТАЖИРОВКА")
+    draw_border()
+
+def show_game_screen():
+    show_header()
+    print("")
+    print("   Уровень: 3  |  Очки: 1500")
+    print("   HP: ████████░░  80%")
+    print("")
+    draw_border()
+    print("   [W] Вперёд  [S] Назад  [Q] Выход")
+    draw_border()
+
+# Одна функция — целый экран!
+show_game_screen()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p><b class="accent">Принцип инженера:</b> если функция делает одно дело — она хорошая. <code>draw_border</code> рисует рамку. <code>show_header</code> показывает шапку. <code>show_game_screen</code> собирает экран. Каждую можно менять отдельно!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18 (NEW): Green cover — Попробуй сам
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для самостоятельной работы. Ребёнок должен написать свои 3 функции без подсказок. Это важное закрепление перед следующей темой.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Попробуй сам —<br>самостоятельная работа
+      </h1>
+    </div>
+    <p style="color:rgba(255,255,255,0.85);font-size:18px;margin-top:16px">Напиши 3 функции: <code style="background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:6px">draw_line()</code>, <code style="background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:6px">show_title()</code>, <code style="background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:6px">show_score()</code></p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Область видимости
+     ============================ -->
+<section class="slide"
+  data-notes="Краткое введение в область видимости. Функция — это отдельная комната. Переменные внутри — только там. Не пугай деталями, главное: внутри видно внешнее, но не наоборот.">
+  <div class="slide__inner">
+    <h2>Переменные: где они <span class="accent">видны</span>?</h2>
+    <p class="lead">Функция — это комната с закрытой дверью</p>
+    <svg viewBox="0 0 800 260" style="width:100%;max-width:800px;margin:12px auto;display:block">
+      <defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <rect x="10" y="10" width="780" height="240" rx="16" fill="rgba(124,58,237,0.05)" stroke="rgba(124,58,237,0.3)" stroke-width="2"/>
+      <text x="30" y="38" font-family="Inter" font-size="14" fill="#7C3AED" font-weight="600">ГЛОБАЛЬНАЯ ОБЛАСТЬ (вся программа)</text>
+      <text x="30" y="60" font-family="JetBrains Mono" font-size="14" fill="#F1F5F9">game_name = "EdisonGames"</text>
+      <rect x="30" y="80" width="500" height="140" rx="12" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.4)" stroke-width="2"/>
+      <text x="50" y="104" font-family="Inter" font-size="14" fill="#06B6D4" font-weight="600">ОБЛАСТЬ ФУНКЦИИ greet()</text>
+      <text x="50" y="128" font-family="JetBrains Mono" font-size="14" fill="#F1F5F9">local_msg = "Привет!"</text>
+      <text x="50" y="152" font-family="JetBrains Mono" font-size="14" fill="#94A3B8"># видит game_name ✅</text>
+      <text x="50" y="176" font-family="JetBrains Mono" font-size="14" fill="#94A3B8"># local_msg снаружи ❌</text>
+      <text x="560" y="140" font-family="Inter" font-size="13" fill="#94A3B8" text-anchor="middle">снаружи</text>
+      <text x="560" y="158" font-family="Inter" font-size="13" fill="#fca5a5" text-anchor="middle">local_msg</text>
+      <text x="560" y="176" font-family="Inter" font-size="13" fill="#fca5a5" text-anchor="middle">не видна ❌</text>
+      <text x="30" y="228" font-family="JetBrains Mono" font-size="13" fill="#94A3B8"># print(local_msg) — NameError!</text>
+    </svg>
+    <div class="card" style="margin-top:4px">
+      <p><b class="accent">Просто:</b> функция видит снаружи, снаружи — не видит внутрь. Пока это всё, что нужно знать. На уроке 18 разберём параметры — они решают эту проблему красиво.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20 (NEW): Практика 3 — рефакторинг лабиринта
+     ============================ -->
+<section class="slide"
+  data-notes="Практика рефакторинга — это ключевой навык. Ребёнок берёт свой старый код и улучшает его без изменения поведения. Это то, что делают инженеры каждый день!">
+  <div class="slide__inner">
+    <h2>Практика 3: <span class="accent">рефакторинг лабиринта</span></h2>
+    <p class="lead">Вынеси печать карты в функцию show_map() — это рефакторинг!</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">maze = [
+    ["#","#","#","#","#","#"],
+    ["#"," "," "," "," ","#"],
+    ["#"," ","#","#"," ","#"],
+    ["#"," "," ","@"," ","#"],
+    ["#","#","#","#","#","#"],
+]
+
+# Задание: вынеси печать карты в функцию show_map()
+# и вызови её в 3 разных местах игры
+
+def show_map():
+    print("=== КАРТА ===")
+    for row in maze:
+        print("".join(row))
+    print("=============")
+
+print("Начало игры:")
+show_map()
+
+# Герой делает ход...
+maze[3][3] = " "
+maze[2][3] = "@"
+
+print("\nПосле хода:")
+show_map()
+
+print("\nФинал:")
+show_map()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p><b class="accent">Заметь:</b> чтобы изменить формат вывода, теперь нужно поменять только одно место — внутри <code>show_map()</code>!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21 (NEW): Green cover — Вопросы
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов. Перед сложным мини-проектом убедись, что всё понятно. Дай ребёнку задать любые вопросы — это безопасное пространство.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,36px);font-weight:800;line-height:1.2;">
+        Пришло время<br>задавать вопросы!
+      </h1>
+    </div>
+    <p style="color:rgba(255,255,255,0.85);font-size:18px;margin-top:16px">Всё понятно про def, вызов и тело? Спроси сейчас — дальше будет сложнее 🙂</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Мини-проект — Меню игры
+     ============================ -->
+<section class="slide"
+  data-notes="Мини-проект — 4 функции + цикл. Это реальная архитектура консольного меню. Пусть ребёнок сначала набросает на бумаге: какие 4 функции, что каждая делает.">
+  <div class="slide__inner">
+    <h2>Мини-проект: <span class="accent">«Меню видеоигры»</span></h2>
+    <p class="lead">4 функции + while True = настоящее интерактивное меню</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def start_game():
+    print("🚀 Игра запущена!")
+    print("Уровень 1 начался...")
+
+def show_rules():
+    print("📖 ПРАВИЛА:")
+    print("  WASD — движение")
+    print("  Q — выход из игры")
+
+def show_credits():
+    print("👾 Создано стажёром EdisonGames")
+    print("  Модуль 5 — Функциональные механики")
+
+def quit_game():
+    print("Спасибо за игру! До встречи!")
+
+# Главный цикл
+while True:
+    print("\n=== МЕНЮ ===")
+    print("1. Начать игру")
+    print("2. Правила")
+    print("3. Авторы")
+    print("4. Выйти")
+    choice = input("Выбери (1-4): ")
+    if choice == "1":
+        start_game()
+    elif choice == "2":
+        show_rules()
+    elif choice == "3":
+        show_credits()
+    elif choice == "4":
+        quit_game()
+        break
+    else:
+        print("Неверный выбор!")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 23 (NEW): Расширяем меню — добавляем счёт
+     ============================ -->
+<section class="slide"
+  data-notes="Расширение мини-проекта: добавляем глобальные переменные счёта и уровня, функцию show_status(). Ребёнок видит, как маленькое изменение добавляет новую возможность.">
+  <div class="slide__inner">
+    <h2>Расширяем меню: <span class="accent">добавляем счёт</span></h2>
+    <p class="lead">Добавим переменные состояния и функцию статуса</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">score = 0
+level = 1
+
+def show_status():
+    print(f"  Уровень: {level}  |  Очки: {score}")
+
+def start_game():
+    global score, level
+    score = score + 100
+    level = level + 1
+    print("🚀 Игра запущена!")
+    show_status()
+
+def show_rules():
+    print("📖 WASD — движение, Q — выход")
+
+def quit_game():
+    print(f"Игра окончена! Итог: {score} очков")
+
+# Имитируем 2 игровых сессии
+print("=== МЕНЮ ===")
+show_status()
+start_game()
+start_game()
+show_rules()
+quit_game()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p><b class="accent">Новое слово: <code>global</code></b> — говорит Python, что мы меняем глобальную переменную внутри функции. На уроке 18 узнаем лучший способ через параметры и <code>return</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Типичные ошибки
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор типичных ошибок. Дети чаще всего: забывают скобки при вызове, забывают двоеточие, не ставят отступ.">
+  <div class="slide__inner">
+    <h2>Типичные <span class="accent">ошибки</span> с функциями</h2>
+    <p class="lead">Встретишь эти ошибки — теперь знаешь, что делать</p>
+    <div class="grid grid--2" style="margin-top:8px">
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Забыл () при вызове</h3>
+        <pre style="margin-top:8px;font-size:13px!important"><code class="language-python">greet  # не вызов!
+# Выведет: &lt;function greet&gt;
+# Нужно:
+greet()  # ← скобки!</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Нет двоеточия</h3>
+        <pre style="margin-top:8px;font-size:13px!important"><code class="language-python">def greet()   # ← SyntaxError!
+    print("Привет")
+# Нужно:
+def greet():  # ← двоеточие</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Нет отступа в теле</h3>
+        <pre style="margin-top:8px;font-size:13px!important"><code class="language-python">def greet():
+print("Привет")  # IndentationError!
+# Нужно 4 пробела:
+    print("Привет")  ✅</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:#fca5a5">❌ Объявил, но не вызвал</h3>
+        <pre style="margin-top:8px;font-size:13px!important"><code class="language-python">def greet():
+    print("Привет")
+# Вывода нет! Надо вызвать:
+greet()  # ← вот теперь работает</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 25 (NEW): Найди и исправь ошибки
+     ============================ -->
+<section class="slide"
+  data-notes="Отладочное задание: 4 ошибки в одном коде. Пусть ребёнок найдёт их сам, потом запустит. Это развивает навык чтения кода — важнейший инженерный навык.">
+  <div class="slide__inner">
+    <h2>Найди и исправь <span class="accent">все ошибки</span></h2>
+    <p class="lead">В этом коде 4 ошибки — найди все и запусти!</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Найди 4 ошибки и исправь их!
+
+def print_title()
+    print("=== EDISONGAMES ===")
+    print("  Добро пожаловать!")
+
+def show_score():
+    print("Очки: 500")
+
+def start_level():
+    print("Уровень 1 начался!")
+
+print_title
+show_score()
+StartLevel()</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="grid grid--2">
+        <div>
+          <p><b style="color:var(--amber)">Подсказки (только если застрял):</b></p>
+          <ul class="clean" style="font-size:14px">
+            <li>Ошибка 1: посмотри на строку с <code>def</code></li>
+            <li>Ошибка 2: посмотри на вызов функции</li>
+            <li>Ошибка 3: скобки при вызове</li>
+            <li>Ошибка 4: регистр имени</li>
+          </ul>
+        </div>
+        <div>
+          <p><b style="color:var(--green)">Ответ:</b></p>
+          <ul class="clean" style="font-size:14px">
+            <li>1: нет <code>:</code> после <code>print_title()</code></li>
+            <li>2: indent нарушен в print_title</li>
+            <li>3: <code>print_title</code> → <code>print_title()</code></li>
+            <li>4: <code>StartLevel()</code> → <code>start_level()</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Задание — функция-логотип
+     ============================ -->
+<section class="slide"
+  data-notes="Закрепление: ребёнок делает функцию логотипа. Это задание на творчество — пусть придумает свой ASCII-арт.">
+  <div class="slide__inner">
+    <h2>Задание: <span class="accent">функция-логотип</span></h2>
+    <p class="lead">Сделай функцию print_logo() с ASCII-артом своего проекта</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">def print_logo():
+    print("*" * 32)
+    print("*   EDISON  GAMES  STUDIO    *")
+    print("*   🎮 СТАЖИРОВКА 2026 🎮    *")
+    print("*" * 32)
+
+def print_separator():
+    print("~" * 32)
+
+# Используй функции!
+print_logo()
+print_separator()
+print("  Добро пожаловать, стажёр!")
+print_separator()
+print_logo()
+
+# Измени ASCII-арт на свой!</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p>💡 <b class="accent">Задание:</b> измени содержимое <code>print_logo()</code> на что-то своё. Попробуй написать своё имя ASCII-буквами или придумать символьный узор.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Прогресс Модуля 5
+     ============================ -->
+<section class="slide"
+  data-notes="Прогресс по модулю — важный мотиватор. Покажи, где мы и что впереди.">
+  <div class="slide__inner">
+    <h2>Прогресс <span class="accent">Модуля 5</span></h2>
+    <p class="lead">Отдел функциональных механик — 4 урока, 4 уровня мастерства</p>
+    <div class="grid grid--4" style="margin-top:8px">
+      <div class="card card--glow">
+        <div style="font-size:36px;text-align:center;margin-bottom:10px">✅</div>
+        <h3 style="text-align:center;font-size:15px">Урок 17</h3>
+        <p style="text-align:center;font-size:13px">def, вызов, тело функции</p>
+      </div>
+      <div class="card" style="opacity:0.5">
+        <div style="font-size:36px;text-align:center;margin-bottom:10px">🔒</div>
+        <h3 style="text-align:center;font-size:15px">Урок 18</h3>
+        <p style="text-align:center;font-size:13px">Параметры и аргументы</p>
+      </div>
+      <div class="card" style="opacity:0.5">
+        <div style="font-size:36px;text-align:center;margin-bottom:10px">🔒</div>
+        <h3 style="text-align:center;font-size:15px">Урок 19</h3>
+        <p style="text-align:center;font-size:13px">return — возврат значений</p>
+      </div>
+      <div class="card" style="opacity:0.5">
+        <div style="font-size:36px;text-align:center;margin-bottom:10px">🔒</div>
+        <h3 style="text-align:center;font-size:15px">Урок 20</h3>
+        <p style="text-align:center;font-size:13px">Проект «Морской бой»</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <p>⚡ <b class="accent">После этого модуля</b> ты сможешь написать любую игру, разбив её на понятные блоки-функции. Это то, что делают настоящие game developers в EdisonGames.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 28 (NEW): Функции в реальных играх
+     ============================ -->
+<section class="slide"
+  data-notes="Связь с реальным миром — важно для мотивации. Minecraft, Roblox, Unity — все используют функции. Это не абстрактная концепция, это то, что делают реальные разработчики прямо сейчас.">
+  <div class="slide__inner">
+    <h2>Функции в <span class="accent">реальных играх</span></h2>
+    <p class="lead">То, что ты изучаешь сегодня — используется в реальных студиях</p>
+    <div class="grid grid--3" style="margin-top:8px">
+      <div class="card card--glow">
+        <div class="card__icon">⛏️</div>
+        <h3>Minecraft (Java)</h3>
+        <pre style="font-size:12px!important;margin-top:8px"><code class="language-python">def spawn_mob(type):
+    pass
+
+def drop_loot(mob):
+    pass
+
+def update_chunk():
+    pass</code></pre>
+        <p style="font-size:13px;margin-top:8px;color:var(--muted)">Тысячи функций управляют каждым блоком мира</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🟦</div>
+        <h3>Roblox (Lua/Python)</h3>
+        <pre style="font-size:12px!important;margin-top:8px"><code class="language-python">def on_player_join():
+    pass
+
+def give_sword(player):
+    pass
+
+def check_win():
+    pass</code></pre>
+        <p style="font-size:13px;margin-top:8px;color:var(--muted)">Каждый скрипт — набор функций, реагирующих на события</p>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🎮</div>
+        <h3>Unity (C#/Python)</h3>
+        <pre style="font-size:12px!important;margin-top:8px"><code class="language-python">def update():
+    pass
+
+def on_collision():
+    pass
+
+def play_animation():
+    pass</code></pre>
+        <p style="font-size:13px;margin-top:8px;color:var(--muted)">Update() вызывается 60 раз в секунду для каждого объекта</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:4px">
+      <p><b class="accent">Вывод:</b> функции — это основной строительный блок любой программы. Не только в Python — в Java, C#, Lua, JavaScript. Выучи функции — выучи программирование.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Словарь урока 17
+     ============================ -->
+<section class="slide"
+  data-notes="Словарик урока. Повторяй каждый термин вместе с ребёнком.">
+  <div class="slide__inner">
+    <h2>Словарь <span class="accent">урока 17</span></h2>
+    <p class="lead">Шесть слов — и ты говоришь как разработчик EdisonGames</p>
+    <div class="kv" style="margin-top:8px">
+      <div class="kv__item">
+        <div class="kv__key">def</div>
+        <div class="kv__val">Ключевое слово Python: «объявляю функцию». Всегда идёт первым.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">функция</div>
+        <div class="kv__val">Именованный блок кода. Как рецепт — можно использовать много раз.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">тело</div>
+        <div class="kv__val">Код внутри функции — то, что выполняется при вызове. Всегда с отступом 4 пробела.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">вызов</div>
+        <div class="kv__val"><code>greet()</code> — запуск функции. Скобки обязательны!</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">рефакторинг</div>
+        <div class="kv__val">Переписать код так, чтобы он работал так же, но был лучше организован. Дублирование → функция.</div>
+      </div>
+      <div class="kv__item">
+        <div class="kv__key">snake_case</div>
+        <div class="kv__val">Стиль имён функций в Python: маленькие буквы, слова через подчёркивание: <code>show_menu</code>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Чек-лист успеха
+     ============================ -->
+<section class="slide"
+  data-notes="Чек-лист успеха. Пробегитесь по каждому пункту — ребёнок должен ответить 'да' на все четыре.">
+  <div class="slide__inner" style="align-items:center;text-align:center">
+    <h2>Чек-лист <span class="accent">успеха</span></h2>
+    <p class="lead">4 пункта — и бейдж «Мастер функций» твой</p>
+    <ul class="clean" style="margin-top:16px;text-align:left;max-width:700px">
+      <li>Объявил функцию <code>def</code> без подглядывания — с именем, скобками, двоеточием</li>
+      <li>Вызвал функцию несколько раз и получил повторяющийся вывод</li>
+      <li>Понимает: объявление ≠ выполнение. «Рецепт» vs «готовить»</li>
+      <li>Собрал меню из 4 функций, связанных циклом и <code>if/elif</code></li>
+    </ul>
+    <svg viewBox="0 0 600 110" style="max-width:500px;margin-top:20px">
+      <defs><linearGradient id="bg17" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+      <rect x="10" y="10" width="580" height="90" rx="45" fill="rgba(124,58,237,0.1)" stroke="url(#bg17)" stroke-width="2"/>
+      <text x="60" y="62" font-size="36">⚙️</text>
+      <text x="110" y="50" fill="#F1F5F9" font-size="20" font-weight="700" font-family="Inter">Бейдж «Мастер функций»</text>
+      <text x="110" y="76" fill="#94A3B8" font-size="13" font-family="Inter">Модуль 5, Урок 17 — пройден</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 31 (NEW): Поздравляем, стажёр!
+     ============================ -->
+<section class="slide"
+  data-notes="Финальный мотивационный слайд перед домашним заданием. Подчеркни достижения: знает, умеет, и что ждёт впереди. Ребёнок должен уйти с ощущением прогресса.">
+  <div class="slide__inner">
+    <h2>Поздравляем, <span class="accent">стажёр!</span></h2>
+    <p class="lead">Урок 17 пройден — ты сделал большой шаг</p>
+    <div class="grid grid--3" style="margin-top:8px">
+      <div class="card card--glow">
+        <div class="card__icon">🧠</div>
+        <h3>Знаешь</h3>
+        <ul class="clean">
+          <li>Что такое функция и зачем она нужна</li>
+          <li>Анатомия: <code>def</code>, имя, <code>()</code>, <code>:</code>, тело</li>
+          <li>Разницу между объявлением и вызовом</li>
+          <li>Правила именования в snake_case</li>
+          <li>Что такое рефакторинг</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">⚙️</div>
+        <h3>Умеешь</h3>
+        <ul class="clean">
+          <li>Писать функции без подглядывания</li>
+          <li>Вызывать функции несколько раз</li>
+          <li>Строить функции из функций</li>
+          <li>Делать рефакторинг старого кода</li>
+          <li>Находить ошибки в чужом коде</li>
+        </ul>
+      </div>
+      <div class="card card--glow">
+        <div class="card__icon">🔭</div>
+        <h3>Впереди</h3>
+        <ul class="clean">
+          <li><b>Урок 18:</b> параметры — функции с данными</li>
+          <li><b>Урок 19:</b> return — функции возвращают значения</li>
+          <li><b>Урок 20:</b> Проект «Морской бой» на функциях</li>
+          <li><b>Модуль 6:</b> классы и объекты</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание — не больше 20 минут. Три задачи с нарастающей сложностью.">
+  <div class="slide__inner">
+    <h2>Домашнее задание 🏠</h2>
+    <p class="lead">Три задачи · не больше 20 минут</p>
+    <ol class="steps" style="margin-top:8px">
+      <li>
+        <div>
+          <b>print_logo()</b> — функция рисует ASCII-логотип твоего проекта (3–5 строк). Вызови в начале и в конце программы.
+          <pre style="margin-top:8px;font-size:13px!important"><code class="language-python">def print_logo():
+    print("###  МОЙ ПРОЕКТ  ###")
+    print("#  Версия 1.0  #")
+    print("###################")</code></pre>
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>ask_name()</b> — запрашивает имя через <code>input()</code> и печатает приветствие. Вызови 3 раза подряд.
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Рефакторинг</b> — возьми код из урока 12 (карточка персонажа) и вынеси печать в функцию <code>show_card()</code>. Вызови для 3 персонажей.
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>draw_separator(char)</b> — напиши функцию-разделитель с разными символами. Вызови с <code>"="</code>, <code>"-"</code> и <code>"~"</code>. Сколько символов повторяется — твой выбор.
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>Меню из 5 пунктов</b> — расширь мини-проект урока: добавь пункт 5 «Настройки» с функцией <code>show_settings()</code>, которая печатает 3 настройки игры. Подключи в цикл <code>while True</code>.
+        </div>
+      </li>
+      <li>
+        <div>
+          <b>★ Звёздочка: gen_password()</b> — напиши функцию, которая печатает случайный «пароль» из 8 символов. Подсказка: используй <code>import random</code> и <code>random.choice("abcdefghijklmnopqrstuvwxyz0123456789")</code> в цикле.
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 33 (NEW): Green cover — До следующего урока!
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Финальный слайд. Объяви бейдж 'Мастер функций'. Напомни домашнее задание. Анонсируй урок 18 — параметры сделают функции в 10 раз мощнее!">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green" style="background:rgba(0,0,0,0.25);color:white">⚙️ Бейдж «Мастер функций» получен!</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,36px);font-weight:800;line-height:1.2;">
+        До следующего урока!
+      </h1>
+    </div>
+    <p style="color:rgba(255,255,255,0.9);font-size:18px;margin-top:20px;max-width:600px;margin-left:auto;margin-right:auto">
+      <b>Урок 18 ждёт!</b> Функции с параметрами — они смогут работать с разными данными каждый раз 🚀
+    </p>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

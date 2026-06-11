@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 25 — Кортежи | EdusonGames Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">21</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="День 25 стажировки в EdusonGames. Сегодня ребёнок получит доступ к новому типу хранилища — кортежу. Это контейнер на замке. Координаты персонажей, размеры уровней, записи таблицы счёта — всё хранится в кортежах. Начнём с разбора домашки по спискам, потом — теория, совместный кодинг, задача самостоятельно.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/>
+      <path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/>
+      <rect x="28" y="52" width="24" height="8" rx="2" fill="white"/>
+      <rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="badge-green">Урок №25</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Кортежи — запертый контейнер
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Разбор ДЗ
+     ============================ -->
+<section class="slide"
+  data-notes="Начинаем с разбора домашнего задания из урока 24 «Квиз». Попроси ученика показать свою программу — запустите вместе. Если ДЗ не сделано, кратко пробегитесь по идее: список вопросов-ответов, словарь результатов, цикл while. Сегодня это знание пригодится — кортежи идеально подходят для пар «вопрос-ответ».">
+  <div class="slide__inner">
+    <h2>Разбор <span class="accent">домашнего задания</span> — Квиз</h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li><div>Покажи свой Квиз — запустим вместе</div></li>
+        <li><div>Как ты хранил вопросы и ответы?</div></li>
+        <li><div>Что делал цикл <code>while</code> в программе?</div></li>
+        <li><div>Как программа подсчитывала очки?</div></li>
+      </ol>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python — эталон ДЗ</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># Квиз — пример решения
+questions = {
+    "Столица России?": "Москва",
+    "2 + 2 * 2?": "6",
+    "Цвет неба?": "синий",
+}
+score = 0
+for q, correct in questions.items():
+    ans = input(q + " ")
+    if ans.lower() == correct.lower():
+        print("Верно!")
+        score += 1
+    else:
+        print(f"Неверно. Правильно: {correct}")
+print(f"Результат: {score}/{len(questions)}")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Проверьте себя
+     ============================ -->
+<section class="slide"
+  data-notes="Блиц-проверка знаний перед новой темой. Задай вопросы быстро — 2–3 минуты. Не нужно долгих объяснений, просто убедись, что базовые концепции (список, словарь, цикл, индекс) понятны. После этого переходи к новой теме.">
+  <div class="slide__inner">
+    <h2>Проверьте <span class="accent">себя</span> — блиц</h2>
+    <ol class="steps">
+      <li><div>Как добавить элемент в список? Назови метод.</div></li>
+      <li><div>Чем словарь отличается от списка?</div></li>
+      <li><div>Что выведет <code>["а","б","в"][1]</code>?</div></li>
+      <li><div>Как перебрать пары ключ-значение в словаре?</div></li>
+    </ol>
+    <div class="quote-block">
+      Сегодня изучим ещё один контейнер — <span class="amber">кортеж</span>. Он похож на список, но с одним важным отличием: данные <strong>нельзя изменить</strong>.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Нарративный крючок
+     ============================ -->
+<section class="slide"
+  data-notes="Нарративный крючок. Рассказываем историю: в EdusonGames есть отдел персонажей, и там хранятся все данные о героях. Некоторые данные — координаты респауна, ID уровней — никогда не должны меняться случайно. Для этого и существуют кортежи.">
+  <div class="slide__inner">
+    <h2>Отдел <span class="accent">персонажей</span> — новое задание</h2>
+    <p>Старший разработчик Антон пишет тебе в Slack:</p>
+    <div class="quote-block">
+      «Привет, стажёр! Нам нужно хранить координаты респауна персонажей. <span class="amber">Эти данные нельзя случайно изменить</span> — иначе герой появится в стене и игра сломается. Используй кортежи.»
+      <p style="margin-top:8px;font-size:14px;color:var(--muted);font-weight:400;">— Антон, Lead Dev, EdusonGames</p>
+    </div>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card">
+        <h3 style="color:var(--cyan)">Что хранят в кортежах</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>координаты (x, y) персонажа</li>
+          <li>размер экрана игры</li>
+          <li>ID уровней</li>
+          <li>RGB цвета</li>
+        </ul>
+      </div>
+      <div class="card" style="display:flex;align-items:center;justify-content:center;font-size:80px;">
+        🔒
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: План урока
+     ============================ -->
+<section class="slide"
+  data-notes="Объясни структуру урока. 60 минут разбиты на чёткие блоки. Ребёнок видит, что его ждёт и как долго. Это снижает тревожность и помогает сфокусироваться.">
+  <div class="slide__inner">
+    <h2>Что <span class="accent">сделаем</span> сегодня — 60 минут</h2>
+    <ol class="steps">
+      <li><div><span class="amber">0–5 мин</span> — Разбор домашки + демо. Смотрим «паспорт животного», показываем готовую программу координат.</div></li>
+      <li><div><span class="amber">5–20 мин</span> — Теория: кортеж vs список. Метафора сейфа, синтаксис, индексация, неизменяемость.</div></li>
+      <li><div><span class="amber">20–35 мин</span> — Совместный кодинг. Пишем программу «Координаты героя» — вложенные кортежи.</div></li>
+      <li><div><span class="amber">35–50 мин</span> — Самостоятельная задача. «Какой сегодня день?» — кортеж 7 дней недели.</div></li>
+      <li><div><span class="amber">50–60 мин</span> — TypeError + YandexGPT + ДЗ. Специально ломаем программу, зовём ИИ, получаем задание домой.</div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Метафора
+     ============================ -->
+<section class="slide"
+  data-notes="Метафора — ключ к пониманию. Список — шкаф с одеждой: можно добавлять, переставлять, убирать. Кортеж — сейф: положил — закрыл — не открываешь. Спроси ребёнка: «Что положишь в шкаф, а что в сейф?» Паспорт — в сейф. Координаты респауна — в кортеж.">
+  <div class="slide__inner">
+    <h2>Список — <span class="accent">шкаф</span>, кортеж — <span class="accent">сейф</span></h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:var(--cyan)">Список <code>[ ]</code> — шкаф открыт</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>данные можно менять</li>
+          <li>добавляем через <code>.append()</code></li>
+          <li>меняем: <code>items[0] = "new"</code></li>
+          <li>удаляем: <code>.remove()</code></li>
+          <li>инвентарь героя, список врагов</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--amber)">Кортеж <code>( )</code> — сейф закрыт</h3>
+        <ul class="clean" style="margin-top:8px">
+          <li>менять нельзя — <span class="amber">на замке</span></li>
+          <li>только читаем: <code>pos[0]</code></li>
+          <li><code>pos[0] = ...</code> → <span style="color:#fca5a5">ошибка!</span></li>
+          <li>быстрее и безопаснее списка</li>
+          <li>координаты (x, y), размер экрана</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:4px">
+      «Круглые скобки — замок закрыт. Квадратные — шкаф открыт.»
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Вопрос-обсуждение (green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Разминочный вопрос. Дай 1–2 минуты, пусть ученик выскажется. Спроси: что из этого ты бы положил в сейф — координаты спауна или список врагов? Любой ответ правильный — поддержи и объясни логику.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Что положишь в сейф,<br>а что в шкаф?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Синтаксис создания кортежа
+     ============================ -->
+<section class="slide"
+  data-notes="Показываем базовый синтаксис. Главный подвох: (5) — это НЕ кортеж! Это просто число 5 в скобках. Одинарный кортеж требует запятой: (5,). Спроси ребёнка: «Как создать кортеж из одного элемента?» Пусть попробует сам написать и запустить.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">создать кортеж</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Координаты точки — классический кортеж
+spawn = (10, 20)
+print(spawn)
+
+# Дни недели — неизменяемый список
+days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+print(days)
+
+# Разные типы в одном кортеже — можно!
+hero = ("Маг", 100, True, (15, 30))
+print(hero)
+
+# Одинарный кортеж — нужна запятая!
+single  = (5,)    # кортеж из одного элемента
+not_tup = (5)     # это просто число 5
+print(type(single), type(not_tup))</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">
+      <code>(5)</code> = число 5. <code>(5,)</code> = кортеж. <span class="amber">Запятая говорит Python: «это контейнер!»</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Чтение по индексу
+     ============================ -->
+<section class="slide"
+  data-notes="Индексация у кортежа такая же, как у списка — с нуля. Повторяем: «программисты считают с нуля». Важно показать разницу: days[0] ЧИТАТЬ можно, days[0] = ... — нельзя. Пусть ребёнок сам попробует прочитать разные элементы.">
+  <div class="slide__inner">
+    <h2>Индексы — <span class="accent">как у списка</span>, с нуля</h2>
+    <div class="grid grid--2">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+
+print(days[0])    # пн  — первый
+print(days[1])    # вт
+print(days[-1])   # вс  — последний
+print(len(days))  # 7
+
+# Проверка наличия
+print("пт" in days)   # True
+print("вос" in days)  # False</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="color:var(--cyan)">Читаем — можно</h3>
+          <p style="font-size:15px;color:var(--text);margin-top:6px"><code>days[0]</code> → <span style="color:#86efac">"пн"</span></p>
+          <p style="font-size:15px;color:var(--text);margin-top:4px"><code>days[-1]</code> → последний элемент</p>
+        </div>
+        <div class="card">
+          <h3 style="color:#fca5a5">Менять — нельзя</h3>
+          <p style="font-size:15px;color:var(--text);margin-top:6px"><code>days[0] = "воскресенье"</code></p>
+          <p style="font-size:15px;margin-top:4px"><span style="color:#fca5a5">→ TypeError!</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Срезы кортежей
+     ============================ -->
+<section class="slide"
+  data-notes="Срезы у кортежей работают точно так же, как у строк и списков. Это важная идея Python: одни и те же операции применяются к разным типам. Пусть ребёнок попробует срезы сам. Хороший вопрос: «Что вернёт days[::2]?»">
+  <div class="slide__inner">
+    <h2>Срезы — <span class="accent">вырезаем кусок</span> кортежа</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+
+# Срез — как у списка и строки!
+print(days[0:3])   # первые три: пн, вт, ср
+print(days[5:])    # с 6-го до конца: сб, вс
+print(days[:2])    # до второго: пн, вт
+print(days[::2])   # каждый второй
+
+# Рабочие дни vs выходные
+weekdays = days[:5]
+weekend  = days[5:]
+print("Работа:", weekdays)
+print("Отдых:", weekend)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">
+      Срез кортежа возвращает <span class="amber">новый кортеж</span> — не список! Синтаксис <code>[start:stop:step]</code> одинаков для строк, списков и кортежей.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Методы count() и index()
+     ============================ -->
+<section class="slide"
+  data-notes="У кортежа только 2 метода — count() и index(). Подчеркни это: никакого append(), remove(), sort() — кортеж неизменяем. Пусть ребёнок проверит, что будет, если вызвать scores.append(100) — TypeError!">
+  <div class="slide__inner">
+    <h2>Два метода кортежа: <span class="accent">count и index</span></h2>
+    <div class="grid grid--2">
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">scores = (90, 75, 90, 88, 90, 60)
+
+# count() — сколько раз встречается
+print(scores.count(90))   # 3
+
+# index() — на какой позиции первый раз
+print(scores.index(90))   # 0
+print(scores.index(75))   # 1
+
+# Остальное — через встроенные функции
+print(len(scores))        # 6
+print(min(scores))        # 60
+print(max(scores))        # 90
+print(sum(scores))        # 493</div>
+        <div class="compiler-output"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="color:var(--cyan)">count(значение)</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px">Возвращает, <strong>сколько раз</strong> значение встречается в кортеже.</p>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <h3 style="color:var(--amber)">index(значение)</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px">Возвращает <strong>индекс первого</strong> вхождения значения.</p>
+        </div>
+        <div class="card">
+          <h3 style="color:#fca5a5">Что кортеж НЕ умеет</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px"><code>append</code>, <code>remove</code>, <code>sort</code>, <code>pop</code> — этих методов нет. Кортеж неизменяем!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Цикл for
+     ============================ -->
+<section class="slide"
+  data-notes="Цикл for работает с кортежем так же, как со списком. Это ключевая идея: кортеж — итерируемый объект. Покажи enumerate для более старших детей. Для младших достаточно простого for item in tuple.">
+  <div class="slide__inner">
+    <h2>Цикл <code style="font-size:0.8em">for</code> <span class="accent">работает как со списком</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+
+# Простой перебор
+for day in days:
+    print("Сегодня:", day)
+
+print("---")
+
+# С номером через enumerate
+for i, day in enumerate(days, start=1):
+    print(f"{i}. {day}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Кортеж как возврат из функции
+     ============================ -->
+<section class="slide"
+  data-notes="Одно из главных применений кортежей — возврат нескольких значений из функции. Python автоматически упаковывает несколько return-значений в кортеж. Это очень частый паттерн в реальном коде. Покажи, как получить min и max одновременно.">
+  <div class="slide__inner">
+    <h2>Кортеж — <span class="accent">вернуть несколько значений</span> из функции</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Python упаковывает несколько return-значений в кортеж!
+def get_stats(scores):
+    return min(scores), max(scores), sum(scores) // len(scores)
+
+results = (90, 75, 88, 60, 95, 70)
+
+# Получаем три значения сразу через распаковку
+low, high, avg = get_stats(results)
+print(f"Минимум: {low}")
+print(f"Максимум: {high}")
+print(f"Среднее: {avg}")
+
+# Без распаковки — получаем кортеж
+stats = get_stats(results)
+print(type(stats))   # <class 'tuple'>
+print(stats)         # (60, 95, 79)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">
+      <code>return a, b, c</code> → Python сам делает кортеж <code>(a, b, c)</code>. Распаковка: <code>x, y, z = func()</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Совместный кодинг — Координаты героя
+     ============================ -->
+<section class="slide"
+  data-notes="Совместный кодинг 20–35 мин. Пишем программу «Координаты героя». Важно показать вложенность: кортеж внутри кортежа — hero[2][0]. Спроси: «Как достать только X координату?» Ответ: hero[2][0]. Это как папка в папке.">
+  <div class="slide__inner">
+    <h2>Проект: <span class="accent">координаты героя</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — совместный кодинг · 15 мин</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Имя, HP, координаты — всё в одном кортеже
+hero = ("Маг", 100, (15, 30))
+
+# Достаём по индексу
+print("Имя:", hero[0])
+print("HP:", hero[1])
+print("Позиция:", hero[2])
+print("X:", hero[2][0])   # вложенный кортеж!
+print("Y:", hero[2][1])
+
+print("---")
+# Список героев
+heroes = [
+    ("Маг", 80, (15, 30)),
+    ("Воин", 120, (40, 10)),
+    ("Лучник", 95, (25, 55)),
+]
+for name, hp, (x, y) in heroes:
+    print(f"{name}: HP={hp}, позиция ({x}, {y})")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <p class="muted">Распаковка <code>for name, hp, (x, y) in heroes:</code> — это магия Python!</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Самостоятельная задача
+     ============================ -->
+<section class="slide"
+  data-notes="Самостоятельная задача 35–50 мин. Преподаватель подсказывает, но НЕ решает. Если ребёнок завис — задай вопрос, а не давай ответ: «Какой индекс у среды?», «А что будет если пользователь введёт 0?»">
+  <div class="slide__inner">
+    <h2>Задача: <span class="accent">«Какой сегодня день?»</span></h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li><div>Создать кортеж из <strong>7 дней недели</strong></div></li>
+        <li><div>Спросить номер дня у пользователя <strong>(1–7)</strong></div></li>
+        <li><div>Вывести название дня</div></li>
+        <li><div>Добавить <strong>проверку</strong>: если &lt;1 или &gt;7 — «неверный номер»</div></li>
+      </ol>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("пн", "вт", "ср", "чт",
+        "пт", "сб", "вс")
+
+n = int(input("Номер дня (1–7): "))
+
+if 1 <= n <= 7:
+    print("Это:", days[n - 1])
+else:
+    print("Такого дня нет!")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+    <div class="quote-block">
+      Секрет: пользователь считает с <strong>1</strong>, а Python — с <strong>0</strong>. Поэтому <code>days[n - 1]</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Практика — RGB палитра
+     ============================ -->
+<section class="slide"
+  data-notes="Дополнительная практика с RGB — знакомый контекст для геймеров. Пусть ребёнок создаст свою палитру. Вопрос для обсуждения: «Почему RGB хранят в кортеже, а не в списке?» Правильный ответ: цвет не должен меняться случайно в процессе работы программы.">
+  <div class="slide__inner">
+    <h2>Практика: <span class="accent">RGB палитра</span> EdusonGames</h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — практика</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Палитра цветов EdusonGames — всё в кортежах!
+VIOLET = (124, 58, 237)
+CYAN   = (6, 182, 212)
+GREEN  = (34, 197, 94)
+AMBER  = (245, 158, 11)
+WHITE  = (255, 255, 255)
+
+palette = (VIOLET, CYAN, GREEN, AMBER, WHITE)
+names   = ("Фиолетовый", "Циан", "Зелёный", "Янтарный", "Белый")
+
+# Вывод палитры через zip
+print("Палитра EdusonGames:")
+for name, (r, g, b) in zip(names, palette):
+    print(f"  {name}: rgb({r}, {g}, {b})")
+
+# Смешиваем два цвета — среднее RGB
+def mix(c1, c2):
+    return ((c1[0]+c2[0])//2, (c1[1]+c2[1])//2, (c1[2]+c2[2])//2)
+
+mixed = mix(VIOLET, CYAN)
+print(f"\nСмешанный цвет: {mixed}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Специально ломаем
+     ============================ -->
+<section class="slide"
+  data-notes="Это момент урока, где мы специально ломаем программу. Правило: ошибка — учебный момент, а не провал. Пусть ребёнок попробует поменять days[0] и увидит знаменитое сообщение TypeError. Потом копируем текст ошибки в YandexGPT.">
+  <div class="slide__inner">
+    <h2>Знакомство с <span class="accent">TypeError</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — специально ломаем!</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
+
+# Пробуем поменять — специально!
+days[0] = "воскресенье"
+
+# TypeError: 'tuple' object
+#            does not support item assignment</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">
+      «Давай попробуем сломать программу специально — чтобы увидеть сообщение об ошибке. <span class="amber">Ошибка — это урок, а не провал!</span>»
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: YandexGPT помогает
+     ============================ -->
+<section class="slide"
+  data-notes="Показываем волшебство ИИ. Копируем ошибку → вставляем в YandexGPT → получаем детское объяснение. Промпт строим по шаблону «Я учусь Python. Объясни простыми словами ребёнку 10 лет». Это навык, а не магия.">
+  <div class="slide__inner">
+    <h2>Зовём <span class="accent">YandexGPT</span> на помощь</h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:var(--violet)">Шаблон промпта</h3>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:var(--text);margin-top:8px">Я учусь Python. Объясни эту ошибку простыми словами ребёнку 10 лет и покажи, как её исправить, если я всё же хочу менять данные.</p>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <code>TypeError</code>
+          <code>tuple</code>
+          <code>item assignment</code>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <h3 style="color:var(--green)">Что ответит ИИ</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px">«Кортеж — как надпись на камне. Ты можешь её прочитать, но не можешь стереть и написать другое. Если хочешь менять — нужен список <code>[]</code>»</p>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--amber)">Конвертация</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px">Кортеж → список: <code>list(days)</code><br>Список → кортеж: <code>tuple(my_list)</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Пауза — вопросы (green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Пауза для вопросов. Дай ребёнку 2–3 минуты задать любые вопросы. Можно проверить понимание: что такое кортеж? Чем он отличается от списка? Что будет если попробовать изменить элемент?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;">
+        Пришло время<br>задавать вопросы
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Список vs кортеж — сравнение
+     ============================ -->
+<section class="slide"
+  data-notes="Интерактивное сравнение: создаём список и кортеж с одними данными. По индексу читаются одинаково, но изменение кортежа падает. Пусть оба компилятора запустит ребёнок сам — увидит разницу в действии.">
+  <div class="slide__inner">
+    <h2>Список и кортеж — <span class="accent">в чём разница?</span></h2>
+    <div class="grid grid--2">
+      <div class="card" style="border-color:rgba(239,68,68,0.3)">
+        <p style="color:#fca5a5;font-size:15px;margin-bottom:10px">❌ Список — данные можно сломать</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">spawn = [10, 20]  # список
+print(spawn[0])   # читаем — ок
+spawn[0] = 999    # меняем — ок!
+print(spawn)      # координата сломана!</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:rgba(34,197,94,0.3)">
+        <p style="color:#86efac;font-size:15px;margin-bottom:10px">✓ Кортеж — данные защищены</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false">spawn = (10, 20)  # кортеж
+print(spawn[0])   # читаем — ок
+spawn[0] = 999    # TypeError!
+print("Никогда не сломается")</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Распаковка
+     ============================ -->
+<section class="slide"
+  data-notes="Распаковка (unpacking) — очень удобная фишка Python. x, y = (10, 20) — вместо двух строк с индексами. Особенно красиво работает в цикле for. Покажи это как магию. Ребёнок должен удивиться и захотеть использовать.">
+  <div class="slide__inner">
+    <h2>Распаковка — <span class="accent">магия Python</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># Вместо pos[0] и pos[1] — распаковка!
+pos = (10, 20)
+x, y = pos
+print(f"X = {x}, Y = {y}")
+
+# RGB цвет
+color = (255, 128, 0)
+r, g, b = color
+print(f"Красный: {r}, Зелёный: {g}, Синий: {b}")
+
+# Обмен значениями через кортеж!
+a, b_val = 5, 10
+a, b_val = b_val, a    # магия!
+print(f"a={a}, b={b_val}")  # a=10, b=5</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: zip() — сшиваем кортежи
+     ============================ -->
+<section class="slide"
+  data-notes="zip() — мощный инструмент для параллельных коллекций. Показывает, как Python сшивает два кортежа в пары. Используется повсюду: имена + очки, координаты X + Y. Обрати внимание: zip останавливается на самом коротком из кортежей.">
+  <div class="slide__inner">
+    <h2><code style="font-size:0.85em">zip()</code> — <span class="accent">сшиваем кортежи в пары</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">heroes = ("Маг", "Воин", "Лучник")
+scores = (2400, 3100, 1850)
+levels = (7, 9, 5)
+
+# zip сшивает три кортежа в тройки
+for hero, score, lvl in zip(heroes, scores, levels):
+    print(f"{hero:10} Уровень {lvl}  Очки: {score}")
+
+print("---")
+# Координаты точек
+xs = (1, 3, 5, 7)
+ys = (2, 4, 6, 8)
+points = tuple(zip(xs, ys))
+print("Точки:", points)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="quote-block">
+      <code>zip()</code> останавливается на <span class="amber">самом коротком</span> кортеже. Результат — итерируемый объект, нужен <code>tuple()</code> для хранения.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Мини-проект — таблица героев
+     ============================ -->
+<section class="slide"
+  data-notes="Мини-проект — демонстрация всего, что изучили. Три кортежа-героя, перебор в цикле с распаковкой, красивый вывод через f-строки. Это максимально близко к реальному коду EdusonGames.">
+  <div class="slide__inner">
+    <h2>Таблица <span class="accent">героев EdusonGames</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — мини-проект</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false"># База данных героев EdusonGames
+heroes = [
+    ("Маг", 80, (15, 30)),
+    ("Воин", 120, (40, 10)),
+    ("Лучник", 95, (25, 55)),
+    ("Паладин", 110, (5, 5)),
+]
+
+print("=" * 40)
+print(f"{'Герой':<12} {'HP':>6} {'Позиция':>12}")
+print("=" * 40)
+
+for name, hp, (x, y) in heroes:
+    print(f"{name:<12} {hp:>6} ({x:>3}, {y:>3})")
+
+print("=" * 40)
+print(f"Всего героев: {len(heroes)}")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Самостоятельная задача — расписание
+     ============================ -->
+<section class="slide"
+  data-notes="Самостоятельная задача повышенной сложности — дай 5–7 минут. Если ученик завис, намекни: «Вспомни zip из предыдущего слайда». Задача про расписание знакома детям из повседневной жизни, это помогает понять применение.">
+  <div class="slide__inner">
+    <h2>Задача: <span class="accent">расписание уроков</span></h2>
+    <div class="grid grid--2">
+      <ol class="steps">
+        <li><div>Создать кортеж из <strong>5 дней</strong> недели (пн–пт)</div></li>
+        <li><div>Создать кортеж из <strong>5 предметов</strong> (любимые уроки)</div></li>
+        <li><div>Вывести расписание через <code>zip()</code></div></li>
+        <li><div><strong>Бонус:</strong> спросить номер дня, вывести предмет</div></li>
+      </ol>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python — решение</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">days = ("Пн", "Вт", "Ср", "Чт", "Пт")
+subjects = ("Матем.", "Python", "Физика", "Python", "Биология")
+
+print("Расписание:")
+for day, subj in zip(days, subjects):
+    print(f"  {day}: {subj}")
+
+# Бонус: поиск по дню
+n = int(input("День (1-5): "))
+if 1 <= n <= 5:
+    print(f"В {days[n-1]} — {subjects[n-1]}")
+else:
+    print("Такого дня нет!")</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Частые ошибки
+     ============================ -->
+<section class="slide"
+  data-notes="Разбор частых ошибок. Это профилактика: ребёнок видит ловушки заранее и не паникует, когда наступит на одну из них. Сформулировано как карточки с проблемой и решением.">
+  <div class="slide__inner">
+    <h2>Ловушки для <span class="accent">новичков</span></h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3><code>(5)</code> — не кортеж!</h3>
+        <p style="font-size:14px;color:var(--text);margin-top:6px">Это просто число 5 в скобках. Одинарный кортеж: <code>(5,)</code> — нужна запятая.</p>
+      </div>
+      <div class="card">
+        <h3>Путаю <code>( )</code> и <code>[ ]</code></h3>
+        <p style="font-size:14px;color:var(--text);margin-top:6px">Мнемоника: скобка КРУГЛАЯ — ЗАКРЫТАЯ (кортеж). КВАДРАТНАЯ — ОТКРЫТАЯ (список).</p>
+      </div>
+      <div class="card">
+        <h3>Индекс с нуля</h3>
+        <p style="font-size:14px;color:var(--text);margin-top:6px"><code>days[1]</code> — это ВТОРНИК, не понедельник. <span class="amber">Считаем с нуля, как хакеры!</span></p>
+      </div>
+      <div class="card">
+        <h3><code>.append()</code> не работает</h3>
+        <p style="font-size:14px;color:var(--text);margin-top:6px">У кортежа нет методов изменения — они не существуют. Это не баг, это <span class="amber">фишка!</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Когда кортеж, когда список
+     ============================ -->
+<section class="slide"
+  data-notes="Практический совет: когда брать кортеж, а когда список? Если данные не должны меняться во время работы программы — кортеж. Если нужно добавлять/удалять — список. В реальных играх это важно: координаты спауна — кортеж, список врагов на уровне — список.">
+  <div class="slide__inner">
+    <h2>Когда <span class="accent">кортеж</span>, когда <span class="accent">список</span>?</h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:var(--amber)">Кортеж — данные постоянны</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>координаты точки <code>(x, y)</code></li>
+          <li>размер экрана <code>(800, 600)</code></li>
+          <li>RGB цвет <code>(255, 0, 128)</code></li>
+          <li>дни недели</li>
+          <li>константы уровня игры</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan)">Список — данные меняются</h3>
+        <ul class="clean" style="margin-top:10px">
+          <li>инвентарь героя (берём/кладём предметы)</li>
+          <li>список врагов (они умирают)</li>
+          <li>угаданные буквы в игре</li>
+          <li>очередь заданий</li>
+          <li>результаты с сервера</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Бонус — именованные кортежи
+     ============================ -->
+<section class="slide"
+  data-notes="Бонус для продвинутых: namedtuple из модуля collections. Позволяет обращаться к полям по имени, а не по индексу. hero.name вместо hero[0]. Это мостик к классам, которые будут в модуле 8.">
+  <div class="slide__inner">
+    <h2>Бонус: именованные кортежи — <span class="accent">кортеж+</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — для продвинутых</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">from collections import namedtuple
+
+# Создаём шаблон именованного кортежа
+Hero = namedtuple("Hero", ["name", "hp", "x", "y"])
+
+# Создаём объекты
+mage = Hero("Маг", 80, 15, 30)
+warrior = Hero("Воин", 120, 40, 10)
+
+# Читаем по ИМЕНИ, а не индексу
+print(mage.name)   # Маг
+print(mage.hp)     # 80
+print(warrior.x)   # 40
+
+# Всё ещё кортеж!
+print(mage[0])     # Маг
+print(mage)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <p class="muted">Следующий шаг — классы (урок 29). Там это станет ещё мощнее!</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Итог урока — 3 главных вывода
+     ============================ -->
+<section class="slide"
+  data-notes="Подведение итогов. Три карточки — три ключевых навыка урока. Попроси ученика повторить каждый пункт своими словами. Это закрепление перед домашним заданием."
+  style="">
+  <div class="slide__inner">
+    <h2>Итог урока — <span style="color:var(--cyan)">3 главных вывода</span></h2>
+    <div class="grid grid--3" style="margin-top:24px;gap:20px">
+      <div class="card" style="border-color:var(--violet);padding:24px 20px;text-align:center">
+        <div style="font-size:2.4rem;margin-bottom:12px">🔒</div>
+        <h3 style="color:var(--violet);margin-bottom:10px">Кортеж — это сейф</h3>
+        <p style="color:var(--muted);font-size:14px">Создаётся один раз через <code style="color:var(--amber)">()</code>. Данные нельзя изменить — это гарантия надёжности.</p>
+        <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);background:rgba(6,182,212,0.08);border-radius:8px;padding:8px">
+          hero = ("Маг", 40, True)
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--cyan);padding:24px 20px;text-align:center">
+        <div style="font-size:2.4rem;margin-bottom:12px">🔢</div>
+        <h3 style="color:var(--cyan);margin-bottom:10px">Индекс и срез</h3>
+        <p style="color:var(--muted);font-size:14px">Читаем по номеру от <strong style="color:var(--amber)">0</strong>. Срез берёт часть. Метод <code style="color:var(--amber)">.count()</code> и <code style="color:var(--amber)">.index()</code> — весь инструментарий.</p>
+        <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);background:rgba(6,182,212,0.08);border-radius:8px;padding:8px">
+          hero[0]&nbsp;&nbsp;# "Маг"<br>hero[1:]&nbsp;# (40, True)
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--green);padding:24px 20px;text-align:center">
+        <div style="font-size:2.4rem;margin-bottom:12px">⚡</div>
+        <h3 style="color:var(--green);margin-bottom:10px">Когда использовать</h3>
+        <p style="color:var(--muted);font-size:14px">Константы, координаты, RGB, возврат нескольких значений из функции — всё это кортежи.</p>
+        <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);background:rgba(6,182,212,0.08);border-radius:8px;padding:8px">
+          def info(): return "Маг", 40<br>name, hp = info()
+        </div>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:28px">
+      <span style="color:var(--amber);font-weight:600">Правило EdusonGames:</span> кортеж — когда данные должны быть <em>«заморожены»</em>; список — когда они живут и меняются.
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Домашнее задание
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание: «Паспорт животного». Кортеж из 4 элементов: имя, вид, возраст, вложенный кортеж любимых лакомств. Вывести через f-строку. Попробовать изменить элемент — скопировать ошибку в чат. Это закрепляет неизменяемость практически.">
+  <div class="slide__inner">
+    <h2>ДЗ: <span class="accent">«Паспорт животного»</span></h2>
+    <div class="grid grid--2">
+      <div>
+        <ol class="steps">
+          <li><div>Создать кортеж из <strong>4 элементов</strong>: имя, вид, возраст, <em>вложенный кортеж</em> лакомств</div></li>
+          <li><div>Вывести красивый «паспорт» через f-строку</div></li>
+          <li><div>Попробовать <strong>изменить</strong> любой элемент</div></li>
+          <li><div>Скопировать текст ошибки в чат группы</div></li>
+        </ol>
+        <div class="card" style="margin-top:12px">
+          <h3 style="color:var(--amber)">Бонус-звезда</h3>
+          <p style="font-size:14px;color:var(--text);margin-top:6px">Создать программу «Координаты для PyGame» — <code>(WIDTH, HEIGHT) = (800, 600)</code>. Объяснить маме, почему размер окна — именно кортеж.</p>
+        </div>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python — шаблон</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false"># Шаблон паспорта животного
+animal = ("Барсик", "кот", 3, ("рыба", "молоко"))
+
+name, kind, age, treats = animal
+
+print("=" * 30)
+print(f"  ПАСПОРТ ЖИВОТНОГО")
+print("=" * 30)
+print(f"  Имя:      {name}")
+print(f"  Вид:      {kind}")
+print(f"  Возраст:  {age} лет")
+print(f"  Любит:    {treats[0]}, {treats[1]}")
+print("=" * 30)</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: ДЗ бонус — координаты PyGame
+     ============================ -->
+<section class="slide"
+  data-notes="Бонусное задание для тех, кто хочет больше. Кортежи идеально подходят для хранения координат в PyGame — они не должны меняться случайно. Покажи, что это не просто теория — это реальный код из игровых проектов."
+  style="">
+  <div class="slide__inner">
+    <h2>ДЗ бонус: <span style="color:var(--amber)">координаты для PyGame</span> 🎮</h2>
+    <p class="muted" style="margin-bottom:16px">Кортежи — любимый тип данных игровых разработчиков. Точки, цвета, размеры окон — всё хранится в кортежах.</p>
+    <div class="compiler" data-lang="python"
+      data-notes="Бонус для продвинутых учеников. SCREEN и SPAWN_POINTS — типичные константы PyGame-проекта. zip() соединяет два кортежа в пары. Результат — список кортежей: [(цвет, точка), ...]">
+      <div class="compiler-code" contenteditable="true" spellcheck="false"># === EdusonGames: настройки уровня ===
+SCREEN = (800, 600)          # ширина и высота окна
+PLAYER_START = (100, 300)    # стартовая позиция героя
+
+# Точки появления врагов (кортеж кортежей)
+SPAWN_POINTS = (
+    (750, 50),
+    (750, 200),
+    (750, 400),
+    (750, 550),
+)
+
+# Цвета героев (R, G, B)
+COLORS = {
+    "Маг":    (124, 58, 237),
+    "Воин":   (6, 182, 212),
+    "Лучник": (245, 158, 11),
+}
+
+print(f"Окно: {SCREEN[0]}×{SCREEN[1]}")
+print(f"Старт игрока: {PLAYER_START}")
+print(f"\nТочки появления врагов:")
+for i, point in enumerate(SPAWN_POINTS):
+    x, y = point       # распаковка кортежа
+    print(f"  Враг {i+1}: x={x}, y={y}")
+
+print(f"\nЦвет Мага: {COLORS['Маг']}")
+r, g, b = COLORS["Маг"]
+print(f"  R={r}, G={g}, B={b}")</div>
+      <div class="compiler-output"></div>
+    </div>
+    <ul class="clean" style="margin-top:16px">
+      <li>— <strong style="color:var(--violet)">SCREEN</strong>, <strong style="color:var(--violet)">PLAYER_START</strong> — кортежи-константы, менять нельзя</li>
+      <li>— <strong style="color:var(--cyan)">SPAWN_POINTS</strong> — кортеж из кортежей: координаты четырёх врагов</li>
+      <li>— <strong style="color:var(--amber)">Распаковка</strong> <code>x, y = point</code> — читаем поля без индексов</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Тизер следующего урока
+     ============================ -->
+<section class="slide"
+  data-notes="Тизер следующего урока — множества. Показываем проблему дубликатов и намекаем на решение. Ребёнок должен захотеть узнать, как Python убирает повторы «автоматически».">
+  <div class="slide__inner">
+    <h2>Дальше: <span class="accent">множества</span> — мешок без дубликатов</h2>
+    <div class="grid grid--2">
+      <div>
+        <p style="margin-bottom:12px">А что если в инвентаре героя один и тот же предмет <strong>не должен дублироваться</strong>?</p>
+        <div class="compiler" data-lang="python">
+          <div class="compiler-header">
+            <span class="lang-badge">Python</span>
+            <div class="compiler-actions">
+              <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+              <button class="compiler-btn run" type="button">▶ Запустить</button>
+            </div>
+          </div>
+          <div class="compiler-editor" contenteditable="true" spellcheck="false"># Список с повторами — проблема!
+items = ["меч", "щит", "меч", "зелье", "меч"]
+print(items)
+
+# Множество — дубликаты исчезают!
+unique = set(items)
+print(unique)</div>
+          <div class="compiler-output"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--violet)">Урок 26 — Множества</h3>
+        <p style="font-size:14px;color:var(--text);margin-top:8px;margin-bottom:10px">Контейнер без дубликатов. Операции как в математике:</p>
+        <ul class="clean">
+          <li>объединение <code>|</code></li>
+          <li>пересечение <code>&amp;</code></li>
+          <li>разность <code>-</code></li>
+        </ul>
+        <p style="font-size:14px;color:var(--text);margin-top:10px">Пригодится для <strong>Виселицы</strong> через 2 урока!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE NEW: Green cover — урок завершён
+     ============================ -->
+<section class="slide slide--cover"
+  style="background:#22c55e"
+  data-notes="Финальная зелёная обложка. Урок завершён! Поздравь ученика — он освоил кортежи и написал настоящий игровой код.">
+  <div class="game-icons">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="10" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="16" r="1.5" fill="#fff"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13 0h-3a2 2 0 0 1-2-2v-3" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="1.5"/><path d="M8 12l2.5 2.5L16 9" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#fff" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+  <div class="cover-bubble cover-bubble--speech" style="background:#ffffff">
+    <h1 style="color:#1a1a2e;font-size:clamp(1.6rem,4vw,2.6rem);line-height:1.2">Данные под замком —<br>урок завершён! 🔒✅</h1>
+    <p style="color:#1a4731;margin-top:12px;font-size:1.05rem;font-weight:500">Кортежи освоены. Ты — хранитель констант EdusonGames!</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21: Финал
+     ============================ -->
+<section class="slide"
+  data-notes="Завершение. Похвали ребёнка — он освоил новый тип данных, научился читать по индексу, специально сломал программу и позвал ИИ на помощь. Напомни о домашнем задании и что следующий урок — множества.">
+  <div class="slide__inner" style="justify-content:center;align-items:center;text-align:center">
+    <div>
+      <span class="badge-green">Урок 25 завершён</span>
+      <h2 style="font-size:clamp(32px,4vw,52px);margin-top:16px">Данные теперь <span class="accent">под замком</span></h2>
+      <p style="font-size:18px;max-width:680px;margin:18px auto 0">Ты освоил кортежи, встретил TypeError, позвал YandexGPT и написал таблицу героев EdusonGames. Отличная работа!</p>
+      <div style="margin-top:32px;display:flex;gap:24px;flex-wrap:wrap;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted)">
+        <div>ДЗ: <strong style="color:var(--text)">паспорт животного</strong></div>
+        <div>Следующий: <strong style="color:var(--text)">множества (урок 26)</strong></div>
+        <div>Проект через 3 урока: <strong style="color:var(--text)">Виселица</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

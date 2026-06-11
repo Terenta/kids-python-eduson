@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 2 — Что такое переменные и как с ними работать | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 2</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Что такое переменные и как с ними работать</h2>
+  <div class="meta"></div>
+  <p><strong>Отдел:</strong> Математических основ</p>
+<p><strong>Неделя:</strong> 2</p>
+<p><strong>Возраст:</strong> 8–14 лет</p>
+<p><strong>Формат:</strong> Презентация + урок (60 мин)</p>
+<h2>🎯 Цель занятия</h2>
+<p>Ребёнок умеет создавать, переопределять переменные и выполнять с ними арифметические операции, узнавая тип данных через <code>type()</code>.</p>
+<h2>📚 Образовательные результаты</h2>
+<ul>
+<li><strong>Ученик понимает:</strong> как определить переменную; как переопределять переменные; как использовать операторы присваивания; как разделять разряды с помощью нижнего подчёркивания; как узнать тип данных с помощью <code>type()</code>; как производить арифметические операции — умножение, деление, целочисленное деление, вычитание, возведение в степень.</li>
+<li><strong>Ученик умеет / может:</strong> производить арифметические операции с переменными.</li>
+</ul>
+<h2>🛠️ Материалы и инструменты</h2>
+<ul>
+<li>ПО: GigaIDE Desktop / Google Colab</li>
+<li>ИИ-помощники: GigaChat (для демо, не для решения)</li>
+<li>Файлы-заготовки: <code>variables.py</code></li>
+</ul>
+<h2>⚙️ Технические требования</h2>
+<ul>
+<li>Python 3.11+, проверенная установка с урока 1.</li>
+</ul>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<p><strong>0–5 мин. Разбор ДЗ и приветствие</strong></p>
+<ul>
+<li>Что говорит преподаватель: «Покажи свою "Визитку". Так, классно — ты добавил 3 строки! А теперь представь: визитку надо менять каждый раз, когда тебе исполняется день рождения. Делать 100 файлов? Нет. Сегодня — про переменные».</li>
+</ul>
+<p><strong>5–15 мин. Теория-демо</strong></p>
+<ul>
+<li>Метафора: <strong>переменная — это коробка с наклейкой</strong>. Наклейка — имя переменной, внутри — значение.</li>
+<li>Словарь:</li>
+</ul>
+<p>  - <strong>Переменная</strong> — именованная ячейка памяти.</p>
+<p>  - <strong>Присваивание</strong> — знак <code>=</code>, кладёт значение в коробку.</p>
+<p>  - <strong>Тип данных</strong> — что внутри: число (<code>int</code>, <code>float</code>), текст (<code>str</code>).</p>
+<p>  - <strong>type()</strong> — функция, которая «вскрывает коробку» и говорит, что там.</p>
+<p>  - <strong>Арифметика:</strong> <code>+ - <em> / // % </em>*</code>.</p>
+<p>  - <strong>Разделитель разрядов <code>_</code>:</strong> <code>1_000_000</code> — читаемее, чем <code>1000000</code>.</p>
+<ul>
+<li>Живой код:</li>
+</ul>
+<pre><code class="language-python">  age = 10
+  name = "Миша"
+  print(type(age), type(name))
+  age = age + 1  # переопределение
+  print(age ** 2, 10 // 3, 10 % 3)</code></pre>
+<p><strong>15–45 мин. Практика под руководством</strong></p>
+<ul>
+<li><strong>Задание 1 (7 мин):</strong> создать 4 переменные — имя, возраст, рост в см, рост в метрах. Вывести каждую.</li>
+</ul>
+<p>  - Что говорит преподаватель: «Имя — в кавычках, это строка. Возраст — без кавычек, это число. Не путай».</p>
+<ul>
+<li><strong>Задание 2 (12 мин):</strong> калькулятор дня рождения. Переменная <code>year_now = 2026</code>, <code>year_born = 2016</code>. Посчитать возраст, возраст через 10 лет, сколько дней прожито (<code>age * 365</code>). Использовать <code>_</code>: <code>days_in_year = 365</code>.</li>
+<li><strong>Задание 3 (10 мин):</strong> мини-физика. <code>distance = 100</code>, <code>time = 20</code>, <code>speed = distance / time</code>. Вывести со словами через <code>print</code> и запятую.</li>
+</ul>
+<p><strong>45–55 мин. Мини-проект урока — «Паспорт персонажа»</strong></p>
+<ul>
+<li>Ребёнок придумывает персонажа из любимой игры: имя, уровень, здоровье, атака, стоимость в золоте (<code>1_000_000</code>). Через переменные считает «урон в секунду» и «сколько монет стоит 5 таких».</li>
+</ul>
+<p><strong>55–60 мин. Демо и рефлексия</strong></p>
+<ul>
+<li>Ученик показывает «Паспорт персонажа».</li>
+<li>Вопросы: «Что такое переменная простыми словами? Зачем нам <code>type()</code>?»</li>
+<li>Похвала: «Бейдж "Мастер переменных" — твой!»</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«Переменная — это коробка с наклейкой. Имя — снаружи, значение — внутри».</li>
+<li>«Знак равно — не "равно", а "положи в коробку"».</li>
+<li>«Тип данных Python определяет сам, но ты можешь спросить через type()».</li>
+<li>«<code>1_000_000</code> — подчёркивания для нас, для Python это просто миллион».</li>
+<li>«Если красным — читаем ошибку вслух. Там обычно написано, что случилось».</li>
+<li>«Попробуй сам 5 минут — получится, не получится, я помогу».</li>
+<li>«Отлично, ты уже умеешь считать программой, как калькулятор!»</li>
+<li>«В программировании имена переменных пишем английскими буквами и без пробелов: <code>my_age</code>, не <code>мой возраст</code>».</li>
+<li>«Переопределить переменную — это заменить то, что в коробке. Старое забывается».</li>
+<li>«Молодец! Вижу, как ты начинаешь думать как программист».</li>
+</ol>
+<h2>🎨 Мини-проект урока</h2>
+<ul>
+<li><strong>Название:</strong> «Паспорт персонажа»</li>
+<li><strong>Что получится:</strong> программа с 5–6 переменными и 2–3 вычислениями про любимого персонажа игры.</li>
+<li><strong>Где показать:</strong> скрин в чат, можно с описанием героя.</li>
+</ul>
+<h2>🏠 Домашнее задание (≤ 20 минут)</h2>
+<p>Создай 3 переменные: любимое число, твой возраст, твой рост в см. Выведи их произведение, сумму и возведение в квадрат своего возраста. Пришли скриншот.</p>
+<h2>✅ Критерии успешного занятия</h2>
+<ul>
+<li>Ученик создаёт минимум 4 переменные с разными типами.</li>
+<li>Ученик использует минимум 3 арифметических оператора.</li>
+<li>Ученик знает, что такое <code>type()</code> и показывает его в работе.</li>
+<li>Ученик переопределяет переменную и объясняет, что при этом происходит.</li>
+</ul>
+<h2>⚠️ Типичные сложности и решения</h2>
+<ol>
+<li><strong>Путает <code>=</code> и <code>==</code></strong> → объясняем: <code>=</code> — положить, <code>==</code> — сравнить (встретим позже).</li>
+<li><strong>Имена переменных кириллицей</strong> → да, так можно, но в профи-коде — нет. Договариваемся на английский.</li>
+<li><strong>Забывает кавычки у строк</strong> → ошибка <code>NameError: ... is not defined</code>. Читаем вместе.</li>
+<li><strong>Путает <code>/</code> и <code>//</code></strong> → <code>/</code> — всегда с запятой, <code>//</code> — целая часть, <code>%</code> — остаток. Разбираем на конфетах: 10 конфет разделить на 3 — по 3 каждому (<code>//</code>), 1 лишняя (<code>%</code>).</li>
+<li><strong>Минусует неправильно: <code>a - = 5</code></strong> → пробелы между <code>-</code> и <code>=</code> ломают оператор.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>Напиши программу, которая считает площадь и периметр 3 разных прямоугольников. Используй переменные для сторон и выведи всё красиво в столбик.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>На этом уроке ИИ показывается в роли «объясни тип данных, который я получил». Преподаватель один раз обращается к GigaChat: «Объясни ребёнку 10 лет, зачем в Python три разных деления: <code>/</code>, <code>//</code>, <code>%</code>». Пример промпта для учителя: «Объясни 10-летнему ребёнку разницу между делением <code>/</code>, <code>//</code> и <code>%</code> в Python на примере конфет, в 3 предложениях».</p>
+<hr>
+</div>
+</body>
+</html>

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 5 — Строки | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5;position:relative;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(800px circle at 15% 20%,rgba(124,58,237,0.18),transparent 60%),radial-gradient(900px circle at 85% 80%,rgba(6,182,212,0.15),transparent 60%),radial-gradient(600px circle at 50% 50%,rgba(124,58,237,0.05),transparent 70%);pointer-events:none;z-index:0;}
+  .progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,0.05);z-index:100;}
+  .progress__fill{height:100%;width:0%;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width 300ms ease;box-shadow:0 0 12px rgba(124,58,237,0.6);}
+  .counter{position:fixed;top:18px;right:24px;z-index:90;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums;}
+  .counter b{color:var(--text)}
+  .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:90;font-size:11px;color:var(--muted);background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);padding:6px 14px;border-radius:999px;letter-spacing:0.03em;opacity:0.7;}
+  .hint kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--text);}
+  .deck{position:relative;z-index:1;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 80px;opacity:0;transform:translateY(30px);transition:opacity 300ms ease,transform 300ms ease;pointer-events:none;overflow:auto;}
+  .slide.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+  .slide.prev{transform:translateY(-30px);}
+  .slide__inner{width:100%;max-width:1200px;display:flex;flex-direction:column;gap:22px;}
+  .slide--cover{padding:0;}
+  .cover-bubble{background:#fff;border-radius:28px;padding:38px 56px;max-width:580px;text-align:center;position:relative;z-index:2;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+  .cover-bubble--speech::after{content:'';position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:28px solid #fff;}
+  .game-icons{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .game-icons svg{position:absolute;opacity:0.22;}
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{background:linear-gradient(90deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .amber{color:var(--amber);font-weight:700;}
+  .badge-green{display:inline-block;background:var(--green);color:#fff;font-size:15px;font-weight:700;padding:7px 22px;border-radius:999px;margin-bottom:16px;}
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+  .card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .card--glow::before{content:'';position:absolute;inset:-1px;border-radius:var(--radius);padding:1px;background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+  .dept{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:15px 20px;display:flex;flex-direction:column;gap:6px;}
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--text);line-height:1.5;}
+  ul.clean li::before{content:'—';flex:0 0 auto;color:var(--amber);font-weight:700;}
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{counter-increment:step;display:flex;gap:14px;align-items:flex-start;padding:13px 18px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:15px;line-height:1.55;}
+  ol.steps li::before{content:counter(step);flex:0 0 28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--amber);font-weight:800;font-size:13px;color:#fff;margin-top:2px;}
+  pre[class*="language-"]{border-radius:14px!important;padding:18px 20px!important;font-size:15px!important;font-family:'JetBrains Mono',monospace!important;border:1px solid var(--card-border);box-shadow:var(--shadow);line-height:1.6!important;background:#1a1f2e!important;margin:0;}
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{background:rgba(124,58,237,0.15);color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+  .terminal{background:#050810;border:1px solid var(--card-border);border-radius:12px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#a7f3d0;position:relative;}
+  .terminal::before{content:'● ● ●';position:absolute;top:9px;left:13px;font-size:9px;color:#475569;letter-spacing:3px;}
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+  .quote-block{background:rgba(245,158,11,0.09);border-left:4px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 20px;font-size:17px;font-weight:600;color:var(--text);line-height:1.5;}
+  .discussion-text{font-size:clamp(28px,4.5vw,56px);font-weight:700;color:var(--text);line-height:1.15;}
+  .dl-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);color:var(--amber);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;text-decoration:none;transition:background 0.15s;}
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .btn-link{display:inline-flex;align-items:center;gap:6px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:var(--cyan);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;text-decoration:none;transition:background 0.15s;}
+  .btn-link:hover{background:rgba(6,182,212,0.2)}
+  .idx-table{border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:15px;width:auto;}
+  .idx-table td{border:1px solid var(--card-border);padding:8px 18px;text-align:center;color:var(--text);}
+  .idx-table tr:first-child td{background:rgba(124,58,237,0.15);color:#c4b5fd;font-weight:700;}
+  .idx-table tr:last-child td{color:var(--amber);font-weight:700;}
+  .notes{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--card-border);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease;}
+  .notes.active{transform:translateY(0)}
+  .notes__header{font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+  .slide.active .card,.slide.active .dept,.slide.active ul.clean li,.slide.active ol.steps li{animation:reveal 500ms ease backwards;}
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+  @keyframes reveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+  @media(max-width:700px){.slide{padding:60px 24px 70px}}
+</style>
+
+<style>
+.compiler{background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);border:1px solid rgba(124,58,237,0.3);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);}
+.compiler-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(124,58,237,0.08);border-bottom:1px solid rgba(255,255,255,0.06);}
+.compiler-header .lang-badge{display:inline-flex;align-items:center;gap:6px;color:#c4b5fd;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;}
+.compiler-header .lang-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{padding:14px 18px;color:#E2E8F0;max-height:260px;overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{padding:5px 12px;border:0;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;cursor:pointer;transition:all 0.15s;color:#fff;}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{display:none;border-top:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:#050810;color:#86efac;font-size:12.5px;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){outEl.className='compiler-output show error';outEl.textContent='Skulpt загружается... обнови страницу.';return;}
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({output:function(t){outEl.textContent+=t;},read:function(f){if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)throw "Файл не найден: "+f;return Sk.builtinFiles["files"][f];},inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000});
+    try{Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);});}catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">42</span></div>
+
+<main class="deck" id="deck">
+
+<!-- SLIDE 1: Cover violet -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Урок 5. Тема — строки. Поприветствуй учеников. Сегодня разберём: что такое строки, как их создавать, изменять, нарезать, работать с символами. Строки — один из самых важных типов данных в Python: имена пользователей, сообщения, статусы, пароли.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="12" y="26" width="56" height="30" rx="15" fill="white"/>
+      <rect x="22" y="36" width="4" height="10" rx="2" fill="#7C3AED"/>
+      <rect x="18" y="40" width="12" height="3" rx="1.5" fill="#7C3AED"/>
+      <circle cx="54" cy="36" r="3" fill="#7C3AED"/>
+      <circle cx="62" cy="41" r="3" fill="#7C3AED"/>
+      <circle cx="54" cy="46" r="3" fill="#7C3AED"/>
+      <circle cx="46" cy="41" r="3" fill="#7C3AED"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px"><span class="badge-green">Урок №5</span></div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Что такое строки<br>и как с ними работать
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Что такое строка -->
+<section class="slide"
+  data-notes="Строка — текст в кавычках. Примеры из жизни: имя пользователя, сообщение в чате, статус, пароль. Покажи код: name, school, hobby, mood. Подчеркни — даже эмодзи это строка. Представьте, что заполняете анкету — всё, что вводите, Python считывает как строки.">
+  <div class="slide__inner">
+    <h2>Что такое <span class="accent">строка</span></h2>
+    <p>Строка — текст, который написан в кавычках. Разработчики используют строки, чтобы хранить текст. Например: имена пользователей, сообщения, статусы, пароли.</p>
+    <p>Представьте, что вы заполняете анкету в личном кабинете. Всё, что вы вводите, Python считывает как строки.</p>
+    <div class="card">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Переменная <code>name</code> ссылается на слово «Артём», переменная <code>school</code> — на текст «Лицей №5», а переменная <code>hobby</code> — на слово «Компьютер».</p>
+      <pre><code class="language-python">name = "Артём"
+school = "Лицей №5"
+hobby = "Компьютер"
+mood = "😊"</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: Как создать строку -->
+<section class="slide"
+  data-notes="Три вида кавычек: одинарные, двойные, тройные. Главное правило — не смешивать. Без кавычек Python думает, что это имя переменной. Запусти компилятор — пусть ученики сами попробуют.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">создать строку</span></h2>
+    <p>Используйте одинарные <span style="color:#F59E0B;font-weight:700;">' '</span> или двойные <span style="color:#F59E0B;font-weight:700;">" "</span> кавычки, чтобы сохранить в переменной текст. Можно также использовать тройные кавычки <span style="color:#F59E0B;font-weight:700;">""" """</span>. Не смешивай кавычки — если начал с <span style="color:#F59E0B;font-weight:700;">' '</span>, закончи <span style="color:#F59E0B;font-weight:700;">' '</span>.</p>
+    <p>Если написать текст без кавычек, Python считает, что это имя переменной, а не текст.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">username = "Лёша"
+status = 'Онлайн'
+print(username)
+print(status)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Цифры могут быть и числом, и строкой -->
+<section class="slide"
+  data-notes="Ключевое различие: '123' и 123 — разные типы. Первое — строка, второе — число. Со строкой нельзя делить или вычитать. Спроси: что будет, если написать '123' / 3?">
+  <div class="slide__inner">
+    <h2>Цифры могут быть и числом, <span class="accent">и строкой</span></h2>
+    <p>Важно помнить: всё, что записано в кавычках — это строка. Даже если переменная ссылается на цифры — это тоже строка.</p>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card">
+        <h3 style="color:var(--amber)">Строка</h3>
+        <p style="margin-bottom:10px">Для Python это текст, а не число. Такую переменную нельзя делить или вычитать, но можно работать с ней как с текстом.</p>
+        <pre><code class="language-python">code = '123'</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan)">Число</h3>
+        <p style="margin-bottom:10px">Теперь переменная ссылается на число. Значит с ней можно проводить арифметические действия.</p>
+        <pre><code class="language-python">code = 123</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: Как создать пустую строку -->
+<section class="slide"
+  data-notes="Пустая строка — кавычки без ничего внутри. Пример: поле «О себе» при регистрации. Внутри ничего нет, даже пробела. Пустая строка — это не None, это именно пустой текст.">
+  <div class="slide__inner">
+    <h2>Как создать <span class="accent">пустую строку</span></h2>
+    <p>Иногда нужно создать переменную для текста, но самого текста ещё нет. Например, поле «О себе» при регистрации в игре пустое. Это называется пустая строка. Напишите кавычки без символов между ними, чтобы её создать.</p>
+    <div class="quote-block">Внутри кавычек ничего нет, даже пробела.</div>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">bio = ''
+print(bio)
+print(len(bio))</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: Что можно делать со строками -->
+<section class="slide"
+  data-notes="Четыре операции со строками: склеивание, дублирование, извлечение, измерение. Пройди по каждому пункту — следующие слайды раскроют каждый подробно.">
+  <div class="slide__inner">
+    <h2>Что можно делать <span class="accent">со строками</span></h2>
+    <p>Строки можно создавать и хранить их в переменных. Но разработчики также изменяют и комбинируют строки. Изучите операции, которые можно совершать со строками:</p>
+    <ul class="clean">
+      <li><strong>склеивание</strong> — соединить несколько строк в одну;</li>
+      <li><strong>дублирование</strong> — повторить текст несколько раз;</li>
+      <li><strong>извлечение</strong> — выбрать отдельные символы или части текста;</li>
+      <li><strong>измерение</strong> — подсчитать количество символов в строке.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 7: Два способа выполнять действия с текстом -->
+<section class="slide"
+  data-notes="Два подхода: внутри print() или через переменную. Второй удобнее, если результат нужен дальше в программе. Разбери оба примера: SuperUser и IvanPetrov. Пробел не добавлен — имена слипаются.">
+  <div class="slide__inner">
+    <h2>Вы можете выполнять действия с текстом <span class="accent">двумя способами</span></h2>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card">
+        <h3 style="color:var(--amber)">1. Внутри функции print()</h3>
+        <p style="margin-bottom:10px">Вы пишете выражение в скобках, Python вычисляет и выводит на экран. Переменную создавать не нужно.</p>
+        <pre><code class="language-python">print('Super' + 'User')</code></pre>
+        <p style="margin-top:8px;font-size:13px">Программа склеит строки и выведет <span style="color:#F59E0B;font-weight:700;">SuperUser</span>.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan)">2. С помощью переменной</h3>
+        <p style="margin-bottom:10px">Вы создаёте переменную, записываете в неё результат и потом используете её. Это удобно, если результат нужен дальше.</p>
+        <pre><code class="language-python">full_name = 'Ivan' + 'Petrov'
+print(full_name)</code></pre>
+        <p style="margin-top:8px;font-size:13px">Программа выведет: <span style="color:var(--cyan);font-weight:700;">IvanPetrov</span>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: Конкатенация -->
+<section class="slide"
+  data-notes="Конкатенация — склеивание строк через +. Пробел не добавляется автоматически — нужно вставить вручную. Покажи оба примера: без пробела и с пробелом. Пусть ученики запустят.">
+  <div class="slide__inner">
+    <h2>Что такое конкатенация, <span class="accent">или склеивание</span></h2>
+    <p>Используйте оператор сложения <span style="color:#F59E0B;font-weight:700;">+</span>, чтобы объединить две строки в одну без пробелов. Если нужен пробел — добавьте его вручную внутри кавычек.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">print('Super' + "User")
+
+print('Super' + ' ' + 'User')</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="grid grid--2">
+      <div class="card"><p>Первая команда выведет <span style="color:#F59E0B;font-weight:700;">SuperUser</span>.</p></div>
+      <div class="card"><p>Вторая команда выведет <span style="color:#F59E0B;font-weight:700;">Super User</span>.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: Дублирование -->
+<section class="slide"
+  data-notes="Дублирование — умножение строки на число через *. Пример с восклицательными знаками хорошо визуализирует смысл. Запусти и покажи вывод. Спроси: как вывести 20 звёздочек одной строкой?">
+  <div class="slide__inner">
+    <h2>Что такое <span class="accent">дублирование</span></h2>
+    <p>В языке Python дублирование строк — это операция, которая создаёт новую строку с помощью повторения исходной строки заданное количество раз.</p>
+    <p>Используйте оператор умножения <span style="color:#F59E0B;font-weight:700;">*</span>, чтобы повторить строку заданное количество раз.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">print('!' * 15)
+print(' ошибка входа ')
+print('!' * 15)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card">
+      <p>Команда <code>'!' * 15</code> создаёт строку, в которой символ «!» повторяется 15 раз. Затем программа выводит текст «ошибка входа». В конце снова выводит 15 символов «!».</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10: Строки можно складывать и умножать -->
+<section class="slide"
+  data-notes="Сводный слайд по + и * для строк. Другие операторы — минус и деление — со строками не работают. Спроси: что будет, если написать 'hello' - 'h'? Пусть угадают, потом проверьте в компиляторе.">
+  <div class="slide__inner">
+    <h2>Строки можно <span class="accent">складывать и умножать</span></h2>
+    <p>Со строками работают не все математические правила, но некоторые знаки использовать можно:</p>
+    <ul class="clean">
+      <li><strong>Знак <span style="color:#F59E0B">+</span>.</strong> В программировании это конкатенация. + не считает сумму, а приклеивает одну строку к другой.</li>
+      <li><strong>Знак <span style="color:#F59E0B">*</span>.</strong> Это дублирование. С помощью умножения можно создать копию текста столько раз, сколько вы укажете.</li>
+    </ul>
+    <div class="quote-block">
+      Другие знаки, например <code>-</code> и <code>/</code>, со строками не работают и вызывают ошибки.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 11: Чего нельзя делать со строками -->
+<section class="slide"
+  data-notes="Два запрета: нельзя складывать строку и число, нельзя вычитать/делить. Оба примера дают ошибку. Запусти и покажи сообщение об ошибке. Умение читать ошибки — важный навык разработчика.">
+  <div class="slide__inner">
+    <h2>Чего нельзя делать <span class="accent">со строками</span></h2>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:#F59E0B;font-weight:700;">1. Нельзя сложить строку и число.</h3>
+        <p style="margin-bottom:10px">Оператор + работает только с одинаковыми типами данных — только со строками или только с числами.</p>
+        <pre><code class="language-python">level = 5
+print('Уровень: ' + level)</code></pre>
+        <p style="margin-top:8px;font-size:13px;color:#fca5a5">Ошибка! Нельзя сложить текст и число напрямую.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:#F59E0B;font-weight:700;">2. Нельзя вычитать и делить строки.</h3>
+        <p style="margin-bottom:10px">Не получится вычесть одну букву из слова с помощью минуса или разделить слово на два.</p>
+        <pre><code class="language-python">print('Messages' - 's')</code></pre>
+        <p style="margin-top:8px;font-size:13px;color:#fca5a5">Ошибка! Строки нельзя вычитать.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12: Вопрос — что выведет программа? (green cover) -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: Ivan Petrov (с пробелом — между строками стоит ' '). Дай ученикам подумать 30–60 секунд, потом проверьте в компиляторе.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text></svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative;padding:40px 20px">
+    <div class="cover-bubble cover-bubble--speech">
+      <p style="color:#1a1a2e;font-size:14px;font-weight:600;margin-bottom:12px">Изучите пример кода и ответьте на вопрос</p>
+      <pre style="text-align:left;background:#f1f5f9;border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:14px;color:#1a1a2e;margin-bottom:14px">first_name = 'Ivan'
+last_name = 'Petrov'
+full_name = first_name + ' ' + last_name
+print(full_name)</pre>
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,30px);font-weight:800;line-height:1.2;">Что выведет программа?</h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13: Вопрос — тип данных строки -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: str. В Python тип str — строковый тип. Можно проверить через type('hello'). Дай ученикам назвать ответ самостоятельно.">
+  <div class="game-icons">
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.8vw,34px);font-weight:800;line-height:1.2;">
+        Какой тип данных у переменной,<br>которая ссылается на текст?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14: Вопрос — тройные кавычки -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: да, можно. Тройные кавычки используются для многострочных строк. Позволяют переносить текст на новую строку внутри кавычек. Часто используются для документирования функций.">
+  <div class="game-icons">
+    <svg width="90" height="90" style="top:30px;left:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 74,32 40,74 6,32" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.8vw,32px);font-weight:800;line-height:1.2;">
+        Можно ли записать строку<br>в тройных кавычках <code style="font-size:0.85em">"""Текст"""</code>?<br>Объясните, почему.
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15: Вопрос — print('10' + '5') -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: 105, а не 15! '10' и '5' — строки, + для строк — конкатенация, не сложение. Классическая ловушка. Спроси: как сделать так, чтобы получилось 15?">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.8vw,34px);font-weight:800;line-height:1.2;">
+        Что выведет команда:<br><code style="font-size:0.85em">print('10' + '5')</code>?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16: Зачем и как считать длину строки -->
+<section class="slide"
+  data-notes="Функция len() считает количество символов. Примеры из жизни: пароль минимум 8 символов, пост не более 280. Покажи: len('Python') = 6. Спроси: а сколько символов в их имени?">
+  <div class="slide__inner">
+    <h2>Зачем и как считать <span class="accent">длину строки</span></h2>
+    <p>В приложениях часто есть ограничения на длину строки. Например, пароль должен быть длиннее 8 символов, а пост — не более 280. Чтобы проверить это, компьютер считает символы.</p>
+    <p>Используйте функцию <span style="color:#F59E0B;font-weight:700;">len()</span>, чтобы узнать количество символов в строке. Она считает всё, что находится внутри кавычек: буквы, цифры, знаки препинания. Затем <code>len()</code> возвращает целое число.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">print(len('Python'))</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card"><p>С помощью этой команды можно узнать, что в слове Python <span style="color:#F59E0B;font-weight:700;">6 символов</span>.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 17: Пробел тоже считается символом -->
+<section class="slide"
+  data-notes="Важный момент: пробел — это символ. len() всегда считает пробелы. Пример: 'Hi !' содержит 4 символа. Попроси учеников посчитать вручную, потом проверьте в компиляторе.">
+  <div class="slide__inner">
+    <h2>Пробел тоже считается <span class="accent">символом</span></h2>
+    <p>Для Python пробел — это такой же символ, как «А» или «Б». Поэтому <span style="color:#F59E0B;font-weight:700;">len()</span> всегда считает пробелы.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">greeting = 'Hi !'
+print(len(greeting))</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card"><p>Переменная <code>greeting</code> содержит <span style="color:#F59E0B;font-weight:700;">4 символа</span> — 2 буквы, восклицательный знак и пробел.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 18: Как найти адрес символа -->
+<section class="slide"
+  data-notes="Мотивационный слайд перед индексами. Зачем это нужно? Например, зашифровать пароль: показать только первый и последний символы. Реальный пример из Telegram. Чтобы это сделать, нужно уметь обращаться к каждому символу отдельно.">
+  <div class="slide__inner">
+    <h2>Как найти <span class="accent">адрес символа</span></h2>
+    <p>Разработчикам часто бывает необходимо работать не с целым текстом, а с отдельными символами внутри него.</p>
+    <div class="quote-block">
+      Например, нужно зашифровать пароль в Telegram, но оставить подсказку — показать только первый и последний символы.
+    </div>
+    <p>Для решения таких задач разработчикам важно уметь обращаться к каждому символу отдельно.</p>
+  </div>
+</section>
+
+<!-- SLIDE 19: Как устроена строка внутри -->
+<section class="slide"
+  data-notes="Строка — цепочка элементов с номерами (индексами). Пример: слово FRIEND. Индексы начинаются с 0. Покажи таблицу: F=0, R=1, I=2, E=3, N=4, D=5. Этот слайд готовит к следующему объяснению.">
+  <div class="slide__inner">
+    <h2>Как устроена строка <span class="accent">внутри</span></h2>
+    <p>Представьте, что строка — это цепочка элементов. У каждого элемента есть свой номер — индекс. По этому номеру можно найти нужную букву. Рассмотрите это на примере слова <span style="color:#F59E0B;font-weight:700;">FRIEND</span>.</p>
+    <div class="card" style="overflow:auto">
+      <table class="idx-table">
+        <tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+        <tr><td>F</td><td>R</td><td>I</td><td>E</td><td>N</td><td>D</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 20: Индексация начинается с 0 -->
+<section class="slide"
+  data-notes="Главное правило: нумерация с нуля. Работает почти во всех языках программирования. Частая ошибка новичков — начинать с 1. Обрати на это особое внимание.">
+  <div class="slide__inner">
+    <h2>Индексация строки <span class="accent">начинается с 0</span></h2>
+    <p>Обратите внимание на таблицу: первая буква <span style="color:#F59E0B;font-weight:700;">F</span> имеет индекс <span style="color:var(--cyan);font-weight:700;">0</span>. Вторая — 1, и так далее. Это правило работает почти во всех языках программирования.</p>
+    <div class="card" style="overflow:auto">
+      <table class="idx-table">
+        <tr>
+          <td style="color:var(--cyan);font-weight:800">0</td>
+          <td>1</td><td>2</td><td>3</td><td>4</td><td>5</td>
+        </tr>
+        <tr>
+          <td style="color:#F59E0B;font-weight:800">F</td>
+          <td>R</td><td>I</td><td>E</td><td>N</td><td>D</td>
+        </tr>
+      </table>
+    </div>
+    <div class="quote-block">Индексы всегда начинаются с нуля, а не с единицы!</div>
+  </div>
+</section>
+
+<!-- SLIDE 21: Как узнать символ по номеру -->
+<section class="slide"
+  data-notes="Синтаксис: переменная[индекс]. Пример: x = 'friend', start = x[0] даёт 'f'. Запусти код. Попроси учеников: как получить букву 'r'? Как получить последнюю 'd'?">
+  <div class="slide__inner">
+    <h2>Как узнать символ <span class="accent">по номеру в строке</span></h2>
+    <p>Используйте квадратные скобки: <span style="color:#F59E0B;font-weight:700;">переменная[индекс]</span>, чтобы обратиться к конкретному символу.</p>
+    <p>Представьте, что вы хотите найти только первый символ в строке. Для этого напишите <strong>start = x[0]</strong>. Программа обратится к символу <span style="color:#F59E0B;font-weight:700;">f</span>.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 'friend'
+start = x[0]
+print(start)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 22: Отрицательные индексы -->
+<section class="slide"
+  data-notes="Отрицательные индексы: -1 — последний символ, -2 — предпоследний. Удобно, когда не знаешь длину строки. Покажи таблицу с отрицательными индексами. Запусти пример с x[-1].">
+  <div class="slide__inner">
+    <h2>Что такое <span class="accent">отрицательные индексы</span></h2>
+    <p>Иногда удобнее обратиться к элементу с конца. Отрицательные индексы начинаются с <span style="color:var(--cyan);font-weight:700;">-1</span>: -1, -2, -3 и так далее.</p>
+    <div class="card" style="overflow:auto">
+      <table class="idx-table">
+        <tr><td>F</td><td>R</td><td>I</td><td>E</td><td>N</td><td>D</td></tr>
+        <tr><td>-6</td><td>-5</td><td>-4</td><td>-3</td><td>-2</td><td style="color:var(--cyan);font-weight:800">-1</td></tr>
+      </table>
+    </div>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 'friend'
+end = x[-1]
+print(end)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <p style="font-size:14px">Программа обратится к символу <span style="color:#F59E0B;font-weight:700;">d</span>, так как написали <code>end = x[-1]</code>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 23: Вопрос — индекс первого символа -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: 0. Индексация начинается с нуля. Быстрый опрос — пусть ответит каждый ученик по очереди.">
+  <div class="game-icons">
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none"><path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,3vw,42px);font-weight:800;line-height:1.2;">
+        Какой индекс у первого<br>символа в строке?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 24: Вопрос — последний символ без знания длины -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: использовать индекс -1. Для этого существуют отрицательные индексы. Удобно, когда строка приходит от пользователя и длина заранее неизвестна.">
+  <div class="game-icons">
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.8vw,34px);font-weight:800;line-height:1.2;">
+        Как получить последний символ строки,<br>если не знаешь её длины?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 25: Что такое срезы -->
+<section class="slide"
+  data-notes="Срез — извлечение части строки. Синтаксис: [старт:стоп]. Старт включается в результат, стоп — нет. Аналогия: делаю ДЗ с 2 до 5 — в 5 уже не делаю. Это помогает запомнить правило исключения конца.">
+  <div class="slide__inner">
+    <h2>Что такое <span class="accent">срезы в Python</span></h2>
+    <p>Срез — это способ извлечь часть строки. Иногда нужно узнать не конкретный символ, а часть текста. Например, слово из предложения.</p>
+    <p>Используйте квадратные скобки и двоеточие: <span style="color:#F59E0B;font-weight:700;">[старт:стоп]</span>.</p>
+    <ul class="clean">
+      <li><strong>Старт</strong> — индекс, с которого начинается срез, он включается в вывод.</li>
+      <li><strong>Стоп</strong> — индекс, на котором заканчивается срез, он не включается в вывод.</li>
+    </ul>
+    <div class="quote-block">
+      Это похоже на то, как считают время: «я делаю ДЗ с 2 до 5» означает, что в 5 уже закончили домашнее задание.
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 26: Как записать срез -->
+<section class="slide"
+  data-notes="Первый практический пример среза: word[0:5] из слова 'Internet' даёт 'Inter'. Запусти в компиляторе. Убедись: 0 включается, 5 не включается.">
+  <div class="slide__inner">
+    <h2>Как записать <span class="accent">срез</span></h2>
+    <p>Укажите два индекса в квадратных скобках через двоеточие, чтобы обратиться к части строки.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">word = 'Internet'
+part = word[0:5]
+print(part)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card"><p>Программа возьмёт из слова <code>Internet</code> первые 5 символов и выведет слово <span style="color:#F59E0B;font-weight:700;">Inter</span>.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 27: Срез в сокращённой форме -->
+<section class="slide"
+  data-notes="Две сокращённые формы: [:5] — с начала до 5, [2:] — со второго до конца. Python понимает пустое место как 0 или конец строки. Запусти оба примера.">
+  <div class="slide__inner">
+    <h2>Как записать срез <span class="accent">в сокращённой форме</span></h2>
+    <p>Программисты часто используют сокращённую форму для записи среза.</p>
+    <div class="grid grid--2">
+      <div class="card">
+        <h3 style="color:var(--amber)">Срез с начала [:5]</h3>
+        <p style="margin-bottom:10px">Срез <code>[:5]</code> записывает в новую переменную все символы с 1 по 5.</p>
+        <pre><code class="language-python">word = 'Internet'
+part = word[:5]
+print(part)</code></pre>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--cyan)">Срез до конца [2:]</h3>
+        <p style="margin-bottom:10px">Срез <code>[2:]</code> записывает все символы со второго до конца.</p>
+        <pre><code class="language-python">word = 'Internet'
+part = word[2:]
+print(part)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 28: Как скопировать строку целиком -->
+<section class="slide"
+  data-notes="Срез [:] создаёт полную копию строки. Нужно, когда хочешь работать с копией, не меняя оригинал. Запусти пример.">
+  <div class="slide__inner">
+    <h2>Как скопировать строку <span class="accent">целиком</span></h2>
+    <p>Иногда нужно создать полную копию текста для работы и не изменять оригинальную строку. Для этого используйте срез с пустыми значениями начала и конца.</p>
+    <ol class="steps">
+      <li>Оставьте место перед двоеточием пустым: Python начнёт с индекса 0.</li>
+      <li>Оставьте место после двоеточия пустым: Python дойдёт до самого конца строки.</li>
+    </ol>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">word = 'Internet'
+copy = word[:]
+print(copy)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 29: Как извлечь символы через один -->
+<section class="slide"
+  data-notes="Шаг в срезе — третий параметр [старт:стоп:шаг]. Шаг 2 — каждый второй символ. Запусти пример со словом 'Программа'. Вывод: Пргама (каждый чётный символ). Обсуди практическое применение.">
+  <div class="slide__inner">
+    <h2>Как извлечь символы <span class="accent">через один</span></h2>
+    <p>Разработчики часто ускоряют работу с текстом, извлекая символы через один. Чтобы выбирать символы с определённым интервалом, добавьте второе двоеточие и цифру шага: <span style="color:#F59E0B;font-weight:700;">[старт:стоп:шаг]</span>.</p>
+    <ol class="steps">
+      <li>Укажите шаг 2, чтобы забирать каждый второй символ.</li>
+      <li>Программа сошлётся на первый символ, пропустит один и запишет следующий.</li>
+    </ol>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">word = 'Программа'
+result = word[::2]
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 30: Как развернуть строку -->
+<section class="slide"
+  data-notes="Шаг -1 разворачивает строку. Отличный пример с палиндромом «шалаш». Запусти: word[::-1] для 'Python' даёт 'nohtyP'. Спроси: является ли «шалаш» палиндромом? Как это проверить кодом?">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">развернуть строку</span></h2>
+    <p>Это помогает, например, проверить, читается ли слово одинаково в обоих направлениях, как слово «шалаш». Если указать отрицательное число в качестве шага, Python начнёт считывать строку справа налево.</p>
+    <ol class="steps">
+      <li>Используйте шаг <code>-1</code>.</li>
+      <li>Оставьте индексы старта и стопа пустыми <code>[::-1]</code>.</li>
+    </ol>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">word = 'Python'
+new_word = word[::-1]
+print(new_word)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <p style="font-size:14px">Программа развернёт слово Python. Вывод: <span style="color:#F59E0B;font-weight:700;">nohtyP</span>.</p>
+  </div>
+</section>
+
+<!-- SLIDE 31: Ошибка 1 — срез за границами -->
+<section class="slide"
+  data-notes="Ошибка IndexError. Обращение к несуществующему индексу. Аналогия: ищешь квартиру №10 в доме с 3 квартирами. Запусти код — покажи текст ошибки. Умение читать ошибки — навык разработчика.">
+  <div class="slide__inner">
+    <h2>Частые ошибки при работе <span class="accent">со срезами</span></h2>
+    <div class="card card--glow">
+      <h3 style="color:#F59E0B;font-weight:700;margin-bottom:8px">Ошибка 1. Срез выходит за границы.</h3>
+      <p style="margin-bottom:12px">Если вы попробуете обратиться к индексу, которого нет, Python выдаст ошибку <code>IndexError: string index out of range</code>.</p>
+      <p style="margin-bottom:12px">Это похоже на то, что вы ищете квартиру №10 в доме, где всего 3 квартиры.</p>
+      <pre><code class="language-python">text = 'Hi'
+text[5]  # Ошибка! Индекса 5 нет. Есть только 0 и 1.</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 32: Ошибка 2 — изменение символа -->
+<section class="slide"
+  data-notes="Ошибка TypeError. Строки в Python неизменяемы (immutable). Нельзя присвоить новое значение по индексу. Запусти — покажи ошибку. Если нужно изменить символ — создавать новую строку.">
+  <div class="slide__inner">
+    <h2>Частые ошибки при работе <span class="accent">со срезами</span></h2>
+    <div class="card card--glow">
+      <h3 style="color:#F59E0B;font-weight:700;margin-bottom:8px">Ошибка 2. Пытаетесь изменить символ.</h3>
+      <p style="margin-bottom:12px">Если вы создали строку — нельзя обратиться к конкретному индексу и записать новый символ.</p>
+      <p style="margin-bottom:12px">Если выполнить код <code>text[0] = "A"</code>, программа выдаст ошибку <code>TypeError</code> — строка не поддерживает перезапись отдельных элементов.</p>
+      <pre><code class="language-python">text = 'Hello'
+text[0] = 'A'  # Ошибка!</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 33: Вопрос — разделитель индексов в срезе -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: двоеточие :. В срезе [старт:стоп] индексы разделяются двоеточием. Быстрый вопрос для проверки памяти.">
+  <div class="game-icons">
+    <svg width="90" height="90" style="top:30px;left:60px" viewBox="0 0 80 80" fill="none"><polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/></svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,3vw,40px);font-weight:800;line-height:1.2;">
+        Какой символ разделяет<br>индекс начала среза<br>и индекс конца среза?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 34: Вопрос — срез [1:] от "Python" -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Ответ: 'ython'. Срез [1:] берёт все символы начиная с индекса 1 до конца. P отрезается. Дай ученикам посчитать самостоятельно, потом проверьте в компиляторе.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none"><path d="M18 12h44v22a22 22 0 0 1-44 0Z" fill="white"/><path d="M8 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><path d="M62 16h10v18a9 9 0 0 1-10 0Z" fill="white"/><rect x="28" y="52" width="24" height="8" rx="2" fill="white"/><rect x="20" y="60" width="40" height="7" rx="3" fill="white"/></svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none"><circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/><text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">?</text></svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.8vw,34px);font-weight:800;line-height:1.2;">
+        Что вернёт срез <code style="font-size:0.85em">[1:]</code>,<br>если строка — <code style="font-size:0.85em">"Python"</code>?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 35: Практика — генератор никнеймов (задача) -->
+<section class="slide"
+  data-notes="Практическое задание 1. Задача: добавить название клана перед именем игрока. Пример: [ЕДУСОН] VoVan. Прочитай условие вместе с учениками. Какие строки нужны, какие операции использовать?">
+  <div class="slide__inner">
+    <h2>Практическое задание: создайте <span class="accent">генератор никнеймов</span></h2>
+    <div class="card card--glow">
+      <p>В онлайн-играх игроки часто вступают в кланы. Чтобы все видели, в каком вы клане, перед именем добавьте название клана в квадратных скобках. Например, если название клана <span style="color:#F59E0B;font-weight:700;">ЕДУСОН</span>, а имя игрока <span style="color:var(--cyan);font-weight:700;">VoVan</span>, то игровой никнейм будет:</p>
+      <div class="terminal" style="margin-top:12px">
+        <div class="terminal__body"><span style="color:#F59E0B;font-weight:700;">[ЕДУСОН] VoVan</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 36: Практика — генератор никнеймов (алгоритм) -->
+<section class="slide"
+  data-notes="Алгоритм из 4 шагов. Дай ученикам попробовать написать самостоятельно — 5–7 минут. Подсказывай только если совсем застряли. clan, name, nickname — имена переменных выбирает сам разработчик.">
+  <div class="slide__inner">
+    <h2>Практическое задание: <span class="accent">генератор никнеймов</span></h2>
+    <p>Выполните алгоритм из 4 действий, чтобы создать генератор никнеймов.</p>
+    <ol class="steps">
+      <li>Создайте переменную <span style="color:#F59E0B;font-weight:700;">clan</span> и запишите в неё название клана в квадратных скобках.</li>
+      <li>Создайте переменную <span style="color:#F59E0B;font-weight:700;">name</span> и запишите в неё своё имя.</li>
+      <li>Склейте эти строки через пробел и сохраните результат в новую переменную <span style="color:#F59E0B;font-weight:700;">nickname</span>.</li>
+      <li>Выведите никнейм на экран.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 37: Практика — решение генератора никнеймов -->
+<section class="slide"
+  data-notes="Решение с input(). Скобки вокруг клана добавляются вручную через конкатенацию. Запусти — введи название клана и имя. Попроси учеников сравнить своё решение с этим.">
+  <div class="slide__inner">
+    <h2>Изучите решение <span class="accent">практического задания</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p>1. Запросите название клана.<br>2. Запросите имя игрока.<br>3. Добавьте квадратные скобки к клану и склейте с именем через пробел.<br>4. Выведите результат.</p>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">clan = input('Введите название клана: ')
+name = input('Введите ваше имя: ')
+nickname = '[' + clan + '] ' + name
+print(nickname)</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 38: Практика — секретный шифр (задача) -->
+<section class="slide"
+  data-notes="Практическое задание 2: расшифровщик. Идея: каждый второй символ — лишний. Задача — извлечь только нужные. Какую операцию со срезом использовать?">
+  <div class="slide__inner">
+    <h2>Практическое задание: создайте <span class="accent">секретный шифр</span></h2>
+    <div class="card card--glow">
+      <p>Представьте, что вы получили секретное послание. Чтобы его зашифровать, отправитель добавил лишний символ после каждой буквы сообщения. Ваша задача — написать программу, которая автоматически очистит текст и вернёт исходное слово.</p>
+    </div>
+    <ol class="steps">
+      <li>Напиши строку, в которой первые три символа <code>---</code>. Напиши само слово после этих символов.</li>
+      <li>Затем достань слово, которое ты написал.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 39: Практика — секретный шифр (алгоритм) -->
+<section class="slide"
+  data-notes="Алгоритм из 5 шагов. Ключевой шаг — срез с шагом 2. Дай ученикам попробовать самостоятельно. Подсказка: какой срез вытащит каждый второй символ начиная с первого? [::2].">
+  <div class="slide__inner">
+    <h2>Практическое задание: <span class="accent">секретный шифр</span></h2>
+    <p>Выполни алгоритм из пяти действий, чтобы создать программу, которая расшифрует послание.</p>
+    <ol class="steps">
+      <li>Создайте переменную <span style="color:#F59E0B;font-weight:700;">secret_message</span>.</li>
+      <li>Используйте функцию <span style="color:#F59E0B;font-weight:700;">input()</span>, чтобы записать в эту переменную зашифрованный текст.</li>
+      <li>Примените срез с шагом 2, чтобы извлечь из строки только нужные символы.</li>
+      <li>Сохраните результат в новую переменную <span style="color:#F59E0B;font-weight:700;">decoded_word</span>.</li>
+      <li>Выведите расшифрованное слово на экран.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- SLIDE 40: Практика — решение секретного шифра -->
+<section class="slide"
+  data-notes="Решение: срез [::2]. Вводим зашифрованное слово (например: 'пXрXиXвXеXт'), программа выдаёт 'привет'. Запусти и попробуй разные слова. Как зашифровать слово самому?">
+  <div class="slide__inner">
+    <h2>Изучите решение <span class="accent">практического задания</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <div>
+        <p>1. Примите зашифрованный текст от пользователя.<br>2. Вырежете каждый второй символ, начиная с первого.<br>3. Покажите результат.</p>
+      </div>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">secret_message = input('Введите зашифрованное слово: ')
+decoded_word = secret_message[::2]
+print('Результат расшифровки:', decoded_word)</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 41: Домашнее задание — описание -->
+<section class="slide"
+  data-notes="ДЗ: рамка из символов # вокруг никнейма. Рамка подстраивается под длину слова автоматически. Нужна функция len(). MAX — короткая рамка, SUPER_PROGRAMMER — длинная. Покажи примеры вывода.">
+  <div class="slide__inner">
+    <h2>Домашнее задание: напишите код, <span class="accent">который делает никнейм необычным</span></h2>
+    <p>Представьте, вы хотите, чтобы никнейм или статус выделялся в консоли. Напишите программу, которая берёт любое слово и оборачивает его в рамку из символов <code>#</code>. Рамка подстраивается под длину слова автоматически.</p>
+    <div class="grid grid--2">
+      <div class="card">
+        <p>Если ввести <span style="color:#F59E0B;font-weight:700;">MAX</span>, рамка будет короткой:</p>
+        <div class="terminal" style="margin-top:10px">
+          <div class="terminal__body" style="color:#86efac">########<br># MAX #<br>########</div>
+        </div>
+      </div>
+      <div class="card">
+        <p>А если ввести <span style="color:#F59E0B;font-weight:700;">SUPER_PROGRAMMER</span>, рамка растянется.</p>
+        <p style="margin-top:10px">Для этой задачи понадобится узнать, сколько букв в слове. Используйте функцию <span style="color:#F59E0B;font-weight:700;">len()</span>.</p>
+        <pre><code class="language-python">name = 'Alex'
+length = len(name)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 42: Домашнее задание — алгоритм + компилятор -->
+<section class="slide"
+  data-notes="Финальный слайд с алгоритмом и компилятором. Шаг 3 ключевой: длина линии = длина слова + 4 (два пробела и два символа # по краям). Дай ученикам попробовать написать прямо сейчас. Удачи!">
+  <div class="slide__inner" style="gap:16px">
+    <h2>Изучите алгоритм, <span class="accent">чтобы решить задание</span></h2>
+    <div class="grid grid--2" style="align-items:start">
+      <ol class="steps">
+        <li>Запросите у пользователя никнейм или слово.</li>
+        <li>Узнайте длину этого слова с помощью <span style="color:#F59E0B;font-weight:700;">len()</span>.</li>
+        <li>Рассчитайте длину верхней и нижней границы. Внутри рамки два пробела слева и справа от слова и две решётки границ. Значит, <strong>длина линии = длина_слова + 4</strong>.</li>
+        <li>Создайте линию-границу — умножьте символ <code>#</code> на длину.</li>
+        <li>Выведите результат.</li>
+      </ol>
+      <div class="compiler" data-lang="python">
+        <div class="compiler-header">
+          <span class="lang-badge">Python — попробуй!</span>
+          <div class="compiler-actions">
+            <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+            <button class="compiler-btn run" type="button">▶ Запустить</button>
+          </div>
+        </div>
+        <div class="compiler-editor" contenteditable="true" spellcheck="false">name = input('Введи никнейм: ')
+length = len(name)
+line = '#' * (length + 4)
+print(line)
+print('# ' + name + ' #')
+print(line)</div>
+        <div class="compiler-output"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

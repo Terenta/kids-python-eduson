@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 2 — Переменные | Python Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#111826;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --green:#22c55e;
+    --amber:#F59E0B;
+    --text:#F1F5F9;
+    --muted:#94A3B8;
+    --card:rgba(255,255,255,0.04);
+    --card-border:rgba(255,255,255,0.08);
+    --shadow:0 20px 60px rgba(0,0,0,0.4);
+    --radius:20px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(800px circle at 15% 20%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px circle at 85% 80%, rgba(6,182,212,0.15), transparent 60%),
+      radial-gradient(600px circle at 50% 50%, rgba(124,58,237,0.05), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;right:0;
+    height:4px;background:rgba(255,255,255,0.05);z-index:100;
+  }
+  .progress__fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    transition:width 300ms ease;
+    box-shadow:0 0 12px rgba(124,58,237,0.6);
+  }
+
+  /* Counter */
+  .counter{
+    position:fixed;top:18px;right:24px;z-index:90;
+    font-size:13px;font-weight:500;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--text)}
+
+  /* Hints */
+  .hint{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:90;font-size:11px;color:var(--muted);
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    padding:6px 14px;border-radius:999px;
+    letter-spacing:0.03em;
+    opacity:0.7;
+  }
+  .hint kbd{
+    font-family:'JetBrains Mono',monospace;
+    background:rgba(255,255,255,0.08);
+    padding:1px 6px;border-radius:4px;font-size:10px;
+    margin:0 2px;color:var(--text);
+  }
+
+  /* Slides */
+  .deck{
+    position:relative;z-index:1;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:72px 80px 80px;
+    opacity:0;
+    transform:translateY(30px);
+    transition:opacity 300ms ease, transform 300ms ease;
+    pointer-events:none;
+    overflow:auto;
+  }
+  .slide.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .slide.prev{
+    transform:translateY(-30px);
+  }
+
+  .slide__inner{
+    width:100%;max-width:1200px;
+    display:flex;flex-direction:column;gap:22px;
+  }
+
+  /* Cover slides (full-bleed colored background) */
+  .slide--cover{
+    padding:0;
+  }
+  .cover-bubble{
+    background:#fff;
+    border-radius:28px;
+    padding:38px 56px;
+    max-width:580px;
+    text-align:center;
+    position:relative;
+    z-index:2;
+    box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  }
+  .cover-bubble--speech::after{
+    content:'';
+    position:absolute;
+    bottom:-28px;left:50%;transform:translateX(-50%);
+    width:0;height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:28px solid #fff;
+  }
+
+  /* Game icons */
+  .game-icons{
+    position:absolute;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .game-icons svg{
+    position:absolute;
+    opacity:0.22;
+  }
+
+  /* Cover label */
+  .cover__label{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Typography */
+  h1{font-size:clamp(36px,5vw,64px);font-weight:800;line-height:1.05;letter-spacing:-0.02em}
+  h2{font-size:clamp(24px,2.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-0.015em;margin-bottom:6px}
+  h3{font-size:clamp(17px,1.6vw,22px);font-weight:600;line-height:1.2;margin-bottom:4px}
+  p{font-size:clamp(15px,1.15vw,18px);color:var(--text);line-height:1.58}
+  .lead{font-size:clamp(16px,1.25vw,20px);color:var(--muted)}
+  .muted{color:var(--muted)}
+  .accent{
+    background:linear-gradient(90deg,var(--violet),var(--cyan));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .amber{color:var(--amber);font-weight:700;}
+
+  /* Badges */
+  .badge-green{
+    display:inline-block;
+    background:var(--green);color:#fff;
+    font-size:15px;font-weight:700;
+    padding:7px 22px;border-radius:999px;
+    margin-bottom:16px;
+  }
+
+  /* Cards */
+  .grid{display:grid;gap:16px}
+  .grid--2{grid-template-columns:repeat(2,1fr)}
+  .grid--3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.grid--2,.grid--3{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .card--glow::before{
+    content:'';position:absolute;inset:-1px;
+    border-radius:var(--radius);padding:1px;
+    background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(6,182,212,0.5));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card h3{margin-bottom:4px}
+  .card p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Department cards */
+  .dept{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:15px 20px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .dept__header{display:flex;align-items:center;gap:10px;}
+  .dept__num{font-size:17px;font-weight:800;color:var(--amber);flex-shrink:0;}
+  .dept__title{font-size:15px;font-weight:700;color:var(--text);}
+  .dept p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* Lists */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:8px}
+  ul.clean li{
+    display:flex;gap:12px;align-items:flex-start;
+    font-size:16px;color:var(--text);line-height:1.5;
+  }
+  ul.clean li::before{
+    content:'—';flex:0 0 auto;
+    color:var(--amber);font-weight:700;
+  }
+
+  ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:10px}
+  ol.steps li{
+    counter-increment:step;
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 18px;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    font-size:15px;line-height:1.55;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    flex:0 0 28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--amber);
+    font-weight:800;font-size:13px;color:#fff;
+    margin-top:2px;
+  }
+
+  /* Code */
+  pre[class*="language-"]{
+    border-radius:14px!important;
+    padding:18px 20px!important;
+    font-size:15px!important;
+    font-family:'JetBrains Mono',monospace!important;
+    border:1px solid var(--card-border);
+    box-shadow:var(--shadow);
+    line-height:1.6!important;
+    background:#1a1f2e!important;
+    margin:0;
+  }
+  code{font-family:'JetBrains Mono',monospace!important}
+  :not(pre)>code{
+    background:rgba(124,58,237,0.15);color:#c4b5fd;
+    padding:2px 8px;border-radius:6px;font-size:0.88em;
+    border:1px solid rgba(124,58,237,0.25);
+  }
+
+  .terminal{
+    background:#050810;border:1px solid var(--card-border);
+    border-radius:12px;padding:14px 18px;
+    font-family:'JetBrains Mono',monospace;font-size:14px;
+    color:#a7f3d0;position:relative;
+  }
+  .terminal::before{
+    content:'● ● ●';position:absolute;top:9px;left:13px;
+    font-size:9px;color:#475569;letter-spacing:3px;
+  }
+  .terminal__body{padding-top:14px}
+  .terminal__prompt{color:#64748b}
+
+  /* Quote highlight */
+  .quote-block{
+    background:rgba(245,158,11,0.09);
+    border-left:4px solid var(--amber);
+    border-radius:0 12px 12px 0;
+    padding:14px 20px;
+    font-size:17px;font-weight:600;
+    color:var(--text);line-height:1.5;
+  }
+
+  /* Discussion */
+  .discussion-text{
+    font-size:clamp(28px,4.5vw,56px);
+    font-weight:700;color:var(--text);line-height:1.15;
+  }
+
+  /* Download buttons */
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(245,158,11,0.1);
+    border:1px solid rgba(245,158,11,0.35);
+    color:var(--amber);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .dl-btn:hover{background:rgba(245,158,11,0.2)}
+  .dl-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+  .btn-link{
+    display:inline-flex;align-items:center;gap:6px;
+    background:rgba(6,182,212,0.1);
+    border:1px solid rgba(6,182,212,0.3);
+    color:var(--cyan);
+    font-size:13px;font-weight:600;
+    padding:6px 14px;border-radius:999px;
+    text-decoration:none;
+    transition:background 0.15s;
+  }
+  .btn-link:hover{background:rgba(6,182,212,0.2)}
+
+  /* Speaker notes */
+  .notes{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(5,8,16,0.95);backdrop-filter:blur(30px);
+    -webkit-backdrop-filter:blur(30px);
+    border-top:1px solid var(--card-border);
+    padding:20px 40px;z-index:95;
+    max-height:40vh;overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 300ms ease;
+  }
+  .notes.active{transform:translateY(0)}
+  .notes__header{
+    font-size:11px;font-weight:600;letter-spacing:0.2em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:8px;
+  }
+  .notes__body{font-size:15px;color:var(--text);line-height:1.5}
+
+  /* Reveal */
+  .slide.active .card,
+  .slide.active .dept,
+  .slide.active ul.clean li,
+  .slide.active ol.steps li{
+    animation:reveal 500ms ease backwards;
+  }
+  .slide.active .card:nth-child(1),.slide.active .dept:nth-child(1),.slide.active ul.clean li:nth-child(1),.slide.active ol.steps li:nth-child(1){animation-delay:60ms}
+  .slide.active .card:nth-child(2),.slide.active .dept:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2){animation-delay:120ms}
+  .slide.active .card:nth-child(3),.slide.active .dept:nth-child(3),.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3){animation-delay:180ms}
+  .slide.active .card:nth-child(4),.slide.active .dept:nth-child(4),.slide.active ul.clean li:nth-child(4),.slide.active ol.steps li:nth-child(4){animation-delay:240ms}
+  .slide.active .card:nth-child(5),.slide.active .dept:nth-child(5),.slide.active ul.clean li:nth-child(5),.slide.active ol.steps li:nth-child(5){animation-delay:300ms}
+  .slide.active .card:nth-child(6),.slide.active .dept:nth-child(6),.slide.active ul.clean li:nth-child(6),.slide.active ol.steps li:nth-child(6){animation-delay:360ms}
+  .slide.active .dept:nth-child(7),.slide.active ol.steps li:nth-child(7){animation-delay:420ms}
+
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:4px;border-radius:6px}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+  @media(max-width:700px){
+    .slide{padding:60px 24px 70px}
+  }
+</style>
+
+<style>
+/* ===== Skulpt compiler ===== */
+.compiler{
+  background:linear-gradient(180deg,rgba(10,13,19,1) 0%,rgba(15,20,34,1) 100%);
+  border:1px solid rgba(124,58,237,0.3);border-radius:12px;
+  overflow:hidden;font-family:'JetBrains Mono','Menlo',monospace;
+  font-size:13px;box-shadow:0 6px 24px rgba(124,58,237,0.1);
+}
+.compiler-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(124,58,237,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  color:#c4b5fd;font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.compiler-header .lang-badge::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-actions{display:flex;gap:6px;}
+.compiler-editor{
+  padding:14px 18px;color:#E2E8F0;max-height:260px;
+  overflow:auto;outline:none;white-space:pre;tab-size:4;line-height:1.55;
+}
+.compiler-editor[contenteditable="true"]:focus{background:rgba(124,58,237,0.03);}
+.compiler-btn{
+  padding:5px 12px;border:0;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:600;letter-spacing:0.05em;
+  cursor:pointer;transition:all 0.15s;color:#fff;
+}
+.compiler-btn.run{background:linear-gradient(135deg,#7C3AED,#06B6D4);}
+.compiler-btn.run:hover{filter:brightness(1.2);box-shadow:0 0 0 2px rgba(124,58,237,0.3);}
+.compiler-btn.reset{background:rgba(255,255,255,0.08);color:#94A3B8;}
+.compiler-btn.reset:hover{background:rgba(255,255,255,0.14);color:#E2E8F0;}
+.compiler-output{
+  display:none;border-top:1px solid rgba(255,255,255,0.08);
+  padding:10px 18px;background:#050810;color:#86efac;
+  font-size:12.5px;line-height:1.5;max-height:180px;
+  overflow:auto;white-space:pre-wrap;word-break:break-word;
+}
+.compiler-output.show{display:block;}
+.compiler-output.error{color:#fca5a5;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(function(){
+  function $(q,ctx){return (ctx||document).querySelector(q);}
+  function $$(q,ctx){return Array.from((ctx||document).querySelectorAll(q));}
+
+  function runPython(code,outEl,btnEl){
+    outEl.textContent='';outEl.className='compiler-output show';
+    if(typeof Sk==='undefined'){
+      outEl.className='compiler-output show error';
+      outEl.textContent='Skulpt загружается... обнови страницу.';return;
+    }
+    btnEl.disabled=true;btnEl.textContent='Выполняю...';
+    Sk.pre=null;
+    Sk.configure({
+      output:function(t){outEl.textContent+=t;},
+      read:function(f){
+        if(Sk.builtinFiles===undefined||Sk.builtinFiles["files"][f]===undefined)
+          throw "Файл не найден: "+f;
+        return Sk.builtinFiles["files"][f];
+      },
+      inputfun:function(p){return new Promise(function(res){res(window.prompt(p||'Введите:')||'');});},
+      inputfunTakesPrompt:true,__future__:Sk.python3,execLimit:12000
+    });
+    try{
+      Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);}).then(
+        function(){btnEl.disabled=false;btnEl.textContent='▶ Запустить';if(!outEl.textContent)outEl.textContent='(код выполнен, вывода нет)';},
+        function(err){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=err.toString?err.toString():String(err);}
+      );
+    }catch(e){btnEl.disabled=false;btnEl.textContent='▶ Запустить';outEl.className='compiler-output show error';outEl.textContent=e.toString();}
+  }
+
+  function init(){
+    $$('.compiler').forEach(function(wrap){
+      var editor=$('.compiler-editor',wrap),out=$('.compiler-output',wrap),
+          runBtn=$('.compiler-btn.run',wrap),resetBtn=$('.compiler-btn.reset',wrap);
+      if(!editor||!runBtn||!out)return;
+      var orig=editor.textContent;
+      runBtn.addEventListener('click',function(e){e.stopPropagation();runPython(editor.textContent,out,runBtn);});
+      if(resetBtn)resetBtn.addEventListener('click',function(e){e.stopPropagation();editor.textContent=orig;out.className='compiler-output';out.textContent='';});
+      editor.addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'    ');}});
+      editor.addEventListener('click',function(e){e.stopPropagation();});
+      editor.addEventListener('mousedown',function(e){e.stopPropagation();});
+    });
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">40</span></div>
+
+<main class="deck" id="deck">
+
+<!-- ============================
+     SLIDE 1: Cover (purple)
+     ============================ -->
+<section class="slide slide--cover active" style="background:#7C3AED;"
+  data-notes="Открываем урок 2. Поприветствуй учеников, напомни что они уже умеют запускать код. Сегодня — ключевая тема: переменные. Без них невозможно создать ни одну настоящую программу.">
+  <div class="game-icons">
+    <!-- gamepad SVG -->
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <rect x="10" y="22" width="60" height="36" rx="12" fill="white"/>
+      <rect x="18" y="34" width="4" height="12" rx="2" fill="#7C3AED"/>
+      <rect x="13" y="39" width="14" height="4" rx="2" fill="#7C3AED"/>
+      <circle cx="54" cy="36" r="3" fill="#7C3AED"/>
+      <circle cx="62" cy="40" r="3" fill="#7C3AED"/>
+      <circle cx="54" cy="44" r="3" fill="#7C3AED"/>
+      <circle cx="46" cy="40" r="3" fill="#7C3AED"/>
+      <rect x="34" y="38" width="12" height="4" rx="2" fill="#7C3AED"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div style="margin-bottom:18px">
+      <span class="cover__label">Урок №2</span>
+    </div>
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);line-height:1.2;font-weight:800;">
+        Что такое переменные<br>и как с ними работать
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 2: Переменные — что это
+     ============================ -->
+<section class="slide"
+  data-notes="Объясни метафору: переменная — это бирка с надписью на коробке. Коробка хранит значение, бирка — имя. Не нужно каждый раз писать число — достаточно написать имя. Покажи пример age = 14.">
+  <div class="slide__inner">
+    <h2>Переменные помогают Python <span class="accent">хранить информацию</span></h2>
+    <p>Переменная — это имя, которое мы даём значению, как бирку с надписью. Это нужно, чтобы не писать одно и то же число много раз в программе — достаточно использовать его имя.</p>
+    <p>Например, если написать <code>age = 10</code>, то дальше можно просто писать <code>age</code>, и программа сама подставит число 10.</p>
+    <p>В переменных могут быть не только числа, но и другие типы данных, например, текст.</p>
+    <div class="card">
+      <pre><code class="language-python">age = 14    # Программа запомнит, что возраст пользователя — 14 лет</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 3: Как создать переменную
+     ============================ -->
+<section class="slide"
+  data-notes="Синтаксис создания переменной. Имя слева, значение справа, знак = посередине. Попроси учеников прочитать формулу вслух: «имя_переменной = значение». Разберите пример age = 11.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">создать переменную</span></h2>
+    <p>Используйте знак <code>=</code>. Слева напишите имя переменной, справа — значение.</p>
+    <div class="quote-block">
+      <span style="color:var(--cyan)">Имя_переменной</span> = <span style="color:#F59E0B">значение</span>
+    </div>
+    <p>Например — <code>age = 11</code> — переменной <code>age</code> присвоено значение <code>11</code>.</p>
+    <div class="card">
+      <pre><code class="language-python">age = 14    # Программа запомнит, что возраст пользователя — 14 лет</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 4: Значение можно изменять
+     ============================ -->
+<section class="slide"
+  data-notes="Значение переменной можно перезаписать. Запусти компилятор: сначала height = 172, потом height = 185. Спроси: что выведет print(height)?">
+  <div class="slide__inner">
+    <h2>Значение в переменных <span class="accent">можно изменять</span></h2>
+    <p>Напишите имя переменной и новое число, чтобы изменить её значение. Например: <code>height = 185</code>. Теперь <code>height</code> указывает на это число.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">height = 172
+height = 185
+print(height)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 5: Переменные нужно называть понятно
+     ============================ -->
+<section class="slide"
+  data-notes="Вводим PEP8 — стандарт написания кода. Объясни: PEP8 — это договор разработчиков. Зачем? Чтобы любой мог прочитать чужой код как свой. Сравни VbeR и age — какая понятнее?">
+  <div class="slide__inner">
+    <h2>Переменные нужно <span class="accent">называть понятно</span></h2>
+    <p>Разработчики договорились использовать единые правила языка Python. Он называется <span class="amber">PEP8</span>. Это документ, в котором описали, как нужно писать код на Python. Документ помогает программистам легко читать код друг друга.</p>
+    <div class="grid grid--2" style="margin-top:4px">
+      <div class="card">
+        <p style="font-family:'JetBrains Mono',monospace;color:#f87171;font-size:15px">VbeR = 5</p>
+        <p style="margin-top:8px">Не понятно, что означает эта переменная.</p>
+      </div>
+      <div class="card">
+        <p style="font-family:'JetBrains Mono',monospace;color:#86efac;font-size:15px">age = 11</p>
+        <p style="margin-top:8px">Теперь понятно, что в переменной лежит значение возраста.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 6: Правило PEP8 #1 — snake_case
+     ============================ -->
+<section class="slide"
+  data-notes="Первое правило PEP8: snake_case. Маленькие буквы, слова через нижнее подчёркивание. Попроси учеников придумать имя переменной для скорости игрока по этому правилу.">
+  <div class="slide__inner">
+    <h2>Изучите первое правило <span class="accent">PEP8</span></h2>
+    <p>Пишите названия переменных маленькими буквами. Если название состоит из нескольких слов, их разделяют символом <code>_</code>, чтобы текст не сливался. Этот стиль называется <span class="amber">snake_case</span>.</p>
+    <p>Изучите, как правильно называть переменные на <span style="color:var(--cyan)">snake_case</span>:</p>
+    <ul class="clean">
+      <li><span style="color:var(--green);font-weight:700">✅</span>&nbsp; <code>player_speed</code>, <code>age</code> — это правильные названия переменных</li>
+      <li><span style="color:#f87171;font-weight:700">❌</span>&nbsp; <code>PlayerSpeed</code> — такие названия используют для классов, а не переменных</li>
+      <li><span style="color:#f87171;font-weight:700">❌</span>&nbsp; <code>playerspeed</code> — два слова слились в одно, такие переменные сложно читать</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 7: Правило PEP8 #2 — понятные имена
+     ============================ -->
+<section class="slide"
+  data-notes="Второе правило PEP8: называй переменные понятно. Имя должно подсказывать, что внутри. Исключение — математические задачи, где x, y, i — это нормально.">
+  <div class="slide__inner">
+    <h2>Изучите второе правило <span class="accent">PEP8</span></h2>
+    <p>Называйте переменные понятно. Имя переменной подсказывает, какие данные она хранит. Избегайте названий из одной буквы, чтобы другие люди понимали, что лежит в переменной.</p>
+    <p>Изучите примеры названия переменных:</p>
+    <ul class="clean">
+      <li><span style="color:var(--green);font-weight:700">✅</span>&nbsp; <code>age = 100</code> — другие разработчики поймут, что это возраст</li>
+      <li><span style="color:#f87171;font-weight:700">❌</span>&nbsp; <code>a = 100</code>, <code>x = 5</code> — придётся гадать, что это за переменные</li>
+      <li><span style="color:#F59E0B;font-weight:700">❗</span>&nbsp; <code>x</code>, <code>y</code>, <code>i</code> — в математических задачах можно использовать</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 8: Правило PEP8 #3 — регистр важен
+     ============================ -->
+<section class="slide"
+  data-notes="Третье правило PEP8: Python чувствителен к регистру. Level и level — разные переменные! Это частая ошибка новичков. Попроси привести примеры, когда регистр мог бы спутать.">
+  <div class="slide__inner">
+    <h2>Изучите третье правило <span class="accent">PEP8</span></h2>
+    <p>Python различает большие и маленькие буквы. Для компьютера <code>Level</code> и <code>level</code> — это две разные переменные. Пишите имя переменной всегда одинаково.</p>
+    <div class="card card--glow">
+      <p style="font-size:16px;color:var(--text)">Если вы создали переменную <code>score</code>, а потом используете <code>Score</code>, то программа выдаст ошибку или неверный результат.</p>
+    </div>
+    <div class="grid grid--2">
+      <div class="card">
+        <p style="font-family:'JetBrains Mono',monospace;color:#86efac;font-size:14px">score = 100<br>print(score)  # 100 ✅</p>
+      </div>
+      <div class="card">
+        <p style="font-family:'JetBrains Mono',monospace;color:#f87171;font-size:14px">score = 100<br>print(Score)  # NameError ❌</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 9: Правило PEP8 #4 — запрещённые имена
+     ============================ -->
+<section class="slide"
+  data-notes="Четвёртое правило: нельзя начинать с цифры, нельзя спецсимволы, нельзя зарезервированные слова. Покажи список: if, for, while, def, class, True, False. Спроси — какие из них ученики уже встречали?">
+  <div class="slide__inner">
+    <h2>Изучите четвёртое правило <span class="accent">PEP8</span></h2>
+    <ul class="clean">
+      <li>Нельзя начинать имя с цифры. Например, <code>1var</code> не подойдёт, а <code>var1</code> — подойдёт.</li>
+      <li>Нельзя использовать специальные символы: <span style="color:#F59E0B">@</span>, <span style="color:#F59E0B">#</span>, <span style="color:#F59E0B">$</span>, <span style="color:#F59E0B">%</span> или пробелы.</li>
+      <li>Нельзя использовать зарезервированные слова Python — он знает, что они означают.</li>
+    </ul>
+    <div class="card" style="margin-top:4px">
+      <p style="font-size:14px;color:var(--muted);margin-bottom:8px">Зарезервированные слова Python (использовать как имена переменных нельзя):</p>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#c4b5fd">if &nbsp; for &nbsp; while &nbsp; def &nbsp; class &nbsp; True &nbsp; False &nbsp; None &nbsp; and &nbsp; or &nbsp; not</p>
+    </div>
+    <p style="font-size:14px;color:var(--muted)">Если попробуете назвать переменную зарезервированным словом, программа выдаст ошибку.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 10: Типы данных — обзор
+     ============================ -->
+<section class="slide"
+  data-notes="Вводим типы данных. В Python переменная знает, что в ней лежит. Число? Текст? Python сам определяет тип. Спроси учеников: что можно хранить в переменной кроме числа?">
+  <div class="slide__inner">
+    <h2>Какие есть <span class="accent">типы данных</span></h2>
+    <p>В переменных могут храниться целые числа, дробные числа, слова и другие типы данных — например, списки или значения <code>True</code> и <code>False</code>.</p>
+    <p>Python определяет тип переменной по тому, что в неё записали. Если написать <code>age = 10</code>, то переменная будет ссылаться на целое число. Если написать <code>name = "Саша"</code>, то переменная будет ссылаться на строку.</p>
+    <div class="card">
+      <p style="color:var(--text)">Одна и та же переменная может сначала хранить число — слово, если вы присвоите ей новое значение другого типа.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 11: Тип int
+     ============================ -->
+<section class="slide"
+  data-notes="Тип int — целое число. Integer. Примеры из игр: уровень, очки, количество жизней. Попроси учеников назвать ещё примеры игровых переменных, которые будут int.">
+  <div class="slide__inner">
+    <h2>Переменным с целыми числами Python присваивает тип <span class="accent">int</span></h2>
+    <p><strong>Integer, или int</strong> — это целое число. Этот тип данных означает, что в переменной лежит число без дробной части. Например: <code>1</code>, <code>2</code>, <code>3</code>.</p>
+    <p>Вы также можете использовать этот тип, чтобы создать переменные для счётчиков, уровней или количества предметов. Например — <code>level = 1</code>, <code>xp = 500</code>.</p>
+    <div class="card">
+      <pre><code class="language-python">age = 120    # В переменной лежит целое число — 120. Это переменная типа Integer</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 12: Тип float
+     ============================ -->
+<section class="slide"
+  data-notes="Тип float — дробное число. Важно: разделитель — точка, не запятая! Это частая ошибка. Примеры: скорость, урон, координаты.">
+  <div class="slide__inner">
+    <h2>Переменным с дробными числами Python присваивает тип <span class="accent">float</span></h2>
+    <p><strong>Float, или float</strong> — это число с плавающей точкой. Этот тип данных означает, что в переменной лежит дробное число. Разделителем целой и дробной части всегда является <span style="color:#F59E0B">точка</span>, а не запятая. Например — <code>speed = 5.5</code>, <code>pi = 3.14</code>.</p>
+    <div class="card">
+      <pre><code class="language-python">damage = 15.5    # В переменной damage (урон) лежит число 15.5</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 13: Перезапись типа
+     ============================ -->
+<section class="slide"
+  data-notes="Тип переменной меняется при перезаписи. Сначала float, потом int. Python гибкий. Запусти компилятор — покажи, как меняется значение.">
+  <div class="slide__inner">
+    <h2>Как <span class="accent">перезаписать</span> переменную</h2>
+    <p>Вы можете сначала записать в переменную дробное число, а потом — целое. Переменная начнёт указывать на новое значение, и её тип изменится.</p>
+    <p>Например: <code>x = 3.5</code>, а потом <code>x = 10</code> — теперь x указывает на целое число.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">speed = 5.5    # дробное число 5,5
+speed = 5      # теперь целое число 5
+print(speed)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 14: Менять объект можно сколько угодно
+     ============================ -->
+<section class="slide"
+  data-notes="Переменная — это просто метка. Можно перевешивать на разные объекты сколько угодно раз. Запусти компилятор — покажи как x меняется три раза.">
+  <div class="slide__inner">
+    <h2>Вы можете менять объект, на который <span class="accent">ссылается переменная</span></h2>
+    <p>Вы можете менять значение переменной сколько угодно раз. В Python имя может в разное время ссылаться на объекты разных типов.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 5
+print(x)
+x = 10
+print(x)
+x = 100
+print(x)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <p style="font-size:14px;color:var(--muted)">Код три раза меняет значение переменной X. Сначала переменная ссылалась на число 5, потом на 10, в конце на 100.</p>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 15: Вопрос — разделитель дробных чисел
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Проверочный вопрос. Дай 30 секунд подумать. Ответ: точка. Кто ответил правильно — молодец! Напомни: в Python пишем 3.14, а не 3,14.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Какой символ используется<br>для разделения целой<br>и дробной части<br>для дробных чисел?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 16: Вопрос — правильное имя переменной
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Второй проверочный вопрос. Ответ: player_score (snake_case, маленькие буквы). PlayerScore — это стиль для классов, playerscore — слова слиплись.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Какое имя переменной написано<br>правильно в стиле Python:<br>PlayerScore,<br>player_score<br>или playerscore?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 17: Тип str
+     ============================ -->
+<section class="slide"
+  data-notes="Тип str — строка. Всё в кавычках — это текст. Даже цифры в кавычках — строка! Запусти компилятор: name = 'Алиса', print(name). Пусть ученики изменят имя на своё.">
+  <div class="slide__inner">
+    <h2>Переменная типа <span class="accent">str</span>, или string, ссылается на текст</h2>
+    <p><strong>String</strong> или строка — это цепочка символов. На языке Python переменные типа <code>str</code> используют, чтобы сослаться на текст.</p>
+    <p>Если значение переменной в кавычках — значит она ссылается на текст. В кавычках можно писать что угодно: буквы, цифры и знаки.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">name = "Алиса"         # строка — переменная ссылается на текст «Алиса»
+message = "Error 404"  # тоже строка, хотя содержит цифры
+print(name)
+print(message)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 18: Тип bool
+     ============================ -->
+<section class="slide"
+  data-notes="Тип bool — логическое значение. True или False. Спроси: когда в жизни мы отвечаем только Да или Нет? Пример: is_day = True — сейчас день?">
+  <div class="slide__inner">
+    <h2>Переменная типа <span class="accent">bool</span>, или boolean, ссылается на логическое значение</h2>
+    <p>Переменную типа <code>bool</code> используют, чтобы ссылаться на логическое значение — истина или ложь. Иногда надо сохранить не число или текст, а ответ на вопрос: «Да» или «Нет».</p>
+    <p>Переменная типа <code>bool</code> имеет два значения:</p>
+    <ol class="steps">
+      <li><strong style="color:var(--green)">True</strong>, или истина</li>
+      <li><strong style="color:#f87171">False</strong>, или ложь</li>
+    </ol>
+    <div class="card" style="margin-top:4px">
+      <pre><code class="language-python">is_day = True  # Сейчас день? Да — переменная is_day ссылается на True</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 19: Арифметические операции
+     ============================ -->
+<section class="slide"
+  data-notes="Арифметика с переменными. Четыре основные операции. Покажи, что с переменными можно делать то же, что с числами. Запусти пример — x + 5.">
+  <div class="slide__inner">
+    <h2>Значения переменных можно <span class="accent">складывать, вычитать, умножать и делить</span></h2>
+    <p>Есть четыре операции с числами:</p>
+    <ol class="steps">
+      <li><span style="color:var(--cyan)">«+»</span> — сложение</li>
+      <li><span style="color:var(--cyan)">«-»</span> — вычитание</li>
+      <li><span style="color:var(--cyan)">«*»</span> — умножение</li>
+      <li><span style="color:var(--cyan)">«/»</span> — деление</li>
+    </ol>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 10
+result = x + 5
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 20: Деление всегда float
+     ============================ -->
+<section class="slide"
+  data-notes="Особенность Python: деление / всегда возвращает float, даже если делится нацело. Чтобы получить целое число — используй int(). Запусти пример, обрати внимание на результаты.">
+  <div class="slide__inner">
+    <h2>Изучите, как <span class="accent">делить числа</span> в Python</h2>
+    <p>Результат всегда становится дробным, если делить числа:</p>
+    <ul class="clean">
+      <li>10 / 2 = <span style="color:#F59E0B">5.0</span></li>
+      <li>10 / 5 = <span style="color:#F59E0B">2.0</span></li>
+      <li>10 / 3 = <span style="color:#F59E0B">3.333...</span></li>
+    </ul>
+    <p>Если вам по задаче нужен результат в виде целого числа — используйте <strong><code>int()</code></strong>. Эта функция отбрасывает дробную часть.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = 10
+y = x / 3
+print(y)       # дробное число
+print(int(y))  # целое — дробная часть отброшена</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 21: Порядок арифметических действий
+     ============================ -->
+<section class="slide"
+  data-notes="Python считает как в математике: сначала умножение и деление, потом сложение и вычитание. Скобки меняют порядок. Пример с damage * bonus — интересен для геймеров.">
+  <div class="slide__inner">
+    <h2>Изучите порядок <span class="accent">арифметических действий</span></h2>
+    <p>Python сначала умножает и делит, а потом складывает и вычитает числа — как в математике. Скобки <code>()</code> меняют порядок — что в скобках, то считается первым.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">damage = 50
+bonus = 1.5
+total = 15 + damage * bonus  # сначала умножение, потом сложение
+print(total)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 22: Нельзя складывать текст и число
+     ============================ -->
+<section class="slide"
+  data-notes="Типы несовместимы при сложении. Строка + число = ошибка. Запусти пример с ошибкой — пусть ученики увидят, как выглядит TypeError. Скажи: это не страшно, сейчас научимся исправлять.">
+  <div class="slide__inner">
+    <h2>Нельзя складывать <span class="accent">текст и число</span></h2>
+    <p>Числа складывают с помощью знака <span style="color:var(--cyan)">«+»</span>, например, <code>2+2</code>. Строки с помощью знака <span style="color:var(--cyan)">«+»</span> склеивают, например, <code>"Вова" + "Крут"</code> — получится <code>"ВоваКрут"</code>.</p>
+    <p>Строки и числа нельзя складывать — Python выдаст ошибку.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = "10"       # x ссылается на текст «10»
+y = 5          # y ссылается на число 5
+result = x + y # Ошибка! Python не знает, что делать
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 23: Приведение типов int() str()
+     ============================ -->
+<section class="slide"
+  data-notes="Приведение типов: int() и str(). Это очень частая операция в реальных программах. Особенно при работе с вводом пользователя — всё что вводит пользователь, приходит строкой.">
+  <div class="slide__inner">
+    <h2>Как превратить <span class="accent">строку в число</span></h2>
+    <p>С помощью <code>int()</code> и <code>str()</code> можно преобразовать текст в число и число в текст. Это называется <strong>«приведение типов»</strong>:</p>
+    <ul class="clean">
+      <li><code>int()</code> — превращает в целое число</li>
+      <li><code>str()</code> — превращает в текст</li>
+    </ul>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">x = "10"       # x ссылается на текст «10»
+y = int(x)     # текст «10» превратился в число 10
+result = y + 5 # теперь работает!
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 24: Вопрос — символ умножения
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Быстрый вопрос: символ умножения. Ответ: * (звёздочка). В математике пишут × или ·, в Python — только *.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,3vw,40px);font-weight:800;line-height:1.2;">
+        Какой символ используется<br>для умножения?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 25: Вопрос — тип результата деления
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Вопрос: 100 / 2 — какой тип? Ответ: float (50.0). В Python деление / всегда возвращает float, даже если результат «целый».">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,3vw,40px);font-weight:800;line-height:1.2;">
+        Какой тип данных получится<br>в результате выполнения<br>операции 100 / 2?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 26: Вопрос — формула score + 10 * 2
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Вопрос на понимание приоритета операций. Ответ: (score + 10) * 2. Сначала нужно прибавить 10, потом умножить — значит нужны скобки! Без скобок умножение будет первым.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(20px,2.6vw,32px);font-weight:800;line-height:1.2;">
+        Как записать формулу:<br>«К переменной score<br>прибавить 10, а затем<br>результат умножить на 2»?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 27: Вопрос — int(6/3) vs 6/3
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Хороший вопрос на понимание типов. Ответ: 6/3 возвращает float (2.0), потому что / всегда float. int(6/3) берёт это 2.0 и преобразует в int — получается 2.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(22px,2.8vw,36px);font-weight:800;line-height:1.2;">
+        Почему результат<br>int(6 / 3) равен 2,<br>а результат 6 / 3<br>равен 2.0?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 28: Три оператора деления
+     ============================ -->
+<section class="slide"
+  data-notes="Три вида деления: / дробное, // целочисленное, % остаток. Это важно для многих задач. Покажи пример с 130 / 60 — время в часах и минутах.">
+  <div class="slide__inner">
+    <h2>Как делить нацело <span class="accent">без остатка</span></h2>
+    <p>В Python есть три оператора деления — <span style="color:var(--cyan)">«/»</span>, <span style="color:var(--cyan)">«//»</span> и <span style="color:var(--cyan)">«%»</span>. Их используют, чтобы поделить с остатком, нацело или найти остаток.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">first = 130 / 60    # обычное деление — float: 2.166...
+second = 130 // 60  # целочисленное деление — 2
+third = 130 % 60    # остаток от деления — 10
+print(first)
+print(second)
+print(third)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 29: Оператор //
+     ============================ -->
+<section class="slide"
+  data-notes="Оператор // — сколько раз одно число помещается в другое. Отвечает на вопрос: «сколько целых раз?». Пример: 17 // 5 = 3, потому что 5 помещается в 17 ровно 3 раза (остаток 2).">
+  <div class="slide__inner">
+    <h2>Как делить с помощью <span class="accent">«//»</span></h2>
+    <p>Операция <span style="color:var(--cyan)">«//»</span> возвращает результат деления без остатка. Операция поможет ответить на вопрос: «сколько целых раз одно число помещается в другое?»</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">result = 17 // 5   # 5 помещается в 17 ровно 3 раза
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card">
+      <p style="color:var(--text)">5 × 3 = 15 → 17 − 15 = 2 (остаток). Переменная <code>result</code> ссылается на число <span style="color:#F59E0B;font-weight:700">3</span>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 30: Оператор %
+     ============================ -->
+<section class="slide"
+  data-notes="Оператор % — остаток от деления. Объясни на примере: 130 % 60. 60 помещается в 130 дважды (120), остаток 10. Этот оператор часто используется для проверки чётности, цикличности и задач со временем.">
+  <div class="slide__inner">
+    <h2>Как делить с помощью <span class="accent">«%»</span></h2>
+    <p>Операция <span style="color:var(--cyan)">«%»</span> возвращает то, что осталось после деления на целое число.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">result = 130 % 60  # остаток от деления 130 на 60
+print(result)</div>
+      <div class="compiler-output"></div>
+    </div>
+    <div class="card">
+      <p style="color:var(--text)">Если разделить 130 на 60, целое число 60 поместится в 130 дважды. Разница между исходным числом и полученным результатом составляет 130 − 120 = <span style="color:#F59E0B;font-weight:700">10</span>. Переменная <code>result</code> ссылается на число 10.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 31: Задача со временем
+     ============================ -->
+<section class="slide"
+  data-notes="Практическая задача: минуты → часы и минуты. 135 минут = 2 ч 15 мин. Как? // даёт часы, % даёт минуты. Запусти компилятор — пусть ученики проверят с другим числом минут.">
+  <div class="slide__inner">
+    <h2>Изучи пример задачи со временем, <span class="accent">где используют деление</span></h2>
+    <p>Программа получает длительность фильма в минутах, например, 135. Такой формат неудобно читать. Ваша задача — преобразовать это в понятный формат: <strong>2 ч 15 мин</strong>.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">movie = 135
+hours = movie // 60    # целочисленное деление — получим 2
+minutes = movie % 60   # остаток — получим 15
+print(hours, "ч", minutes, "мин")</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 32: Задача с автобусами
+     ============================ -->
+<section class="slide"
+  data-notes="Задача с автобусами — ещё один практический пример. Обрати внимание: 5 учеников и 20 мест — автобусов нужно 0 (не заполнится ни один), такси 0 (5 учеников влезут в один автобус). Попроси учеников изменить числа.">
+  <div class="slide__inner">
+    <h2>Изучи пример задачи с количеством мест, <span class="accent">где используют деление</span></h2>
+    <p>Представьте, что нужно перевезти класс на экскурсию. У школы есть автобусы. Если кто-то из класса не влезет, для них вызовут дополнительно такси.</p>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">students = 5
+seats = 20
+buses = students // seats  # сколько полных автобусов
+taxi = students % seats    # сколько остаётся — едут на такси
+print("Автобусов:", buses)
+print("В такси:", taxi)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 33: Вопрос — 25 // 3
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Быстрый вопрос: 25 // 3. Ответ: 8. Потому что 3 × 8 = 24, это максимум который помещается в 25. Остаток — 1.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(26px,4vw,52px);font-weight:800;line-height:1.2;">
+        Чему равно<br>25 // 3?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 34: Вопрос — 25 % 3
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Вопрос: 25 % 3. Ответ: 1. Потому что 3 × 8 = 24, а 25 − 24 = 1. Связано с предыдущим вопросом — показывает связь между // и %.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble cover-bubble--speech">
+      <h1 style="color:#1a1a2e;font-size:clamp(26px,4vw,52px);font-weight:800;line-height:1.2;">
+        Чему равно<br>25 % 3?
+      </h1>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 35: Практическое задание — кафе
+     ============================ -->
+<section class="slide"
+  data-notes="Практическое задание. Дай 5–7 минут на самостоятельную работу. Задача: посчитать сумму за бургеры для любого количества гостей. Пусть ученики попробуют сами, без подсказки — алгоритм будет на следующем слайде.">
+  <div class="slide__inner">
+    <h2>Выполните практическое задание, <span class="accent">чтобы закрепить материал</span></h2>
+    <p>Представьте, что вы часто ходите в кафе с друзьями и угощаете их бургерами. Но каждый раз количество друзей разное — иногда приходит двое, иногда трое.</p>
+    <div class="card card--glow">
+      <p style="font-size:16px;color:var(--text)"><strong>Задача:</strong> напишите программу, которая посчитает общую сумму для любого количества гостей. Запишите цену комбо в переменную, количество друзей — в другую переменную и рассчитайте итоговую сумму.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 36: Алгоритм решения задания
+     ============================ -->
+<section class="slide"
+  data-notes="Алгоритм задания. Пять шагов. Обрати внимание на шаг 3: общее количество людей = друзья + вы (то есть +1). Пусть ученики попробуют написать код по этому алгоритму.">
+  <div class="slide__inner">
+    <h2>Изучите алгоритм, который <span class="accent">поможет решить задание</span></h2>
+    <ol class="steps">
+      <li>Запишите цену комбо в переменную</li>
+      <li>Запишите количество друзей в переменную</li>
+      <li>Посчитайте общее количество людей — друзья + вы</li>
+      <li>Умножьте цену на количество людей</li>
+      <li>Выведите результат</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 37: Решение задания
+     ============================ -->
+<section class="slide"
+  data-notes="Разбираем решение вместе. Обрати внимание на total_people = friends + 1 (вы тоже едите!). Запусти компилятор — пусть ученики изменят цену и количество друзей и проверят результат.">
+  <div class="slide__inner">
+    <h2>Изучите <span class="accent">решение задания</span></h2>
+    <div class="compiler" data-lang="python">
+      <div class="compiler-header">
+        <span class="lang-badge">Python — решение</span>
+        <div class="compiler-actions">
+          <button class="compiler-btn reset" type="button">↻ Сбросить</button>
+          <button class="compiler-btn run" type="button">▶ Запустить</button>
+        </div>
+      </div>
+      <div class="compiler-editor" contenteditable="true" spellcheck="false">combo_price = 250           # цена комбо — 250 рублей
+friends = 2                # количество друзей — 2
+total_people = friends + 1  # общее количество людей — друзья + вы
+total_cost = combo_price * total_people  # итоговая стоимость — 750
+print(total_cost)</div>
+      <div class="compiler-output"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 38: Домашнее задание — интернет-магазин
+     ============================ -->
+<section class="slide"
+  data-notes="Домашнее задание. Похоже на задание в классе, но другая тема — интернет-магазин. Есть три переменные: цена наклейки, количество и стоимость доставки. Нужно посчитать итог. Алгоритм — на следующем слайде.">
+  <div class="slide__inner">
+    <h2>Домашнее задание: напишите программу, <span class="accent">которая считает сумму</span></h2>
+    <p>Представьте, что вы часто заказываете товары в интернет-магазине — то наклейки для ноутбука, то значки, то стикеры. Каждый раз нужно считать: сколько штук заказать и хватит ли денег с учётом доставки.</p>
+    <div class="card card--glow">
+      <p style="font-size:16px;color:var(--text)"><strong>Задача:</strong> напишите программу, которая будет считать итоговую стоимость для любого товара и любого количества. Запишите цену одной наклейки, количество штук и стоимость доставки в переменные, а потом рассчитайте общую сумму.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 39: Алгоритм домашнего задания
+     ============================ -->
+<section class="slide"
+  data-notes="Алгоритм для домашнего задания — 6 шагов. Пусть ученики спишут или сфотографируют. Напомни: задание сдавать через платформу, нужно поделиться ссылкой на Google Colab.">
+  <div class="slide__inner">
+    <h2>Изучите алгоритм, чтобы <span class="accent">решить задание</span></h2>
+    <ol class="steps">
+      <li>Запишите цену одной наклейки в переменную. Например, 50 ₽.</li>
+      <li>Запишите количество наклеек в переменную. Например, 3 шт.</li>
+      <li>Запишите стоимость доставки в переменную. Например, 150 ₽.</li>
+      <li>Посчитайте стоимость всех наклеек — цена × количество.</li>
+      <li>Прибавьте стоимость доставки.</li>
+      <li>Выведите итоговую сумму.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================
+     SLIDE 40: Как отправить задание (финал — green cover)
+     ============================ -->
+<section class="slide slide--cover" style="background:#22c55e;"
+  data-notes="Финальный слайд. Объясни, как отправить задание. Четыре шага: Поделиться → изменить доступ → скопировать ссылку → вставить в карточку на платформе. Покажи вживую, если ученики не знают.">
+  <div class="game-icons">
+    <svg width="100" height="100" style="top:30px;left:50px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 50,30 76,30 55,48 63,72 40,56 17,72 25,48 4,30 30,30" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="top:30px;right:70px" viewBox="0 0 80 80" fill="none">
+      <path d="M40 68C40 68 8 50 8 28a18 18 0 0 1 32 0 18 18 0 0 1 32 0C72 50 40 68 40 68Z" fill="white"/>
+    </svg>
+    <svg width="90" height="90" style="bottom:50px;left:70px" viewBox="0 0 80 80" fill="none">
+      <rect x="10" y="22" width="60" height="36" rx="12" fill="white"/>
+      <rect x="18" y="34" width="4" height="12" rx="2" fill="#22c55e"/>
+      <rect x="13" y="39" width="14" height="4" rx="2" fill="#22c55e"/>
+      <circle cx="54" cy="36" r="3" fill="#22c55e"/>
+      <circle cx="62" cy="40" r="3" fill="#22c55e"/>
+      <circle cx="54" cy="44" r="3" fill="#22c55e"/>
+      <circle cx="46" cy="40" r="3" fill="#22c55e"/>
+    </svg>
+    <svg width="80" height="80" style="bottom:50px;right:60px" viewBox="0 0 80 80" fill="none">
+      <polygon points="40,6 74,32 40,74 6,32" fill="white"/>
+    </svg>
+    <svg width="75" height="75" style="top:50%;left:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">X</text>
+    </svg>
+    <svg width="75" height="75" style="top:50%;right:30px;transform:translateY(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">B</text>
+    </svg>
+    <svg width="75" height="75" style="top:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">Y</text>
+    </svg>
+    <svg width="75" height="75" style="bottom:20px;left:50%;transform:translateX(-50%)" viewBox="0 0 70 70" fill="none">
+      <circle cx="35" cy="35" r="32" stroke="white" stroke-width="3" fill="none"/>
+      <text x="35" y="43" text-anchor="middle" font-size="26" font-weight="800" fill="white" font-family="Inter">A</text>
+    </svg>
+  </div>
+  <div style="text-align:center;z-index:2;position:relative">
+    <div class="cover-bubble" style="max-width:640px">
+      <h1 style="color:#1a1a2e;font-size:clamp(17px,2vw,24px);font-weight:800;line-height:1.4;text-align:left">
+        Как отправить задание на проверку
+      </h1>
+      <ol style="text-align:left;margin-top:14px;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:clamp(13px,1.3vw,17px);color:#1a1a2e;font-weight:600">
+        <li>Нажмите кнопку <strong>«Поделиться»</strong> в правом верхнем углу в Google Colab</li>
+        <li>Измените доступ на <strong>«Все, у кого есть ссылка»</strong></li>
+        <li>Нажмите <strong>«Копировать ссылку»</strong></li>
+        <li>Вставьте ссылку в карточку задания на платформе</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки для преподавателя</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<!-- Navigation hint -->
+<div class="hint">
+  <kbd>←</kbd><kbd>→</kbd> слайды &nbsp;·&nbsp; <kbd>N</kbd> заметки &nbsp;·&nbsp; <kbd>F</kbd> полный экран &nbsp;·&nbsp; <kbd>Esc</kbd> выход
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+<script>
+(function(){
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  function render(){
+    slides.forEach(function(s,i){
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx+1)/total*100).toFixed(2)+'%';
+    currentEl.textContent = idx+1;
+    notesBody.textContent = slides[idx].dataset.notes || '—';
+    if(window.Prism) Prism.highlightAllUnder(slides[idx]);
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if(active && (active.isContentEditable || active.tagName==='TEXTAREA' || active.tagName==='INPUT')) return;
+    switch(e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End':  e.preventDefault(); go(total-1); break;
+      case 'f': case 'F':
+        e.preventDefault();
+        if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); }
+        else { document.exitFullscreen && document.exitFullscreen(); }
+        break;
+      case 'n': case 'N':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if(document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  // Touch swipe
+  var tx=0, ty=0;
+  document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){dx<0?next():prev();}
+  },{passive:true});
+
+  // Click zones
+  document.addEventListener('click',function(e){
+    if(e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.compiler')) return;
+    var x=e.clientX, w=window.innerWidth;
+    if(x<w*0.25) prev();
+    else if(x>w*0.75) next();
+  });
+
+  if(window.Prism) Prism.highlightAll();
+  render();
+})();
+</script>
+
+</body>
+</html>

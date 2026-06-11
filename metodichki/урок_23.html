@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 23 — Как работать с файлами. Часть 2 | Методичка | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#0B0F17;--bg2:#141925;--card:rgba(255,255,255,0.04);--card-border:rgba(255,255,255,0.08);--text:#F1F5F9;--muted:#94A3B8;--v:#7C3AED;--c:#06B6D4;--warn:#F59E0B;--ok:#10B981;--err:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 1200px 600px at 10% 0%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse 1000px 500px at 90% 100%,rgba(6,182,212,.1),transparent);pointer-events:none;z-index:-1}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(11,15,23,.9);backdrop-filter:blur(18px);border-bottom:1px solid var(--card-border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{font-weight:700;font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.topbar .brand b{color:#a78bfa}
+.topbar a.back{color:var(--muted);text-decoration:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.topbar a.back:hover{color:var(--text);background:var(--card);border-color:var(--card-border)}
+.content{max-width:860px;margin:0 auto;padding:48px 40px 80px}
+h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px;background:linear-gradient(90deg,var(--v),var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta{font-size:13px;color:var(--muted);margin-bottom:32px;display:flex;flex-wrap:wrap;gap:8px}
+.meta span{background:var(--card);border:1px solid var(--card-border);padding:3px 10px;border-radius:999px}
+h2{font-size:22px;font-weight:700;margin:36px 0 14px;color:var(--text)}
+h3{font-size:17px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+h4{font-size:15px;font-weight:600;margin:18px 0 8px;color:var(--muted)}
+p{margin-bottom:12px;font-size:16px;line-height:1.7}
+ul,ol{padding-left:20px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+li{font-size:15px;line-height:1.55}
+code{font-family:'JetBrains Mono',monospace;background:rgba(124,58,237,.15);color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:.88em;border:1px solid rgba(124,58,237,.25)}
+pre{background:#1a1f2e;border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;margin:14px 0;overflow-x:auto}
+pre code{background:none;color:#a7f3d0;padding:0;border:none;font-size:.9em}
+strong{font-weight:700;color:var(--text)}
+em{color:#a78bfa;font-style:normal;font-weight:500}
+.section-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px 32px;margin:20px 0;backdrop-filter:blur(10px)}
+.section-card h2{margin-top:0}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+.badge-v{background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.3)}
+.badge-c{background:rgba(6,182,212,.15);color:#67e8f9;border:1px solid rgba(6,182,212,.3)}
+.badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+hr{border:none;border-top:1px solid var(--card-border);margin:32px 0}
+blockquote{border-left:3px solid var(--v);padding:10px 18px;margin:14px 0;background:rgba(124,58,237,.07);border-radius:0 10px 10px 0;font-style:italic;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0}
+th{background:rgba(124,58,237,.15);color:#a78bfa;font-size:13px;font-weight:600;padding:10px 14px;text-align:left;border:1px solid var(--card-border)}
+td{padding:9px 14px;border:1px solid var(--card-border);font-size:14px;vertical-align:top}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+@media(max-width:700px){.content{padding:32px 20px 60px}.topbar{padding:12px 20px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Eduson Kids · <b>Методичка</b></div>
+  <a class="back" href="../index.html">← На главную</a>
+</div>
+<div class="content">
+  <h1>Урок 23</h1>
+  <h2 style="margin-top:4px;font-size:20px;background:none;color:var(--text);-webkit-background-clip:unset;background-clip:unset">Как работать с файлами. Часть 2</h2>
+  <div class="meta"><span>Отдел:</span> <span>6.</span> <span>Интеграции</span> <span>Неделя:</span> <span>23</span> <span>Возраст:</span> <span>8–14</span> </div>
+  <p><strong>Отдел:</strong> 6. Интеграции <strong>Неделя:</strong> 23 <strong>Возраст:</strong> 8–14</p>
+<h2>🎯 Цель</h2>
+<p>Углубить работу с файлами: методы <code>readlines()</code>, <code>writelines()</code>, <code>seek()</code>, <code>tell()</code>; бинарные режимы <code>rb</code>/<code>wb</code>; режим <code>x</code> (создание нового файла); обработка ошибок через <code>try/except</code>.</p>
+<h2>📚 Результаты (из источника)</h2>
+<p>Ученик понимает: что такое файловые объекты и курсор; как работать с бинарными файлами; как использовать <code>readlines</code>/<code>writelines</code>/<code>seek</code>/<code>tell</code>; как обрабатывать ошибки <code>try/except</code>; зачем режим <code>x</code>. Ученик может: читать и записывать файлы целиком и построчно; перемещать курсор; работать с бинарными файлами; обрабатывать ошибки; комбинировать файлы с циклами, условиями и функциями; сохранять сложные данные.</p>
+<h2>🛠️ Инструменты</h2>
+<p>GigaIDE, Python 3.11, YandexGPT, одно маленькое тестовое изображение (<code>.png</code>) рядом с проектом для демо бинарного режима.</p>
+<h2>⚙️ Техтребования</h2>
+<p>Стандарт + небольшой файл <code>cat.png</code> (~20 КБ) для копирования в бинарном режиме.</p>
+<h2>🕐 Поминутный план (60 мин)</h2>
+<ul>
+<li><strong>0–5.</strong> Приветствие + разбор ДЗ (todo-список).</li>
+<li><strong>5–15.</strong> Теория. Новые методы:</li>
+</ul>
+<pre><code class="language-python">  with open("notes.txt", "r", encoding="utf-8") as f:
+      lines = f.readlines()        # список строк с \n
+      print(lines)
+
+  with open("notes.txt", "w", encoding="utf-8") as f:
+      f.writelines(["a\n", "b\n", "c\n"])</code></pre>
+<p>  Курсор:</p>
+<pre><code class="language-python">  with open("notes.txt", "r", encoding="utf-8") as f:
+      print(f.tell())   # 0
+      f.read(5)
+      print(f.tell())   # 5
+      f.seek(0)
+      print(f.read())</code></pre>
+<p>  Бинарный режим:</p>
+<pre><code class="language-python">  with open("cat.png", "rb") as src, open("cat_copy.png", "wb") as dst:
+      dst.write(src.read())</code></pre>
+<p>  <code>try/except</code>:</p>
+<pre><code class="language-python">  try:
+      with open("no_such.txt", "r") as f:
+          print(f.read())
+  except FileNotFoundError:
+      print("Файла нет, создам новый")</code></pre>
+<p>  Режим <code>x</code> — «создать, если нет; упасть, если есть». Полезно для инициализации.</p>
+<ul>
+<li><strong>15–45.</strong> Практика.</li>
+</ul>
+<p>  1. <code>readlines</code> + цикл: пронумеровать и вывести строки <code>notes.txt</code>.</p>
+<p>  2. Копирование <code>cat.png</code> в <code>cat_copy.png</code> бинарно — открыть в папке, убедиться, что картинка отображается.</p>
+<p>  3. <code>try/except</code> вокруг чтения: если файл не найден — вывести «Файла нет, создаю» и создать пустой через <code>x</code>.</p>
+<ul>
+<li><strong>45–55.</strong> Мини-проект «Лог игры». Каждый запуск программы дописывает в <code>game_log.txt</code> строку вида «2026-04-20 14:32 — запущено». Время — через <code>time.strftime</code>. Перед чтением — <code>try/except</code>. Вывод числа запусков.</li>
+<li><strong>55–60.</strong> Итог + ДЗ. Анонс «Квиз в консоли».</li>
+</ul>
+<h2>💬 Ключевые фразы преподавателя</h2>
+<ol>
+<li>«<code>readlines</code> — одна команда, список всех строк. Удобно для структурированных данных».</li>
+<li>«Курсор — это "указка" в файле. <code>tell</code> — где я стою; <code>seek</code> — переместись».</li>
+<li>«Бинарный режим <code>rb</code>/<code>wb</code> — для картинок, музыки, всего не-текстового».</li>
+<li>«<code>try/except</code> — это ремень безопасности программы. Файла нет? Не падаем, разбираемся».</li>
+<li>«<code>except FileNotFoundError</code> — ловим КОНКРЕТНУЮ ошибку. Голый <code>except</code> — плохой стиль».</li>
+<li>«Режим <code>x</code> — страховка: не хочу случайно переписать готовый файл».</li>
+<li>«<code>time.strftime("%Y-%m-%d %H:%M")</code> — форматирование времени. Запомни паттерн».</li>
+<li>«Не забывай <code>encoding="utf-8"</code> в текстовых режимах. В бинарных — не надо».</li>
+<li>«<code>readlines</code> возвращает строки СО символом <code>\n</code> — не забывай <code>.strip()</code>».</li>
+<li>«Теперь ты умеешь сохранять навсегда и не бояться ошибок. Пора делать квиз».</li>
+</ol>
+<h2>🎨 Мини-проект</h2>
+<p>«Лог игры» (описан выше) — связка <code>a</code>, <code>time</code>, <code>try/except</code>, подсчёта строк через <code>readlines</code>.</p>
+<h2>🏠 ДЗ (≤20 мин)</h2>
+<ol>
+<li>Скопировать любую картинку с рабочего стола через <code>rb</code>/<code>wb</code>. Убедиться, что копия открывается.</li>
+<li>Написать программу: если <code>todo.txt</code> отсутствует — создать через <code>x</code> и предложить добавить задачу; иначе — показать задачи.</li>
+<li>Посчитать количество строк в любимой книге в виде <code>.txt</code> файла (попросить Алису сгенерировать 30 строк любой сказки).</li>
+</ol>
+<h2>✅ Критерии успеха</h2>
+<p>Ребёнок использует <code>readlines</code>/<code>writelines</code>; ловит <code>FileNotFoundError</code> через <code>try/except</code>; копирует бинарный файл; понимает роль <code>seek</code>/<code>tell</code>.</p>
+<h2>⚠️ Сложности и решения</h2>
+<ol>
+<li><strong>Голый <code>except</code> — ловит всё.</strong> Учим писать конкретный: <code>except FileNotFoundError</code>.</li>
+<li><strong>Открывают картинку в текстовом режиме.</strong> Получают <code>UnicodeDecodeError</code> — разбираем.</li>
+<li><strong>Забывают закрыть файл и думают, что данные сохранились.</strong> Всегда <code>with</code>, напоминаю.</li>
+<li><strong><code>seek(-1)</code> без флага в текстовом режиме — ошибка.</strong> Показываю, переходим в <code>rb</code> при необходимости.</li>
+<li><strong>Не знают, где файлы лежат.</strong> Визит в проводник обязателен.</li>
+</ol>
+<h2>🎁 Бонус для опережающих</h2>
+<p>«Шифровальщик»: программа читает <code>secret.txt</code>, сдвигает каждую букву на +3 (цезарь), сохраняет в <code>secret_enc.txt</code>. Обратный процесс — дешифратор.</p>
+<h2>🤖 Где подключаем ИИ</h2>
+<p>YandexGPT: «Объясни, зачем нужен try/except в работе с файлами. Приведи 3 примера ошибок». Ребёнок читает, пересказывает, применяет в «Логе игры». Плюс — генерация тестовых <code>.txt</code> файлов для ДЗ.</p>
+<hr>
+</div>
+</body>
+</html>
